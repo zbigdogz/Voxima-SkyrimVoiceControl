@@ -1,23 +1,6 @@
-# Voxima-SkyrimVoiceControl
+# Voxima - Skyrim Voice Control
 
 This is the readme
-
-## TODO
-1.) Events to trigger "CheckUpdate":
-    [X] Vampire/Werewolf Morph Checks
-    [X] Learn Spells/Powers
-    [ ] Unlearn Spells/Powers
-    [X] Horse/Dragon (Camera State)
-    [X] Sheathe/Draw Weapon
-    [ ] Learn Shout?
-
-2.) Implement your speech dictionary tool
-
-3.) Make a new Repo for C# with all traces of personal information gone
-
-4.) Make a new GitHub
-
-6.) Make a GitHub wiki
 
 
 XINPUT for C#
