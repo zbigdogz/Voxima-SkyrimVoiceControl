@@ -2,8 +2,8 @@
 # If you use CMake features from higher versions, update this to match.
 cmake_minimum_required(VERSION 3.21)
 
-# Set your project name. This will be the name of your SKSE .dll file.
-project(DragonbornUnlimited VERSION 0.0.2 LANGUAGES CXX)
+# Set your project name. This will be the name of your SKSE .dll file. Version Notation = major.minor.patch.tweak
+project(DragonbornUnlimited VERSION 0.0.0.2 LANGUAGES CXX)
 
 # Set name of project folder
 set(FOLDER_NAME "Dragonborn Unlimited")
