@@ -1033,17 +1033,6 @@ static void MoveHorse(MoveType moveType) {
      */
 }
 
-//// Open Journal menu (courtesy of shad0wshayd3)
-// void OpenJournal(bool a_thisCanBeTrueOrFalseButIdoNotKnowWhatThatDoes = true) {
-//      REL::Relocation<void (*)(bool)> func{RELOCATION_ID(52428, 53327)};
-//    return func(true);
-//
-//    /*using func_t = decltype(&OpenJournal);
-//    REL::Relocation<func_t> func{RELOCATION_ID(52428, 53327)};
-//    return func(a_thisCanBeTrueOrFalseButIdoNotKnowWhatThatDoes);*/
-//}
-
-
 // Open or close menu of interest
 void MenuInteraction(MenuType type, MenuAction action) {
     RE::BSFixedString menuName;
@@ -1116,8 +1105,8 @@ void MenuInteraction(MenuType type, MenuAction action) {
 
 // Extend IUIMessageData and add refHandle member
 class RefHandleUIData : public RE::IUIMessageData {
-public:
-    uint32_t refHandle;  // 10
+    public:
+        uint32_t refHandle;  // 10
 };
 
 // Retrieve all map markers in the game (courtesy of Nightfallstorm)
@@ -1178,10 +1167,6 @@ std::vector<std::string> GetKnownLocations() {
 void* SKSE_CreateUIMessageData(RE::BSFixedString a_name) {
     REL::Relocation<void* (*)(RE::BSFixedString)> func{RELOCATION_ID(22825, 35855)};
     return func(a_name);
-
-    /*using func_t = decltype(&SKSE_CreateUIMessageData);
-    REL::Relocation<func_t> func{RELOCATION_ID(22825, 35855)};
-    return func(a_name);*/
 }
 
 // Focus world map view on target location
@@ -1190,6 +1175,7 @@ void FocusOnMapMarker(RE::TESObjectREFR* markerRef) {
     if (!RE::UI::GetSingleton()->IsMenuOpen(RE::MapMenu::MENU_NAME)) return;
 
     /*
+        // Check if menu is NOT open, and if so then open it
         if (RE::UI::GetSingleton()->IsMenuOpen(RE::MapMenu::MENU_NAME) == false) {
         MenuInteraction(MenuType::Map, MenuAction::Open);
         while (RE::UI::GetSingleton()->IsMenuOpen(RE::MapMenu::MENU_NAME) == false)
@@ -1224,6 +1210,30 @@ void NavigateToPlayer() {
     FocusOnMapMarker(playerRef);
 }
 
+/// *** Work in progress
+// Navigate to player's custom world map marker
+//void NavigateToCustomMarker() {
+//
+//    //https://discord.com/channels/535508975626747927/535530099475480596/1096307972902244423
+//
+//    /*RE::DebugNotification("place marker");
+//
+//    auto PlayerCharacter = RE::PlayerCharacter::GetSingleton();
+//    if (!PlayerCharacter) {
+//        return;
+//    }
+//    auto test = PlayerCharacter->GetPlayerRuntimeData().questTargetsLock*/
+//
+//    //*** player's custom quest marker = playerMapMarker
+//
+//
+//    /*auto test = player->HasQuestObject();
+//    auto test3 = player->GetActorRuntimeData().;
+//    auto yes = test3.
+//    auto test2 = RE::BGSQuestObjective;*/
+//
+//}
+
 //void PlaceMarker() {
 //    REL::Relocation<void (*)()> func{RELOCATION_ID(52226, 53113)};
 //    return func();
@@ -1235,22 +1245,7 @@ void NavigateToPlayer() {
 //    return func();
 //}
 
-///// *** Work in progress
-//// Navigate to player's custom world map marker
-//void NavigateToCustomMarker() { 
-//    
-//    RE::DebugNotification("place marker");
-//
-//    const auto objectives = test;
-//
-//
-//    PlaceMarker();
-//    /*auto test = player->HasQuestObject();
-//    auto test3 = player->GetActorRuntimeData().;
-//    auto yes = test3.
-//    auto test2 = RE::BGSQuestObjective;*/
-//
-//}
+
 
 #pragma endregion
 

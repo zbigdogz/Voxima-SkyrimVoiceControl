@@ -1067,7 +1067,7 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
         {"MapMenu", MenuType::Map}, {"StatsMenu", MenuType::Skills}, {"Sleep/Wait Menu", MenuType::SleepWait}, {"TweenMenu", MenuType::Tween}, 
     };
     auto it = table.find(menuName);
-    if (it != table.end()) // Match found within enums
+    if (it != table.end()) // Check if match was found within enums
         type = it->second;
     else // No enum match found
         return;
