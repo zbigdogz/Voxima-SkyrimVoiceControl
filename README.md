@@ -29,5 +29,4 @@ Here are the currently supported features alongside relevant examples.
 * MrowPurr's Discord community for various help and encouragement
 * CharmedBaryon, Fenix31415, Nightfallstorm, Noah Buddie, Nukem, Qudix, shad0wshayd3, and others within the SkyrimSE RE Discord community for a variety of help and advice
 * All the awesome folks who make their SKSE plugin source public
-* Bethesda for giving us Skyrim
-
+* Bethesda for giving us Skyrim and its Creation Kit
