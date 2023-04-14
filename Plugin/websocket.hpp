@@ -68,7 +68,7 @@ void TerminateWebsocket() {
 // Launch companion speech recognition application
 void LaunchSpeechRecoApp() {
     try {
-        string path = "Data/SKSE/Plugins/DBU/Speech Recognition Application/DragonbornUnlimited.exe";  // Relative path to companion appliation that reflects the Skyrim SKSE plugin structure
+        string path = "Data/SKSE/Plugins/DBU/Speech Recognition Application/Voxima.exe";  // Relative path to companion appliation that reflects the Skyrim SKSE plugin structure
         logger::info("Launching Voice Recognition from: {}", path);
         STARTUPINFO info = {sizeof(info)};
         PROCESS_INFORMATION processInfo;
