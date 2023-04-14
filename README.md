@@ -1,3 +1,3 @@
-# Voximus_Skyrim-Voice-Control
+# Voximus-SkyrimVoiceControl
 
 This is the readme
