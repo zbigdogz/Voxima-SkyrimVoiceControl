@@ -1,0 +1,22 @@
+﻿<Window x:Class="WebsocketPortConfigurator.PortConfigurator"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WebsocketPortConfigurator"
+        mc:Ignorable="d"
+        Icon="Voxima Icon.ico"
+        Title="DBU Websocket Port Configurator" 
+        Height="188" Width="272"
+        ResizeMode="NoResize"
+        Topmost="True"
+        WindowStartupLocation="CenterScreen"
+        Name="websocketPortConfigurator" Background="#FFFAFAFA" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <Grid>
+        <Button x:Name="buttonCancel" Content="Cancel" HorizontalAlignment="Left" Margin="118,106,0,0" VerticalAlignment="Top" FontSize="18" Padding="5,3,5,3" Click="CancelButton_Click" IsCancel="True"/>
+        <Button x:Name="buttonOkay" Content="Okay" HorizontalAlignment="Left" Margin="194,106,0,0" VerticalAlignment="Top" FontSize="18" Padding="5,3,5,3" Click="OkayButton_Click" IsDefault="True"/>
+        <TextBox x:Name="textboxPort" HorizontalAlignment="Left" Margin="10,65,0,0" TextWrapping="Wrap" Text="Enter port number" VerticalAlignment="Top" Width="236" FontSize="18" Padding="2,2,2,2"/>
+        <TextBlock x:Name="labelDescription" TextWrapping="Wrap"
+            Text="Enter target websocket server port (1050 - 65500)" Margin="10,10,0,0" Width="236" VerticalAlignment="Top" HorizontalAlignment="Left" FontSize="18"/>
+    </Grid>
+</Window>
