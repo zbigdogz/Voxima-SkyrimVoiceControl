@@ -12,10 +12,10 @@ INPUT SWITCHING
 
 
 Acknowledgements
- * Ryan McKenzie, powerof3, and CharmedBaryon for the amazing CommonLibSSE (and NG)
+ * Ryan McKenzie, powerof3, and CharmedBaryon for CommonLibSSE (and NG)
  * Joel Christner for developing WatsonWebSocket, and Younes Cheikh for developing ObservableConcurrentQueue
  * Boost.org for developing the boost random library
- * MrowPurr for her CommonLib-NG templates, awesome YoutTube tutorials, headstart on websocket integration for C++, and other helpful commentary along this journey
- * MrowPurr's Discord community for various help and encouragement along the way
+ * MrowPurr for her CommonLib-NG templates, excellent YoutTube tutorials, headstart on websocket integration for C++, and other helpful input
+ * MrowPurr's Discord community for various help and encouragement
  * CharmedBaryon, Fenix31415, Nightfallstorm, Noah Buddie, Nukem, Qudix, shad0wshayd3, and others within the SkyrimSE RE Discord community for a variety of help and advice
  * All the awesome folks who make their SKSE plugin source public
