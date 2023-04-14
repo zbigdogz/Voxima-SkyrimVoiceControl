@@ -3,15 +3,15 @@
 This is the readme
 
 
-XINPUT for C#
+### XINPUT for C#
 * https://github.com/AderitoSilva/XInputium
 * https://github.com/speps/XInputDotNet
 
-INPUT SWITCHING
+### INPUT SWITCHING
 * https://github.com/Exit-9B/AutoInputSwitch ==> https://www.nexusmods.com/skyrimspecialedition/mods/54309
 
 
-Acknowledgements
+### Acknowledgements
  * Ryan McKenzie, powerof3, and CharmedBaryon for CommonLibSSE (and NG)
  * Joel Christner for developing WatsonWebSocket, and Younes Cheikh for developing ObservableConcurrentQueue
  * Boost.org for developing the boost random library
