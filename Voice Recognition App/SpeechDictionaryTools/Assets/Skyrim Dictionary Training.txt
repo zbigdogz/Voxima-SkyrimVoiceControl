@@ -1,0 +1,139 @@
+// SpeechDictionaryTools uses this file to "teach" the Windows speech engine various words for use in Skyrim
+
+// ------- VANILLA SHOUTS -------
+// Source => https://elderscrolls.fandom.com/wiki/Dragon_Shouts
+
+// Animal Allegiance
+Raan; r aa n
+Mir; m iy r
+Tah; t aa
+
+// Aura Whisper
+Laas; l aa s
+Yah; y aa
+Nir; n iy r
+
+// Battle Fury
+Mid; m iy d
+Vur; v uw r
+Shaan; sh aa n
+
+// Become Ethereal
+Feim; f ay m
+Zii; z iy
+Gron; g r aw n
+
+// Bend Will
+Gol; g uh l
+Hah; h aa
+Dov; d ow v
+
+// Call Dragon
+Od; ow d
+Ah; aa
+Viing; v iy ng
+
+// Call of Valor
+Hun; h uw n
+Kaal; k aa l
+Zoor; z ao r
+
+// Clear Skies
+Lok; l ow k
+Vah; v aa
+Koor; k ao r
+
+// Cyclone
+Ven; v eh n
+Gaar; g aa r
+Nos; n ow s s
+
+// Disarm
+Zun; z uw n
+Haal; h aa l
+Viik; v iy k
+
+// Dismay
+Faas; f aa s
+Ru; r uw
+Maar; m aa r
+
+// Dragon Aspect
+Mul; m uw l
+Qah; k w aa
+Diiv; d iy v
+
+// Dragonrend
+Joor; zh ao r
+Zah; z aa
+Frul; f r uw l
+
+// Drain Vitality
+Gaan; g aa n
+Lah; l aa
+Haas; h aa s
+
+// Elemental Fury
+Su; s uw
+Grah; g r aa
+Dun; d uw n
+
+// Fire Breath
+Yol; y ow l
+Toor; t ao r
+Shul; sh uw l
+
+// Frost Breath
+Fo; f ow
+Krah; k r aa
+Diin; d iy n
+
+// Ice Form
+Iiz; iy s
+Slen; s l eh n
+Nus; n uw s
+
+// Kyne's Peace
+Kaan; k aa n
+Drem; d r eh m
+Ov; ax v
+
+// Marked for Death
+Krii; k r iy
+Lun; l uw n
+Aus; aw s
+
+// Slow Time
+Tiid; t iy d
+Klo; k l ow
+Ul; uw l
+
+// Soul Tear
+Rii; r iy
+Vaaz; v aa z
+Zol; z ow l
+
+// Storm Call
+Strun; s t r uw n
+Bah; b aa
+Qo; k w ow
+
+// Summon Durnehviir
+Dur; d er
+Neh; n eh
+Viir; v iy r
+
+// Throw Voice
+Zul; z uw l
+Mey; m ey
+Gut; g uh t
+
+// Unrelenting Force
+Fus; f uw s
+Ro; r ow
+Dah; d aa
+
+//Whirlwind Sprint
+Wuld; w uh l d
+Nah; n ah
+Kest; k eh s t

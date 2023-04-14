@@ -63,9 +63,17 @@
     <Content Include="Voxima Icon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SpeechDictionaryTools\SpeechDictionaryTools.csproj">
+      <Project>{5b05a5a4-d232-4ee8-95e9-535a24bd59ce}</Project>
+      <Name>SpeechDictionaryTools</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
       <Project>{26765955-6969-42f4-8d0e-ed47475e4562}</Project>
       <Name>Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WebsocketPortConfigurator\WebsocketPortConfigurator.csproj">
+      <Project>{4e04f9e9-9823-4a87-8aa4-85ce8644cbd2}</Project>
+      <Name>WebsocketPortConfigurator</Name>
     </ProjectReference>
     <ProjectReference Include="..\WebSocket\WebSocket.csproj">
       <Project>{414aa635-5cd4-460f-9d95-35ed660b04cb}</Project>
