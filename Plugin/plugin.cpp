@@ -21,6 +21,7 @@
 #include "load-game-event.hpp" // Game load event hooking and processing
 #include "menu-close-event.hpp" // Menu close event hooking and processing
 #include "location-discovery-event.hpp" // Location discovery event hooking and processing
+#include "gamepad-input-event.hpp"
 
 struct Command {
     std::string Name = "";
@@ -126,6 +127,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 InitializeMorphChangeHooking();        // Setup player morph change event monitoring
                 InitializeMenuOpenCloseHooking();      // Setup menu open/close event monitoring
                 InitializeLocationDiscoveryHooking();  // Setup location discovery event monitoring
+                InitializeGamepadHooking();            // Setup gamepad event monitoring
                 
                 while (connected == false)                                        // Loop while websocket connection has not been made
                     std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to allow for websocket connection to be made
@@ -1165,6 +1167,12 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
     ///*** do something with locationName or call GetKnownLocations()
 
     // do other stuff
+}
+
+// Executes when gamepad events are received
+void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevice* gamePad) {
+    auto rTrigger = RE::BSWin32GamepadDevice::Keys::kRightTrigger;
+    if (gamePad->IsPressed(rTrigger)) RE::DebugNotification("right trigger!");
 }
 
 #pragma endregion All tracked game events that trigger an UpdateCheck

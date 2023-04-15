@@ -312,11 +312,11 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             //// Need to enable and fix this up once CharmedBaryon merges recent po3 CommonLib changes. Objective here is to "spoof" input to trigger a shout "natively"
             //// Spoof button input
             //// See UserEvents.h for more types of events to spoof
-            /*if (auto BSInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+            /*if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
                 RE::ConsoleLog::GetSingleton()->Print("*screams*");
 
                 static auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", 0, 1.0f, 3.0f);
-                BSInputEventQueue->PushOntoInputQueue(kEvent);
+                bsInputEventQueue->PushOntoInputQueue(kEvent);
             }*/
             
             
@@ -407,7 +407,7 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
 
 // Asynconously casts a shout/power from the player
 void CastVoice(RE::Actor* actor, RE::TESForm* item, int level) {
-    //Get the key the player designated as the eky to press to activate shouts. Not automatic because VR says it's a controller button, which I can't press
+    //Get the key the player designated as the key to press to activate shouts. Not automatic because VR says it's a controller button, which I can't press
     DBU_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_ShoutKey");
 
     //Manually inserted this becaue the timing needs to be perfect
@@ -801,14 +801,20 @@ static bool IsKeyDown(int keyCode) {
     int mouseOffset = 256;
     int vrLeftOffset = null;
     int vrRightOffset = null;
+    int gamepadOffset = null;
 
+    // Mouse and keyboard input check
     bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed(DBU_PushToSpeak->value);
     bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed(DBU_PushToSpeak->value - mouseOffset);
 
-    return (isKeyboardKeyDown || isMouseKeyDown);
+    //// VR controller input check
+    //bool isLeftVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(DBU_PushToSpeak->value - vrLeftOffset);
+    //bool isRightVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed(DBU_PushToSpeak->value - vrRightOffset);
 
-    // RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(DBU_PushToSpeak->value - vrLeftOffset)
-    // RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed(DBU_PushToSpeak->value - vrRightOffset)
+    //// Gamepad input check
+    //bool isGamepadKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetGamepad()->IsPressed(DBU_PushToSpeak->value - gamepadOffset);
+
+    return (isKeyboardKeyDown || isMouseKeyDown);
 }
 
 // Command horse to execute a given movement type
