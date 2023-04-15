@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Set your project name. This will be the name of your SKSE .dll file. Version Notation = major.minor.patch.tweak
-project(DragonbornUnlimited VERSION 0.0.0.2 LANGUAGES CXX)
+project(DragonbornUnlimited VERSION 3.0.0.0 LANGUAGES CXX)
 
 # Set name of project folder
 set(FOLDER_NAME "Dragonborn Unlimited")
@@ -43,11 +43,29 @@ if(DEFINED ENV{SKYRIM_MODS_FOLDER} AND IS_DIRECTORY "$ENV{SKYRIM_MODS_FOLDER}")
 endif()
 
 # Otherwise, you can set OUTPUT_FOLDER to any place you'd like :)
-#set(OUTPUT_FOLDER "")
+# set(OUTPUT_FOLDER "")
 
 # Setup your SKSE plugin as an SKSE plugin!
 find_package(CommonLibSSE CONFIG REQUIRED)
 add_commonlibsse_plugin(${PROJECT_NAME} SOURCES plugin.cpp) # <--- specifies plugin.cpp
+
+set(COMMONLIBSSE_VERSION_MATCH TRUE PARENT_SCOPE)
+    set(COMMONLIBSSE_VERSION_MAJOR "${CMAKE_MATCH_1}" PARENT_SCOPE)
+    set(COMMONLIBSSE_VERSION_MINOR "0" PARENT_SCOPE)
+    set(COMMONLIBSSE_VERSION_PATCH "0" PARENT_SCOPE)
+    set(COMMONLIBSSE_VERSION_TWEAK "0" PARENT_SCOPE)
+
+ # Handle minimum SKSE version constraints.
+    if (NOT DEFINED ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION)
+        set(ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION 0)
+    endif ()
+    commonlibsse_parse_version("${ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION}")
+    if (NOT COMMONLIBSSE_VERSION_MATCH)
+        message(FATAL_ERROR "Unable to parse SKSE minimum SKSE version number "
+                "${ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION}.")
+    endif ()
+    set(commonlibsse_min_skse_version "REL::Version{ ${COMMONLIBSSE_VERSION_MAJOR}, ${COMMONLIBSSE_VERSION_MINOR}, ${COMMONLIBSSE_VERSION_PATCH}, ${COMMONLIBSSE_VERSION_TWEAK} }")
+
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23) # <--- use C++23 standard
 target_precompile_headers(${PROJECT_NAME} PRIVATE PCH.h) # <--- PCH.h is required!
 # Add websocketpp dependency to the SKSE project
