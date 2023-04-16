@@ -1169,11 +1169,52 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
     // do other stuff
 }
 
+#pragma region Gamepad Input Processing
+
+bool allowTriggerProcessing = true;
+bool pushToTalk = false;
+bool isListening = false;
+
 // Executes when gamepad events are received
-void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevice* gamePad) {
-    auto rTrigger = RE::BSWin32GamepadDevice::Keys::kRightTrigger;
-    if (gamePad->IsPressed(rTrigger)) RE::DebugNotification("right trigger!");
+void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevice* gamepad) {
+    auto rShoulder = RE::BSWin32GamepadDevice::Keys::kRightShoulder;
+    if (allowTriggerProcessing && gamepad->IsPressed(rShoulder)) {  // Check if gamepad trigger processing is currently allowed and the trigger is being pressed
+        allowTriggerProcessing = false;                             // Flag that gamepad trigger processing is NOT allowed
+        if (pushToTalk) {
+            thread([gamepad, rShoulder]() {                         // Create new thread for execution
+                RE::DebugNotification("Start listening!");
+
+                /// *** do stuff to activate listening of C# app
+
+                while (gamepad->IsPressed(rShoulder)) Sleep(250);   // Pause while gamepad trigger is still being pressed
+                RE::DebugNotification("Stop listening!");
+                allowTriggerProcessing = true;                      // Flag that gamepad trigger processing is allowed
+
+                /// *** do stuff to deactivate listening of C# app
+
+            }).detach();
+        } else {
+            thread([gamepad, rShoulder]() {                         // Create new thread for execution
+                if (isListening == false) {                         // Check if recognition app is NOT listening
+                    isListening = true;                             // Set isListening flag
+                    RE::DebugNotification("Start listening!");
+
+                    /// *** do stuff to activate listening of C# app
+
+                } else {
+                    isListening = false;                            // Reset isListening flag
+                    RE::DebugNotification("Stop listening!");
+
+                    /// *** do stuff to deactivate listening of C# app
+                }
+                while (gamepad->IsPressed(rShoulder)) Sleep(250);  // Pause while gamepad trigger is still being pressed
+                allowTriggerProcessing = true;                     // Flag that gamepad trigger processing is allowed
+            }).detach();
+        }
+    }
 }
+
+#pragma endregion Gamepad triggers for speech recognition listening
 
 #pragma endregion All tracked game events that trigger an UpdateCheck
 

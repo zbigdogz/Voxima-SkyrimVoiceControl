@@ -1,15 +1,9 @@
-#include <cmath>
-
 namespace GamepadInputEvent {
 
     using Event = RE::InputEvent*;
 
-    ///static bool isWatching = false;
-
     class GamepadInputHandler : public RE::BSTEventSink<Event> {
-        using InputSink = RE::BSTEventSink<Event>;
         using InputSource = RE::BSTEventSource<Event>;
-        // using InputSource = RE::BSTEventSource<RE::InputEvent>;
 
         public:
         static GamepadInputHandler* GetSingleton() {
@@ -17,22 +11,8 @@ namespace GamepadInputEvent {
             return &singleton;
         }
 
+        // Register for gamepad events
         static void Register() {
-            ///logger::info("This task was implemented with a free function!");
-
-            ///if (isWatching) return;
-
-            /*
-            auto sourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
-            if (sourceHolder) {
-                sourceHolder->AddEventSink(MagicEffectApplyEventHandler::GetSingleton());
-                isWatching = true;
-            }
-
-            return;
-            //*/
-
-            // auto inputDeviceManager = RE::BSInputDeviceManager::GetSingleton();
             static RE::BSInputDeviceManager* inputDeviceManager = nullptr;
             if (!inputDeviceManager) {
                 inputDeviceManager = RE::BSInputDeviceManager::GetSingleton();
@@ -42,44 +22,23 @@ namespace GamepadInputEvent {
                 auto mySingle = GamepadInputHandler::GetSingleton();
 
                 inputDeviceManager->AddEventSink(mySingle);
-                ///isWatching = true;
                 logger::info("Registered for gamepad input events");
             }
         } 
 
+        // Process gamepad events
         auto ProcessEvent(const Event* a_event, InputSource* a_eventSource) -> RE::BSEventNotifyControl override {
-            if (a_event) {
-                /// logger::debug("Gamepad input event!");
-                RE::BSInputDeviceManager* inputMngr = RE::BSInputDeviceManager::GetSingleton();
-                if (inputMngr) {
-                    RE::BSWin32GamepadDevice* gamePad = (RE::BSWin32GamepadDevice*)inputMngr->GetGamepad();
-                    if (gamePad)
-                        GamepadEvent(gamePad);
-                }
-                
+            /// logger::debug("Gamepad input event!");
+            RE::BSInputDeviceManager* inputMngr = RE::BSInputDeviceManager::GetSingleton();
+            if (inputMngr) {
+                RE::BSWin32GamepadDevice* gamepad = (RE::BSWin32GamepadDevice*)inputMngr->GetGamepad();
+                if (gamepad) GamepadEvent(gamepad);
             }
-            
-            /////static RE::TESDataHandler* dataHandler = nullptr;
-            //static RE::BSInputDeviceManager* inputMngr = nullptr;
-
-            //if (!dataHandler) {
-            //    dataHandler = RE::TESDataHandler::GetSingleton();
-            //    inputMngr = RE::BSInputDeviceManager::GetSingleton();
-            //}
-
-            //if (inputMngr) {
-            //    auto gamePad = (RE::BSWin32GamepadDevice*)(inputMngr->GetGamepad());
-            //    if (gamePad) {
-            //        /*auto rTrigger = RE::BSWin32GamepadDevice::Keys::kRightTrigger;
-            //        if (gamePad->IsPressed(rTrigger)) RE::DebugNotification("right trigger!");*/
-
-            //    }
-            //}
             return RE::BSEventNotifyControl::kContinue;
         }
 
         // Respond to captured gamepad events
-        static void GamepadEvent(RE::BSWin32GamepadDevice* gamePad);
+        static void GamepadEvent(RE::BSWin32GamepadDevice* gamepad);
         
     protected:
         GamepadInputHandler() = default;
@@ -182,8 +141,8 @@ void InitializeGamepadHooking() { GamepadInputEvent::GamepadInputHandler::Regist
 //Call InitializeGamepadHooking and then employ GamepadInput where you want to process captured spell learn events
 //
 //// Executes when new spells are learned
-//void GamepadInputEvent::EventHandler::GamepadInput(const RE::SpellItem* const spell) {
-//    logger::debug("new spell learned!");
+//void GamepadInputEvent::EventHandler::GamepadInput(RE::BSWin32GamepadDevice* gamepad) {
+//    logger::debug("gamepad input detected!");
 //    // do other stuff
 //}
 //
