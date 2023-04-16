@@ -10,7 +10,7 @@ namespace MenuOpenCloseEvent {
 
         static void Register() {
             auto* eventSink = EventHandler::GetSingleton();
-            auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
+            ///auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
             RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(eventSink);
             logger::info("Registered for menu open/close events");
         }

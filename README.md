@@ -2,6 +2,9 @@
 
 This is the readme
 
+## Development Resources
+check and verify language & speech engine ==> https://learn.microsoft.com/en-us/windows/apps/design/input/specify-the-speech-recognizer-language
+
 ## Features
 Here are the currently supported features alongside relevant examples.
 ### Voice Control
@@ -26,4 +29,4 @@ Here are the currently supported features alongside relevant examples.
 * MrowPurr's Discord community for various help and encouragement
 * CharmedBaryon, Fenix31415, Nightfallstorm, Noah Buddie, Nukem, Qudix, shad0wshayd3, and others within the SkyrimSE RE Discord community for a variety of help and advice
 * All the awesome folks who make their SKSE plugin source public
-* Bethesda for giving us Skyrim
+* Bethesda for giving us Skyrim and its Creation Kit

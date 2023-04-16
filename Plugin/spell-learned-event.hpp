@@ -61,7 +61,7 @@ void SpellLearnedEvent::EventHandler::SpellLearned(const RE::SpellItem* const sp
 
 #pragma region Source Credit
 
-// OnSpellLearned event tracking functionality modified from "PowerOfThree's Papyrus Extender" by powerofthree (MIT License)
+// OnSpellLearned event tracking functionality modified from "PapyrusExtenderSSE" by powerof3 (MIT License)
 // Links ==> https://github.com/powerof3/PapyrusExtenderSSE; https://www.nexusmods.com/skyrimspecialedition/mods/22854
 
 #pragma endregion
