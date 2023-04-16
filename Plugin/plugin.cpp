@@ -1181,7 +1181,7 @@ void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* but
         Gamepad right shoulder button = 275
     */
 
-    if (keyCode != DBU_PushToSpeak->value) return;  // Check if triggering keyCode does NOT match target input value from DBU MCM, and if so exit this method
+    if (keyCode != VOX_PushToSpeak->value) return;  // Check if triggering keyCode does NOT match target input value from VOX MCM, and if so exit this method
 
     if (pushToTalk) {        // Check if push-to-talk mode is enabled (true)
         thread([button]() {  // Create new thread for execution (passing in button)

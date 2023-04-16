@@ -808,11 +808,11 @@ static bool IsKeyDown(int keyCode) {
     bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed(VOX_PushToSpeak->value - mouseOffset);
 
     //// VR controller input check
-    //bool isLeftVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(DBU_PushToSpeak->value - vrLeftOffset);
-    //bool isRightVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed(DBU_PushToSpeak->value - vrRightOffset);
+    //bool isLeftVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(VOX->value - vrLeftOffset);
+    //bool isRightVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed(VOX_PushToSpeak->value - vrRightOffset);
 
     //// Gamepad input check
-    //bool isGamepadKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetGamepad()->IsPressed(DBU_PushToSpeak->value - gamepadOffset);
+    //bool isGamepadKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetGamepad()->IsPressed(VOX_PushToSpeak->value - gamepadOffset);
 
     return (isKeyboardKeyDown || isMouseKeyDown);
 }
