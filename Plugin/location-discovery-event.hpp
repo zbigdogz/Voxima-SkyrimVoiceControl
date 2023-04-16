@@ -61,7 +61,7 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(std::string locat
 
 #pragma region Source Credit
 
-// OnLocationDiscovered event tracking functionality modified from "PowerOfThree's Papyrus Extender" by powerofthree (MIT License)
+// OnLocationDiscovered event tracking functionality modified from "PapyrusExtenderSSE" by powerof3 (MIT License)
 // Links ==> https://github.com/powerof3/PapyrusExtenderSSE; https://www.nexusmods.com/skyrimspecialedition/mods/22854
 
 #pragma endregion

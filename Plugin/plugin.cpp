@@ -21,7 +21,7 @@
 #include "load-game-event.hpp" // Game load event hooking and processing
 #include "menu-close-event.hpp" // Menu close event hooking and processing
 #include "location-discovery-event.hpp" // Location discovery event hooking and processing
-#include "gamepad-input-event.hpp"
+#include "device-input-event.hpp"
 
 struct Command {
     std::string Name = "";
@@ -127,7 +127,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 InitializeMorphChangeHooking();        // Setup player morph change event monitoring
                 InitializeMenuOpenCloseHooking();      // Setup menu open/close event monitoring
                 InitializeLocationDiscoveryHooking();  // Setup location discovery event monitoring
-                InitializeGamepadHooking();            // Setup gamepad event monitoring
+                InitializeDeviceInputHooking();        // Setup device input event monitoring
                 
                 while (connected == false)                                        // Loop while websocket connection has not been made
                     std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to allow for websocket connection to be made
@@ -1169,54 +1169,58 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
     // do other stuff
 }
 
-#pragma region Gamepad Input Processing
+#pragma endregion All tracked game events that trigger an UpdateCheck
 
-bool allowTriggerProcessing = true;
-bool pushToTalk = false;
+#pragma region Device Input Processing
+
+bool pushToTalk = true;
 bool isListening = false;
 
-// Executes when gamepad events are received
-void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevice* gamepad) {
-    auto rShoulder = RE::BSWin32GamepadDevice::Keys::kRightShoulder;
-    if (allowTriggerProcessing && gamepad->IsPressed(rShoulder)) {  // Check if gamepad trigger processing is currently allowed and the trigger is being pressed
-        allowTriggerProcessing = false;                             // Flag that gamepad trigger processing is NOT allowed
-        if (pushToTalk) {
-            thread([gamepad, rShoulder]() {                         // Create new thread for execution
-                RE::DebugNotification("Start listening!");
+// Executes when input device events are received
+void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode) {
+    /*
+        EXAMPLE "KEY" TRIGGERS
+        Keyboard backslash (\) = 43
+        Mouse middle button = 258
+        Gamepad right shoulder button = 275
+    */
+
+    if (keyCode != DBU_PushToSpeak->value) return;  // Check if triggering keyCode does NOT match target input value from DBU MCM, and if so exit this method
+
+    if (pushToTalk) {        // Check if push-to-talk mode is enabled (true)
+        thread([button]() {  // Create new thread for execution (passing in button)
+            RE::DebugNotification("Input Triggered - Start listening!");
+
+            /// *** do stuff to activate listening of C# app
+
+            while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
+            RE::DebugNotification("Input released - Stop Listening!");
+
+            /// *** do stuff to deactivate listening of C# app
+        })
+            .detach();
+    } else {
+        thread([button]() {              // Create new thread for execution (passing in button)
+            if (isListening == false) {  // Check if recognition app is NOT listening
+                isListening = true;      // Set isListening flag
+
+                RE::DebugNotification("Input Triggered - Start listening!");
 
                 /// *** do stuff to activate listening of C# app
 
-                while (gamepad->IsPressed(rShoulder)) Sleep(250);   // Pause while gamepad trigger is still being pressed
-                RE::DebugNotification("Stop listening!");
-                allowTriggerProcessing = true;                      // Flag that gamepad trigger processing is allowed
+            } else {
+                isListening = false;  // Reset isListening flag
+                RE::DebugNotification("Input released - Stop Listening!");
 
                 /// *** do stuff to deactivate listening of C# app
-
-            }).detach();
-        } else {
-            thread([gamepad, rShoulder]() {                         // Create new thread for execution
-                if (isListening == false) {                         // Check if recognition app is NOT listening
-                    isListening = true;                             // Set isListening flag
-                    RE::DebugNotification("Start listening!");
-
-                    /// *** do stuff to activate listening of C# app
-
-                } else {
-                    isListening = false;                            // Reset isListening flag
-                    RE::DebugNotification("Stop listening!");
-
-                    /// *** do stuff to deactivate listening of C# app
-                }
-                while (gamepad->IsPressed(rShoulder)) Sleep(250);  // Pause while gamepad trigger is still being pressed
-                allowTriggerProcessing = true;                     // Flag that gamepad trigger processing is allowed
-            }).detach();
-        }
+            }
+            while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
+        })
+            .detach();
     }
 }
 
-#pragma endregion Gamepad triggers for speech recognition listening
-
-#pragma endregion All tracked game events that trigger an UpdateCheck
+#pragma endregion Device input triggers for speech recognition listening
 
 //Initializes Plugin, Speech Recognition, Websocket, and data tracker
 SKSEPluginLoad(const SKSE::LoadInterface* skse) {
@@ -1243,6 +1247,7 @@ called again, starting the loop
 
 */
 
+#pragma region Archive
 
 //    May need in the future
 /* struct OurEventSink : public RE::BSTEventSink<RE::TESBookReadEvent> {
@@ -1314,6 +1319,47 @@ called again, starting the loop
         return RE::BSEventNotifyControl::kContinue;
     }
 }; */
+
+/* // Executes when gamepad events are received
+void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevice* gamepad) {
+    auto rShoulder = RE::BSWin32GamepadDevice::Keys::kRightShoulder;
+    if (allowTriggerProcessing && gamepad->IsPressed(rShoulder)) {  // Check if gamepad trigger processing is currently allowed and the trigger is being pressed
+        allowTriggerProcessing = false;                             // Flag that gamepad trigger processing is NOT allowed
+        if (pushToTalk) {
+            thread([gamepad, rShoulder]() {                         // Create new thread for execution
+                RE::DebugNotification("Start listening!");
+
+                /// *** do stuff to activate listening of C# app
+
+                while (gamepad->IsPressed(rShoulder)) Sleep(250);   // Pause while gamepad trigger is still being pressed
+                RE::DebugNotification("Stop listening!");
+                allowTriggerProcessing = true;                      // Flag that gamepad trigger processing is allowed
+
+                /// *** do stuff to deactivate listening of C# app
+
+            }).detach();
+        } else {
+            thread([gamepad, rShoulder]() {                         // Create new thread for execution
+                if (isListening == false) {                         // Check if recognition app is NOT listening
+                    isListening = true;                             // Set isListening flag
+                    RE::DebugNotification("Start listening!");
+
+                    /// *** do stuff to activate listening of C# app
+
+                } else {
+                    isListening = false;                            // Reset isListening flag
+                    RE::DebugNotification("Stop listening!");
+
+                    /// *** do stuff to deactivate listening of C# app
+                }
+                while (gamepad->IsPressed(rShoulder)) Sleep(250);  // Pause while gamepad trigger is still being pressed
+                allowTriggerProcessing = true;                     // Flag that gamepad trigger processing is allowed
+            }).detach();
+        }
+    }
+} */
+
+#pragma endregion
 
 #pragma region References
 
