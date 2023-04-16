@@ -2,16 +2,20 @@
 // Update the code marked with *** in comments
 // more testing for changing the port on the fly, as well as providing bad port information
 
-// zbigdogz DBU build path => ..\..\..\..\..\..\Games\Skyrim\MO2\Appdata\SkyrimSE\mods\Dragonborn Unlimited\SKSE\Plugins
-// exergist DBU build path => G:\Modding\Tools\Mod Organizer 2 - Games\Skyrim Special Edition\mods\Dragonborn Unlimited\SKSE\Plugins\DBU\Speech Recognition Application\
+// zbigdogz VOX build path => ..\..\..\..\..\..\Games\Skyrim\MO2\Appdata\SkyrimSE\mods\Voxima\SKSE\Plugins
+// exergist VOX build path => G:\Modding\Tools\Mod Organizer 2 - Games\Skyrim Special Edition\mods\Voxima\SKSE\Plugins\VOX\Speech Recognition Application\
 
 using SpeechDictionaryTools;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Resources;
 using System.Runtime.InteropServices;
 using System.Speech.Recognition;
 using System.Threading;
@@ -37,6 +41,9 @@ namespace Voxima
         static ObservableConcurrentQueue<string> observableConcurrentQueue;
         static DictionaryInterface dictionaryInterface;
         static readonly System.Threading.EventWaitHandle waitHandle = new System.Threading.AutoResetEvent(false);
+        static ResourceManager dovahzulPhonemes = new ResourceManager("Voxima.DovahzulPhonemes", Assembly.GetExecutingAssembly());
+        static List<string> trainedWords = new List<string>();
+
 
         //Addresses;
 
@@ -173,6 +180,172 @@ namespace Voxima
 
         static void Main(string[] args)
         {
+            MessageBox.Show("Waiting for confirmation that a debugger has been attatcehd", "C# Voice Recognition Application", MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+
+
+            //Initialize the Global Variables\\
+            //Addresses
+
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX"))
+                System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX");
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Commands"))
+                System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Commands");
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Commands\Special"))
+                System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Commands\Special");
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Logs\VoximaApp.log"))
+                System.IO.File.WriteAllText(@"Data\SKSE\Plugins\VOX\Logs\VoximaApp.log", "");
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Debug"))
+                System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Debug");
+
+            SpellsAddress = @"Data\SKSE\Plugins\VOX\Commands\Spells";
+            if (!System.IO.File.Exists(SpellsAddress))
+                System.IO.Directory.CreateDirectory(SpellsAddress);
+
+            ShoutsAddress = @"Data\SKSE\Plugins\VOX\Commands\Shouts";
+            if (!System.IO.File.Exists(ShoutsAddress))
+                System.IO.Directory.CreateDirectory(ShoutsAddress);
+
+            PowersAddress = @"Data\SKSE\Plugins\VOX\Commands\Powers";
+            if (!System.IO.File.Exists(PowersAddress))
+                System.IO.Directory.CreateDirectory(PowersAddress);
+
+            KeybindsAddress = @"Data\SKSE\Plugins\VOX\Commands\Keybinds";
+            if (!System.IO.File.Exists(KeybindsAddress))
+                System.IO.Directory.CreateDirectory(KeybindsAddress);
+
+            ProgressionsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Progressions";
+            if (!System.IO.File.Exists(ProgressionsAddress))
+                System.IO.Directory.CreateDirectory(ProgressionsAddress);
+
+            VSettingsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Settings";     //Voiced Settings
+            if (!System.IO.File.Exists(VSettingsAddress))
+                System.IO.Directory.CreateDirectory(VSettingsAddress);
+
+            GameInfoAddress = @"Data\SKSE\Plugins\VOX\Game Information";     //Voiced Settings
+            if (!System.IO.File.Exists(GameInfoAddress))
+                System.IO.Directory.CreateDirectory(GameInfoAddress);
+
+            PlayerInfoAddress = @"Data\SKSE\Plugins\VOX\Game Information\PlayerInfo.txt";
+            if (!System.IO.File.Exists(PlayerInfoAddress))
+                System.IO.File.WriteAllText(PlayerInfoAddress, "");
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Commands"))
+                System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Commands");
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Commands\Special"))
+                System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Commands\Special");
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Debug"))
+                System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Debug");
+
+            SpellsAddress = @"Data\SKSE\Plugins\VOX\Commands\Spells";
+            if (!System.IO.File.Exists(SpellsAddress))
+                System.IO.Directory.CreateDirectory(SpellsAddress);
+
+            ShoutsAddress = @"Data\SKSE\Plugins\VOX\Commands\Shouts";
+            if (!System.IO.File.Exists(ShoutsAddress))
+                System.IO.Directory.CreateDirectory(ShoutsAddress);
+
+            PowersAddress = @"Data\SKSE\Plugins\VOX\Commands\Powers";
+            if (!System.IO.File.Exists(PowersAddress))
+                System.IO.Directory.CreateDirectory(PowersAddress);
+
+            KeybindsAddress = @"Data\SKSE\Plugins\VOX\Commands\Keybinds";
+            if (!System.IO.File.Exists(KeybindsAddress))
+                System.IO.Directory.CreateDirectory(KeybindsAddress);
+
+            ProgressionsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Progressions";
+            if (!System.IO.File.Exists(ProgressionsAddress))
+                System.IO.Directory.CreateDirectory(ProgressionsAddress);
+
+            VSettingsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Settings";     //Voiced Settings
+            if (!System.IO.File.Exists(VSettingsAddress))
+                System.IO.Directory.CreateDirectory(VSettingsAddress);
+
+            ConsoleCommandsAddress = @"Data\SKSE\Plugins\VOX\Commands\Console";     //Console Commands
+            if (!System.IO.File.Exists(ConsoleCommandsAddress))
+                System.IO.Directory.CreateDirectory(ConsoleCommandsAddress);
+
+
+            //Media Addresses
+            sound_start_listening = new System.Media.SoundPlayer(@"Data\SKSE\Plugins\VOX\Media\Start listening.wav");
+            sound_stop_listening = new System.Media.SoundPlayer(@"Data\SKSE\Plugins\VOX\Media\Stop listening.wav");
+
+            //Werewolf
+            WerewolfKeybindsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Werewolf\Keybinds";
+            if (!System.IO.File.Exists(WerewolfKeybindsAddress))
+                System.IO.Directory.CreateDirectory(WerewolfKeybindsAddress);
+
+            //Vampire Lord
+            VampireLordSpellsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Vampire Lord\Spells";
+            if (!System.IO.File.Exists(VampireLordSpellsAddress))
+                System.IO.Directory.CreateDirectory(VampireLordSpellsAddress);
+
+            VampireLordPowersAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Vampire Lord\Powers";
+            if (!System.IO.File.Exists(VampireLordPowersAddress))
+                System.IO.Directory.CreateDirectory(VampireLordPowersAddress);
+
+            VampireLordKeybindsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Vampire Lord\Keybinds";
+            if (!System.IO.File.Exists(VampireLordKeybindsAddress))
+                System.IO.Directory.CreateDirectory(VampireLordKeybindsAddress);
+
+            VampireLordProgressionsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Vampire Lord\Progressions";
+            if (!System.IO.File.Exists(VampireLordProgressionsAddress))
+                System.IO.Directory.CreateDirectory(VampireLordProgressionsAddress);
+
+            //Dragon Riding
+            DragonKeybindsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Dragon Riding\Keybinds";
+            if (!System.IO.File.Exists(DragonKeybindsAddress))
+                System.IO.Directory.CreateDirectory(DragonKeybindsAddress);
+
+            //Horse Riding
+            HorseKeybindsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Horse Riding\Keybinds";
+            if (!System.IO.File.Exists(HorseKeybindsAddress))
+                System.IO.Directory.CreateDirectory(HorseKeybindsAddress);
+
+            ActivityDebugAddress = @"Data\SKSE\Plugins\VOX\Debug\Activity.txt";
+            if (!System.IO.File.Exists(ActivityDebugAddress))
+                System.IO.File.WriteAllText(ActivityDebugAddress, "");
+
+
+            SavedConflictsAddress = ProgressionsAddress + @"\SavedConflicts.ini";
+            if (!System.IO.File.Exists(SavedConflictsAddress))
+                System.IO.File.WriteAllText(SavedConflictsAddress, "");
+
+
+            string defaultSettings = "This is where you can change the program's settings manually.\n" +
+                                        "Note: Changing settings manually requires you to restart the program before they take effect.\n\n" +
+
+                                        "Options for each setting:\n" +
+                                            "\tDefault Hand = \"Left\", \"Right\", \"Both\"\n" +
+                                            "\tAutoStart = \"True\", \"False\"\t\t//Runs the program in the background when Skyrim is not open and speech recognition is NOT enabled.\n" +
+                                            "\tStart With Computer = \"True\", \"False\"\n" +
+                                            "\tSensitivity = {0 : 1}\t//Controls how sensitive the system is to commands. 0 is very sensitive, one is least sensitive, and 0.5 is in-between\n\n" +
+
+                                            "Change the settings below.\n" +
+                                        "--------------------------------------------------\n\n" +
+
+                                        "Default Hand = Left\n" +
+                                        "AutoStart = True\n" +
+                                        "Start With Computer = True\n" +
+                                        "Require Hand Selector = False\n";
+
+            SettingsAddress = @"Data\SKSE\Plugins\VOX\Settings.txt";
+            if (!System.IO.File.Exists(SettingsAddress))
+                System.IO.File.WriteAllText(SettingsAddress, defaultSettings);
+
+            RunCheck = @"Data\SKSE\Plugins\VOX\Debug\RunCheck";
+            oldPapyrusCheck = @"Data\SKSE\Plugins\VOX\Debug\oldPapyusUtilCheck";
+
+            //Delete the file incase it isn't needed
+            ConflictsAddress = ProgressionsAddress + @"\Conflicts.ini";
+            if (System.IO.File.Exists(ConflictsAddress))
+                System.IO.File.Delete(ConflictsAddress);
 
             #region Log File Setup
 
@@ -183,7 +356,7 @@ namespace Voxima
 
             #region Skyrim Process Exit Monitoring
 
-            string[] targetProcesses = new string[] { "SkyrimSE", "SkyrimVR", "Notepad" };
+            string[] targetProcesses = new string[] { "SkyrimSE", "SkyrimVR", "Notepad"};
             if (ProcessWatcher.MonitorForExit(targetProcesses) == true) // Call method to monitor the targetProcesses for exit in separate thread (actually the first of the targetProcesses found), and check if processing was successful
                 ProcessWatcher.ProcessClosed += OnProcessClosed; // Subscribe OnProcessClosed to ProcessClosed events
 
@@ -202,7 +375,7 @@ namespace Voxima
 
             #endregion
 
-            #region Add Dragonborn Unlimited Content to Speech Dictionary
+            #region Add Voxima Content to Speech Dictionary
 
             /* #region Demo
 
@@ -300,166 +473,6 @@ namespace Voxima
 
                 #region Application Processing Initialization
 
-                Task.Delay(5000);
-
-                //Initialize the Global Variables\\
-                //Addresses
-
-
-                if (!System.IO.File.Exists(@"Data\SKSE\Plugins\DBU\Commands"))
-                    System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\DBU\Commands");
-
-                if (!System.IO.File.Exists(@"Data\SKSE\Plugins\DBU\Commands\Special"))
-                    System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\DBU\Commands\Special");
-
-                if (!System.IO.File.Exists(@"Data\SKSE\Plugins\DBU\Debug"))
-                    System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\DBU\Debug");
-
-                SpellsAddress = @"Data\SKSE\Plugins\DBU\Commands\Spells";
-                if (!System.IO.File.Exists(SpellsAddress))
-                    System.IO.Directory.CreateDirectory(SpellsAddress);
-
-                ShoutsAddress = @"Data\SKSE\Plugins\DBU\Commands\Shouts";
-                if (!System.IO.File.Exists(ShoutsAddress))
-                    System.IO.Directory.CreateDirectory(ShoutsAddress);
-
-                PowersAddress = @"Data\SKSE\Plugins\DBU\Commands\Powers";
-                if (!System.IO.File.Exists(PowersAddress))
-                    System.IO.Directory.CreateDirectory(PowersAddress);
-
-                KeybindsAddress = @"Data\SKSE\Plugins\DBU\Commands\Keybinds";
-                if (!System.IO.File.Exists(KeybindsAddress))
-                    System.IO.Directory.CreateDirectory(KeybindsAddress);
-
-                ProgressionsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Progressions";
-                if (!System.IO.File.Exists(ProgressionsAddress))
-                    System.IO.Directory.CreateDirectory(ProgressionsAddress);
-
-                VSettingsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Settings";     //Voiced Settings
-                if (!System.IO.File.Exists(VSettingsAddress))
-                    System.IO.Directory.CreateDirectory(VSettingsAddress);
-
-                GameInfoAddress = @"Data\SKSE\Plugins\DBU\Game Information";     //Voiced Settings
-                if (!System.IO.File.Exists(GameInfoAddress))
-                    System.IO.Directory.CreateDirectory(GameInfoAddress);
-
-                PlayerInfoAddress = @"Data\SKSE\Plugins\DBU\Game Information\PlayerInfo.txt";
-                if (!System.IO.File.Exists(PlayerInfoAddress))
-                    System.IO.File.WriteAllText(PlayerInfoAddress, "");
-
-                if (!System.IO.File.Exists(@"Data\SKSE\Plugins\DBU\Commands"))
-                    System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\DBU\Commands");
-
-                if (!System.IO.File.Exists(@"Data\SKSE\Plugins\DBU\Commands\Special"))
-                    System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\DBU\Commands\Special");
-
-                if (!System.IO.File.Exists(@"Data\SKSE\Plugins\DBU\Debug"))
-                    System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\DBU\Debug");
-
-                SpellsAddress = @"Data\SKSE\Plugins\DBU\Commands\Spells";
-                if (!System.IO.File.Exists(SpellsAddress))
-                    System.IO.Directory.CreateDirectory(SpellsAddress);
-
-                ShoutsAddress = @"Data\SKSE\Plugins\DBU\Commands\Shouts";
-                if (!System.IO.File.Exists(ShoutsAddress))
-                    System.IO.Directory.CreateDirectory(ShoutsAddress);
-
-                PowersAddress = @"Data\SKSE\Plugins\DBU\Commands\Powers";
-                if (!System.IO.File.Exists(PowersAddress))
-                    System.IO.Directory.CreateDirectory(PowersAddress);
-
-                KeybindsAddress = @"Data\SKSE\Plugins\DBU\Commands\Keybinds";
-                if (!System.IO.File.Exists(KeybindsAddress))
-                    System.IO.Directory.CreateDirectory(KeybindsAddress);
-
-                ProgressionsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Progressions";
-                if (!System.IO.File.Exists(ProgressionsAddress))
-                    System.IO.Directory.CreateDirectory(ProgressionsAddress);
-
-                VSettingsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Settings";     //Voiced Settings
-                if (!System.IO.File.Exists(VSettingsAddress))
-                    System.IO.Directory.CreateDirectory(VSettingsAddress);
-
-                ConsoleCommandsAddress = @"Data\SKSE\Plugins\DBU\Commands\Console";     //Console Commands
-                if (!System.IO.File.Exists(ConsoleCommandsAddress))
-                    System.IO.Directory.CreateDirectory(ConsoleCommandsAddress);
-
-
-                //Media Addresses
-                sound_start_listening = new System.Media.SoundPlayer(@"Data\SKSE\Plugins\DBU\Media\Start listening.wav");
-                sound_stop_listening = new System.Media.SoundPlayer(@"Data\SKSE\Plugins\DBU\Media\Stop listening.wav");
-
-                //Werewolf
-                WerewolfKeybindsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Werewolf\Keybinds";
-                if (!System.IO.File.Exists(WerewolfKeybindsAddress))
-                    System.IO.Directory.CreateDirectory(WerewolfKeybindsAddress);
-
-                //Vampire Lord
-                VampireLordSpellsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Vampire Lord\Spells";
-                if (!System.IO.File.Exists(VampireLordSpellsAddress))
-                    System.IO.Directory.CreateDirectory(VampireLordSpellsAddress);
-
-                VampireLordPowersAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Vampire Lord\Powers";
-                if (!System.IO.File.Exists(VampireLordPowersAddress))
-                    System.IO.Directory.CreateDirectory(VampireLordPowersAddress);
-
-                VampireLordKeybindsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Vampire Lord\Keybinds";
-                if (!System.IO.File.Exists(VampireLordKeybindsAddress))
-                    System.IO.Directory.CreateDirectory(VampireLordKeybindsAddress);
-
-                VampireLordProgressionsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Vampire Lord\Progressions";
-                if (!System.IO.File.Exists(VampireLordProgressionsAddress))
-                    System.IO.Directory.CreateDirectory(VampireLordProgressionsAddress);
-
-                //Dragon Riding
-                DragonKeybindsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Dragon Riding\Keybinds";
-                if (!System.IO.File.Exists(DragonKeybindsAddress))
-                    System.IO.Directory.CreateDirectory(DragonKeybindsAddress);
-
-                //Horse Riding
-                HorseKeybindsAddress = @"Data\SKSE\Plugins\DBU\Commands\Special\Horse Riding\Keybinds";
-                if (!System.IO.File.Exists(HorseKeybindsAddress))
-                    System.IO.Directory.CreateDirectory(HorseKeybindsAddress);
-
-                ActivityDebugAddress = @"Data\SKSE\Plugins\DBU\Debug\Activity.txt";
-                if (!System.IO.File.Exists(ActivityDebugAddress))
-                    System.IO.File.WriteAllText(ActivityDebugAddress, "");
-
-
-                SavedConflictsAddress = ProgressionsAddress + @"\SavedConflicts.ini";
-                if (!System.IO.File.Exists(SavedConflictsAddress))
-                    System.IO.File.WriteAllText(SavedConflictsAddress, "");
-
-
-                string defaultSettings = "This is where you can change the program's settings manually.\n" +
-                                            "Note: Changing settings manually requires you to restart the program before they take effect.\n\n" +
-
-                                            "Options for each setting:\n" +
-                                                "\tDefault Hand = \"Left\", \"Right\", \"Both\"\n" +
-                                                "\tAutoStart = \"True\", \"False\"\t\t//Runs the program in the background when Skyrim is not open and speech recognition is NOT enabled.\n" +
-                                                "\tStart With Computer = \"True\", \"False\"\n" +
-                                                "\tSensitivity = {0 : 1}\t//Controls how sensitive the system is to commands. 0 is very sensitive, one is least sensitive, and 0.5 is in-between\n\n" +
-
-                                                "Change the settings below.\n" +
-                                            "--------------------------------------------------\n\n" +
-
-                                            "Default Hand = Left\n" +
-                                            "AutoStart = True\n" +
-                                            "Start With Computer = True\n" +
-                                            "Require Hand Selector = False\n";
-
-                SettingsAddress = @"Data\SKSE\Plugins\DBU\Settings.txt";
-                if (!System.IO.File.Exists(SettingsAddress))
-                    System.IO.File.WriteAllText(SettingsAddress, defaultSettings);
-
-                RunCheck = @"Data\SKSE\Plugins\DBU\Debug\RunCheck";
-                oldPapyrusCheck = @"Data\SKSE\Plugins\DBU\Debug\oldPapyusUtilCheck";
-
-                //Delete the file incase it isn't needed
-                ConflictsAddress = ProgressionsAddress + @"\Conflicts.ini";
-                if (System.IO.File.Exists(ConflictsAddress))
-                    System.IO.File.Delete(ConflictsAddress);
-
                 //Files
                 SpellFiles = Directory.GetFiles(SpellsAddress);
                 ShoutFiles = Directory.GetFiles(ShoutsAddress);
@@ -490,8 +503,8 @@ namespace Voxima
                 //Determine if the User has run this program before. If not, ask if they want to run speech recognition training
                 if (!System.IO.File.Exists(RunCheck))
                 {
-                    string title = "Dragonborn Unlimited Setup";
-                    string message = "It seems you haven't used Dragonborn Unlimited before. It is recommended that you set up your microphone and " +
+                    string title = "Voxima Setup";
+                    string message = "It seems you haven't used Voxima before. It is recommended that you set up your microphone and " +
                                      "run voice recognition training. Would you like to do this now?\n\n" +
 
                                      "Properly setting up your microphone and training your system allows for quicker and more accurate voice " +
@@ -499,7 +512,7 @@ namespace Voxima
 
                                      "If you select \"Yes,\" this program will terminate and launch the Speech Recognition menu, where you can " +
                                      "initiate microphone setup and then recognition training. Skyrim will need to be restarted before these changes " +
-                                     "automatically apply to Dragonborn Unlimited.\n\n" +
+                                     "automatically apply to Voxima.\n\n" +
 
                                      "Once in the Speech Recognition menu, press \"Set up microphone\" and follow the instructions.\n\n" +
 
@@ -507,7 +520,7 @@ namespace Voxima
                                      "Again, going through at least 3 rounds of training is recommended.\n\n" +
 
                                      "If you select \"No,\" the microphone setup and speech recognition training will be skipped. " +
-                                     "A shortcut to launch the Speech Recognition menu may also be found in \"Plugins\\DBU\\Debug.\"";
+                                     "A shortcut to launch the Speech Recognition menu may also be found in \"Plugins\\VOX\\Debug.\"";
 
                     MessageBoxButtons buttons = MessageBoxButtons.YesNo;
                     ///DialogResult result = MessageBox.Show(message, title, buttons);
@@ -519,8 +532,8 @@ namespace Voxima
                         Thread.Sleep(250); // Brief pause
 
                         buttons = MessageBoxButtons.OK;
-                        title = "DBU - Restart Skyrim";
-                        message = "Remember to restart Skyrim for microphone setup and voice training changes to apply to Dragonborn Unlimited.";
+                        title = "VOX - Restart Skyrim";
+                        message = "Remember to restart Skyrim for microphone setup and voice training changes to apply to Voxima.";
                         MessageBox.Show(message, title, buttons, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
                         return;
                     }
@@ -533,7 +546,7 @@ namespace Voxima
                         "If using Mod Organizer 2, naviage to Campfire's mod folder, then to 'SKSE\\Plugins', then delete the 'PapyrusUtil.dll' file\n\n" +
                         "If using Vortex, go to your Skyrim Directory, navigate to 'SKSE\\Plugins', then replace the 'PapyrusUtil.dll' file with the one you downloaded from the Nexus\n\n" +
                         "Would you like to disable this warning?";
-                    string title = "Dragonborn Unlimited Voice Recognition";
+                    string title = "Voxima Voice Recognition";
                     MessageBoxButtons buttons = MessageBoxButtons.YesNo;
                     ///DialogResult result = MessageBox.Show(message, title, buttons, MessageBoxOptions.DefaultDesktopOnly);
                     DialogResult result = MessageBox.Show(message, title, buttons, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
@@ -816,7 +829,7 @@ namespace Voxima
             }
             catch (Exception ex)
             {
-                Log.Debug($"Error during DBU application execution: {ex.Message}", Log.LogType.Error);
+                Log.Debug($"Error during VOX application execution: {ex.Message}", Log.LogType.Error);
                 Log.Activity(ex.ToString());
             }
             /*//debug2//*/
@@ -1929,6 +1942,20 @@ namespace Voxima
             //Fill in item's title
             foreach (string item in items)
             {
+                //Correct Dovahzul Pronunciations
+
+                foreach (string dovahzulWord in item.Split(' '))
+                {
+                    string phonemes = dovahzulPhonemes.GetString(dovahzulWord);
+                    if (phonemes != null && !trainedWords.Contains(dovahzulWord))
+                    {
+                        //Exergist, this is your section
+                        //Dovahzul: item
+                        //Phoneems: phonemes
+                        //Using the above information, add to the Speech Dictionary
+                        trainedWords.Add(dovahzulWord);
+                    }
+                }
                 command = item;
 
                 //Add the raw command ("Conjure Familiar")
@@ -2329,16 +2356,16 @@ namespace Voxima
 
                             break;
 
-                        case "dbu_sensitivity":
+                        case "vox_sensitivity":
                             Sensitivity = float.Parse(item.Split('\t')[1]);
                             FullDictation.Weight = (100 - Sensitivity) / 100;
                             break;
 
-                        case "dbu_autocastshouts":
+                        case "vox_autocastshouts":
                             AutoCastShouts = Convert.ToBoolean(item.Split('\t')[1]);
                             break;
 
-                        case "dbu_autocastpowers":
+                        case "vox_autocastpowers":
                             AutoCastPowers = Convert.ToBoolean(item.Split('\t')[1]);
                             break;
 
@@ -3042,7 +3069,7 @@ namespace Voxima
         private static void ConfigureWebsocketPort()
         {
             // Define directory and file to track
-            string portConfigDirectory = @"Data\SKSE\Plugins\DBU\Websocket Configuration";
+            string portConfigDirectory = @"Data\SKSE\Plugins\VOX\Websocket Configuration";
             string portConfigFile = "PortConfig.txt";
             Log.Debug($"Watching websocket port configuration file", Log.LogType.Info);
             string portConfigFilePath = Path.Combine(portConfigDirectory, portConfigFile);
@@ -3217,7 +3244,7 @@ namespace Voxima
                     StartWebsocketServer(ip, websocketPort); // (Re)launch websocket server with new port configuration
                 }
                 else
-                    Log.Debug($"Specified port is already being used by DBU websocket server", Log.LogType.Info);
+                    Log.Debug($"Specified port is already being used by VOX websocket server", Log.LogType.Info);
             }
             catch (Exception ex) // Handle exceptions encountered in above code
             {
@@ -3257,7 +3284,7 @@ namespace Voxima
                     else
                     {
                         MessageBoxButtons buttons = MessageBoxButtons.OK;
-                        string title = "DBU - Speech Recognition Menu Issue";
+                        string title = "VOX - Speech Recognition Menu Issue";
                         string message = "An issue was encountered while launching the Speech Recognition Menu";
                         MessageBox.Show(message, title, buttons, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
                         return;

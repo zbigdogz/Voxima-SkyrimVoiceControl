@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WebsocketPortConfigurator"
         mc:Ignorable="d"
         Icon="Voxima Icon.ico"
-        Title="DBU Websocket Port Configurator" 
+        Title="VOX Websocket Port Configurator" 
         Height="188" Width="272"
         ResizeMode="NoResize"
         Topmost="True"

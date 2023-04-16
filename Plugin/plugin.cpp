@@ -164,23 +164,23 @@ void InitialUpdate() {
 
         player = RE::PlayerCharacter::GetSingleton();
 
-        DBU_Enabled = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_Enabled");
-        DBU_UpdateInterval = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_UpdateInterval");
-        DBU_CheckForUpdate = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_CheckForUpdate");
-        DBU_PushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_PushToSpeak");
-        DBU_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_ShoutKey");
-        DBU_ShowLog = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_ShowLog");
-        DBU_LongAutoCast = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_LongAutoCast");
-        DBU_AutoCastPowers = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_AutoCastPowers");
-        DBU_AutoCastShouts = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_AutoCastShouts");
+        VOX_Enabled = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_Enabled");
+        VOX_UpdateInterval = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_UpdateInterval");
+        VOX_CheckForUpdate = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_CheckForUpdate");
+        VOX_PushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_PushToSpeak");
+        VOX_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_ShoutKey");
+        VOX_ShowLog = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_ShowLog");
+        VOX_LongAutoCast = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_LongAutoCast");
+        VOX_AutoCastPowers = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_AutoCastPowers");
+        VOX_AutoCastShouts = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_AutoCastShouts");
 
         // C++ --> C# Variables
-        DBU_VocalPushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_VocalPushToSpeak");
-        DBU_Sensitivity = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_Sensitivity");
-        currentVocalPTS = DBU_VocalPushToSpeak->value;
-        currentSensitivity = DBU_Sensitivity->value;
-        currentAutoCastShouts = DBU_AutoCastShouts->value;
-        currentAutoCastPowers = DBU_AutoCastPowers->value;
+        VOX_VocalPushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_VocalPushToSpeak");
+        VOX_Sensitivity = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_Sensitivity");
+        currentVocalPTS = VOX_VocalPushToSpeak->value;
+        currentSensitivity = VOX_Sensitivity->value;
+        currentAutoCastShouts = VOX_AutoCastShouts->value;
+        currentAutoCastPowers = VOX_AutoCastPowers->value;
 
     } catch (const std::exception& ex) {
         logger::error("ERROR during InitialUpdate: {}", ex.what());
@@ -223,13 +223,13 @@ void CheckUpdate(bool loop, bool isAsync) {
                 if (loop) std::this_thread::sleep_for(std::chrono::seconds(1));  // 1 second delay to avoid looping unnecessarily
                 continue;
 
-            } else if (DBU_Enabled->value == 0) {
+            } else if (VOX_Enabled->value == 0) {
                 if (loop)
                     std::this_thread::sleep_for(std::chrono::seconds(5));  // 5 second delay to not loop unnecessarily. See Bottom of page Note (1)
                 continue;
             }
 
-            // DBU_PushToSpeak
+            // VOX_PushToSpeak
 
             fileUpdate = false;
             fullUpdate = false;
@@ -322,32 +322,32 @@ void CheckUpdate(bool loop, bool isAsync) {
             }
 
             //-----MCM-----//
-            if (currentVocalPTS != DBU_VocalPushToSpeak->value) {
-                currentVocalPTS = DBU_VocalPushToSpeak->value;
-                logger::info("Sending \"DBU_VocalPushToSpeak = {}\" to C#", DBU_VocalPushToSpeak->value);
+            if (currentVocalPTS != VOX_VocalPushToSpeak->value) {
+                currentVocalPTS = VOX_VocalPushToSpeak->value;
+                logger::info("Sending \"VOX_VocalPushToSpeak = {}\" to C#", VOX_VocalPushToSpeak->value);
                 fileUpdate = true;
             }
 
-            if (currentSensitivity != DBU_Sensitivity->value) {
-                currentSensitivity = DBU_Sensitivity->value;
-                logger::info("Sending \"DBU_Sensitivity = {}\" to C#", DBU_Sensitivity->value);
+            if (currentSensitivity != VOX_Sensitivity->value) {
+                currentSensitivity = VOX_Sensitivity->value;
+                logger::info("Sending \"VOX_Sensitivity = {}\" to C#", VOX_Sensitivity->value);
                 fileUpdate = true;
             }
 
-            if (currentAutoCastShouts != DBU_AutoCastShouts->value) {
-                currentAutoCastShouts = DBU_AutoCastShouts->value;
-                logger::info("Sending \"DBU_AutoCastShouts = {}\" to C#", DBU_AutoCastShouts->value);
+            if (currentAutoCastShouts != VOX_AutoCastShouts->value) {
+                currentAutoCastShouts = VOX_AutoCastShouts->value;
+                logger::info("Sending \"VOX_AutoCastShouts = {}\" to C#", VOX_AutoCastShouts->value);
                 fileUpdate = true;
             }
 
-            if (currentAutoCastPowers != DBU_AutoCastPowers->value) {
-                currentAutoCastPowers = DBU_AutoCastPowers->value;
-                logger::info("Sending \"DBU_AutoCastPowers = {}\" to C#", DBU_AutoCastPowers->value);
+            if (currentAutoCastPowers != VOX_AutoCastPowers->value) {
+                currentAutoCastPowers = VOX_AutoCastPowers->value;
+                logger::info("Sending \"VOX_AutoCastPowers = {}\" to C#", VOX_AutoCastPowers->value);
                 fileUpdate = true;
             }
 
-            if (DBU_CheckForUpdate->value == 1) {
-                DBU_CheckForUpdate->value = 0;
+            if (VOX_CheckForUpdate->value == 1) {
+                VOX_CheckForUpdate->value = 0;
                 logger::info("Forcing a Full Update");
                 currentShouts = "";
                 fullUpdate = true;
@@ -383,7 +383,7 @@ void CheckUpdate(bool loop, bool isAsync) {
 
 #pragma endregion
 
-            if (loop) std::this_thread::sleep_for(std::chrono::seconds((int)DBU_UpdateInterval->value));  // Pause based on DBU MCM settings
+            if (loop) std::this_thread::sleep_for(std::chrono::seconds((int)VOX_UpdateInterval->value));  // Pause based on VOX MCM settings
         } while (loop);                                                                                   // End While
 
     } catch (const std::exception& ex) {
@@ -436,22 +436,22 @@ void Update(std::string update) {
                 break;
         }
 
-        if (DBU_VocalPushToSpeak->value == 1)
-            updateFile += "DBU_VocalPushToSpeak\ttrue\n";
+        if (VOX_VocalPushToSpeak->value == 1)
+            updateFile += "VOX_VocalPushToSpeak\ttrue\n";
         else
-            updateFile += "DBU_VocalPushToSpeak\tfalse\n";
+            updateFile += "VOX_VocalPushToSpeak\tfalse\n";
 
-        if (DBU_AutoCastShouts->value == 1)
-            updateFile += "DBU_AutoCastShouts\ttrue\n";
+        if (VOX_AutoCastShouts->value == 1)
+            updateFile += "VOX_AutoCastShouts\ttrue\n";
         else
-            updateFile += "DBU_AutoCastShouts\tfalse\n";
+            updateFile += "VOX_AutoCastShouts\tfalse\n";
 
-        if (DBU_AutoCastPowers->value == 1)
-            updateFile += "DBU_AutoCastPowers\ttrue\n";
+        if (VOX_AutoCastPowers->value == 1)
+            updateFile += "VOX_AutoCastPowers\ttrue\n";
         else
-            updateFile += "DBU_AutoCastPowers\tfalse\n";
+            updateFile += "VOX_AutoCastPowers\tfalse\n";
 
-        updateFile += "DBU_Sensitivity\t" + std::to_string((int)DBU_Sensitivity->value);
+        updateFile += "VOX_Sensitivity\t" + std::to_string((int)VOX_Sensitivity->value);
 
         SendMessage("update configuration\n" + updateFile);
 
@@ -486,7 +486,7 @@ void ProcessReceivedMessage(const string& command) {
             pos += newSubstr.length();
         }
 
-        if (DBU_PushToSpeak->value != -1 && !IsKeyDown(DBU_PushToSpeak->value)) {
+        if (VOX_PushToSpeak->value != -1 && !IsKeyDown(VOX_PushToSpeak->value)) {
             logger::info("Received message but rejected due to Push-To-Speak button not being held: \"{}\"", messagePrint);
             return;
         }
@@ -600,7 +600,7 @@ void ProcessReceivedMessage(const string& command) {
             pos += newSubstr.length();
         }
 
-        if (DBU_PushToSpeak->value != -1 && !IsKeyDown(DBU_PushToSpeak->value)) {
+        if (VOX_PushToSpeak->value != -1 && !IsKeyDown(VOX_PushToSpeak->value)) {
             logger::info("Received message but rejected due to Push-To-Speak button not being held: \"{}\"", messagePrint);
             return;
         }
@@ -735,21 +735,21 @@ void ExecuteCommand(Command command) {
                 switch (currentCommand.Hand) {
                     case 0:
                         if (!(currentCommand.AutoCast && item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget &&
-                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || DBU_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Left))) {
+                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Left))) {
                             EquipToActor(player, item, ActorSlot::Left);
                         }
                         break;
 
                     case 1:
                         if (!(currentCommand.AutoCast && item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget &&
-                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || DBU_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Right))) {
+                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Right))) {
                             EquipToActor(player, item, ActorSlot::Right);
                         }
                         break;
 
                     case 2:
                         if (!(currentCommand.AutoCast && item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget &&
-                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || DBU_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Both))) {
+                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Both))) {
                             EquipToActor(player, item, ActorSlot::Both);
                         }
                         break;
@@ -831,10 +831,6 @@ void ExecuteCommand(Command command) {
                         }
                 } else {
                     // Command is likely meant for a horse
-                    int x;
-                    int y;
-                    float oy;
-                    float ox;
                     RE::BSInputDeviceManager* gamepad = RE::BSInputDeviceManager::GetSingleton();
                     gamepad->GetGamepadHandler()->Initialize();
 
@@ -1175,13 +1171,13 @@ SKSEPluginLoad(const SKSE::LoadInterface* skse) {
         SKSE::Init(skse);  // Initialize SKSE plugin
         ///MessageBoxA(NULL, "Press OK when you're ready!", "Skyrim", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
         SetupLog();  // Set up the debug logger
-        
+
         SKSE::GetMessagingInterface()->RegisterListener(OnMessage); // Listen for game messages (usually "Is Game Loaded" comes first) and execute OnMessage method in response
-        logger::info("Dragonborn Unlimited finished loading");  // Temporary debug line so I can see the program started
+        logger::info("Voxima finished loading");  // Temporary debug line so I can see the program started
         return true;
     
     } catch (exception ex) {
-        logger::info("ERROR initializing Dragonborn Unlimited SKSE plugin: {}", ex.what());
+        logger::info("ERROR initializing Voxima SKSE plugin: {}", ex.what());
         return false;
     }
 } // End SKSEPluginLoad
@@ -1189,7 +1185,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* skse) {
 
 // Notes
 /*
-(1) I may be able to change this an event that is triggered, so if DBU_Enabled is 0, the loop will break. If DBU_Enabled is set to 1, the function is
+(1) I may be able to change this an event that is triggered, so if VOX_Enabled is 0, the loop will break. If VOX_Enabled is set to 1, the function is
 called again, starting the loop
 
 */

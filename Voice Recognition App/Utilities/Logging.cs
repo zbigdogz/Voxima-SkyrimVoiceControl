@@ -11,7 +11,7 @@ namespace Utilities
 
         #region Fields
 
-        private static string dbuLogFilePath = @"Data\SKSE\Plugins\DBU\Logs";
+        private static string voxLogFilePath = @"Data\SKSE\Plugins\VOX\Logs";
         ///private static string skseLogFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "Skyrim Special Edition";
         private static LogOutput logOutput;
 
@@ -31,7 +31,7 @@ namespace Utilities
         public enum LogOutput
         {
             Console,
-            DBU_File,
+            VOX_File,
             //SKSE_File
             //Plugin
         }
@@ -60,29 +60,29 @@ namespace Utilities
             try
             {
                 // Set up logging path (if needed)
-                if (Directory.Exists(dbuLogFilePath) == false)
+                if (Directory.Exists(voxLogFilePath) == false)
                 {
-                    var directoryInfo = Directory.CreateDirectory(dbuLogFilePath);
+                    var directoryInfo = Directory.CreateDirectory(voxLogFilePath);
                     /// *** Doesn't this mean the mod file structure is broken?
                 }
-                dbuLogFilePath = Path.Combine(dbuLogFilePath, "DragonbornUnlimitedApp.log"); // Create path to log file
+                voxLogFilePath = Path.Combine(voxLogFilePath, "VoximaApp.log"); // Create path to log file
 
                 // Create logging header and write it to the log file
                 string message = null;
                 //message += "-------------------------------------\n";
-                //message += "| Dragonborn Unlimited App Log File |\n";
+                //message += "| Voxima App Log File |\n";
                 //message += "-------------------------------------\n";
                 //message += "---------------------------------------------\n";
-                //message += "| Dragonborn Unlimited Application Log File |\n";
+                //message += "| Voxima Application Log File |\n";
                 //message += "---------------------------------------------\n";
                 message += "------------------------\n";
-                message += "| Dragonborn Unlimited |\n";
+                message += "|        Voxima        |\n";
                 message += "| Application Log File |\n";
                 message += "------------------------\n";
                 if (logOutput == LogOutput.Console)
                     Console.WriteLine(message);
                 else
-                    File.WriteAllText(dbuLogFilePath, message);
+                    File.WriteAllText(voxLogFilePath, message);
                 Debug("Application started and log file created", LogType.Info); // Write first entry to log file
                 return true;
             }
@@ -111,7 +111,7 @@ namespace Utilities
                     case LogOutput.Console:
                         Console.WriteLine(logContent);
                         break;
-                    case LogOutput.DBU_File:
+                    case LogOutput.VOX_File:
                         ///File.AppendAllText(logContent, logContent + Environment.NewLine); // Synchronous log file write (has issues with quick sequential write requests)
                         FileWriteAsyncSafe(logContent + Environment.NewLine); // Asynchronous-safe log file write
                         break;
@@ -138,7 +138,7 @@ namespace Utilities
             try
             {
                 locker.AcquireWriterLock(int.MaxValue); // Apply a file writer lock
-                File.AppendAllText(dbuLogFilePath, content); // Perform synchronous file writing operation
+                File.AppendAllText(voxLogFilePath, content); // Perform synchronous file writing operation
             }
             finally
             {
@@ -174,13 +174,13 @@ namespace Utilities
             }
         } */
 
-//Console.WriteLine($"log location is {dbuLogFilePath}");
+//Console.WriteLine($"log location is {voxLogFilePath}");
 //string strWorkPath = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
 //Console.WriteLine($"exe location is {strWorkPath}");
 
-//private static string activityLogPath = @"Plugins\DBU\Debug\ActivityLog.txt";
-//private static string debugLogPath = @"Plugins\DBU\Debug\DebugLog.txt";
-//private static string miscLogPath = @"Plugins\DBU\Debug\MiscLog.txt";
+//private static string activityLogPath = @"Plugins\VOX\Debug\ActivityLog.txt";
+//private static string debugLogPath = @"Plugins\VOX\Debug\DebugLog.txt";
+//private static string miscLogPath = @"Plugins\VOX\Debug\MiscLog.txt";
 
 //private static async Task FileWriteAsync(string filePath, string messaage, bool append = true)
 //{

@@ -5,17 +5,17 @@ HWND windowHandle = GetActiveWindow();
 RE::PlayerCharacter* player;
 
 // Global Variables
-RE::TESGlobal* DBU_Enabled;
-RE::TESGlobal* DBU_UpdateInterval;
-RE::TESGlobal* DBU_CheckForUpdate;
-RE::TESGlobal* DBU_VocalPushToSpeak;
-RE::TESGlobal* DBU_PushToSpeak;
-RE::TESGlobal* DBU_AutoCastPowers;
-RE::TESGlobal* DBU_AutoCastShouts;
-RE::TESGlobal* DBU_ShowLog;
-RE::TESGlobal* DBU_ShoutKey;
-RE::TESGlobal* DBU_LongAutoCast;
-RE::TESGlobal* DBU_Sensitivity;
+RE::TESGlobal* VOX_Enabled;
+RE::TESGlobal* VOX_UpdateInterval;
+RE::TESGlobal* VOX_CheckForUpdate;
+RE::TESGlobal* VOX_VocalPushToSpeak;
+RE::TESGlobal* VOX_PushToSpeak;
+RE::TESGlobal* VOX_AutoCastPowers;
+RE::TESGlobal* VOX_AutoCastShouts;
+RE::TESGlobal* VOX_ShowLog;
+RE::TESGlobal* VOX_ShoutKey;
+RE::TESGlobal* VOX_LongAutoCast;
+RE::TESGlobal* VOX_Sensitivity;
 
 enum ActorSlot { Left, Right, Both, Voice, None };
 enum Morph { Player, Werewolf, VampireLord };
@@ -408,7 +408,7 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
 // Asynconously casts a shout/power from the player
 void CastVoice(RE::Actor* actor, RE::TESForm* item, int level) {
     //Get the key the player designated as the eky to press to activate shouts. Not automatic because VR says it's a controller button, which I can't press
-    DBU_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("DBU_ShoutKey");
+    VOX_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_ShoutKey");
 
     //Manually inserted this becaue the timing needs to be perfect
 
@@ -420,7 +420,7 @@ void CastVoice(RE::Actor* actor, RE::TESForm* item, int level) {
     ///ZeroMemory(&input, sizeof(input));
     input.type = INPUT_KEYBOARD;
     input.ki.dwFlags = KEYEVENTF_SCANCODE;
-    input.ki.wScan = DBU_ShoutKey->value;
+    input.ki.wScan = VOX_ShoutKey->value;
 
     SendInput(1, &input, sizeof(INPUT));
 
@@ -802,13 +802,13 @@ static bool IsKeyDown(int keyCode) {
     int vrLeftOffset = null;
     int vrRightOffset = null;
 
-    bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed(DBU_PushToSpeak->value);
-    bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed(DBU_PushToSpeak->value - mouseOffset);
+    bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed(VOX_PushToSpeak->value);
+    bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed(VOX_PushToSpeak->value - mouseOffset);
 
     return (isKeyboardKeyDown || isMouseKeyDown);
 
-    // RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(DBU_PushToSpeak->value - vrLeftOffset)
-    // RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed(DBU_PushToSpeak->value - vrRightOffset)
+    // RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(VOX_PushToSpeak->value - vrLeftOffset)
+    // RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed(VOX_PushToSpeak->value - vrRightOffset)
 }
 
 // Command horse to execute a given movement type

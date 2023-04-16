@@ -1,0 +1,2140 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="(dovahzul)in" xml:space="preserve">
+    <value>iy n</value>
+    <comment>English Conflict</comment>
+  </data>
+  <data name="(dovahzul)us" xml:space="preserve">
+    <value>uw s</value>
+    <comment>Conflict with English</comment>
+  </data>
+  <data name="aak" xml:space="preserve">
+    <value>aa k</value>
+  </data>
+  <data name="aal" xml:space="preserve">
+    <value>aa l</value>
+  </data>
+  <data name="aam" xml:space="preserve">
+    <value>aa m</value>
+  </data>
+  <data name="aan" xml:space="preserve">
+    <value>aa n</value>
+  </data>
+  <data name="aar" xml:space="preserve">
+    <value>aa r</value>
+  </data>
+  <data name="aav" xml:space="preserve">
+    <value>aa v</value>
+  </data>
+  <data name="aaz" xml:space="preserve">
+    <value>aa z</value>
+  </data>
+  <data name="ag" xml:space="preserve">
+    <value>ae g</value>
+    <comment>aa g</comment>
+  </data>
+  <data name="ah" xml:space="preserve">
+    <value>aa</value>
+  </data>
+  <data name="ahkrin" xml:space="preserve">
+    <value>aa k r iy n</value>
+  </data>
+  <data name="ahmik" xml:space="preserve">
+    <value>aa m iy k</value>
+  </data>
+  <data name="ahmul" xml:space="preserve">
+    <value>aa m uw l</value>
+  </data>
+  <data name="ahraan" xml:space="preserve">
+    <value>ax _ r aa n</value>
+    <comment>ax x _ r aa n</comment>
+  </data>
+  <data name="ahrk" xml:space="preserve">
+    <value>aa r k</value>
+  </data>
+  <data name="ahrol" xml:space="preserve">
+    <value>ax _ r ow l</value>
+  </data>
+  <data name="ahroldan" xml:space="preserve">
+    <value>ax _ r ow l d ae n</value>
+  </data>
+  <data name="ahrolsedovah" xml:space="preserve">
+    <value>ax r ow l s eh _ d ow v ax</value>
+  </data>
+  <data name="ahst" xml:space="preserve">
+    <value>aa s t</value>
+  </data>
+  <data name="ahtiid" xml:space="preserve">
+    <value>ax _ t iy d</value>
+  </data>
+  <data name="ahzid" xml:space="preserve">
+    <value>aa z iy d</value>
+  </data>
+  <data name="al" xml:space="preserve">
+    <value>ae l</value>
+    <comment>aa l</comment>
+  </data>
+  <data name="alikr" xml:space="preserve">
+    <value>ae l l ih k iy r</value>
+  </data>
+  <data name="alok" xml:space="preserve">
+    <value>ax _ l ow k</value>
+    <comment>ae l ow k</comment>
+  </data>
+  <data name="alok-dilon" xml:space="preserve">
+    <value>ae l ow k _ d iy l ow n</value>
+  </data>
+  <data name="alun" xml:space="preserve">
+    <value>ae l uw n</value>
+  </data>
+  <data name="am" xml:space="preserve">
+    <value>ae m</value>
+  </data>
+  <data name="amativ" xml:space="preserve">
+    <value>ae m ax t iy v</value>
+    <comment>aa m ax t iy v</comment>
+  </data>
+  <data name="atmora" xml:space="preserve">
+    <value>ae t m ow r ax</value>
+  </data>
+  <data name="aus" xml:space="preserve">
+    <value>a aw s</value>
+  </data>
+  <data name="bah" xml:space="preserve">
+    <value>b aa</value>
+  </data>
+  <data name="bahlaan" xml:space="preserve">
+    <value>b aa l aa n</value>
+  </data>
+  <data name="bahlok" xml:space="preserve">
+    <value>b aa l ow k</value>
+  </data>
+  <data name="balaan" xml:space="preserve">
+    <value>b ae l aa n</value>
+    <comment>b aa l aa n</comment>
+  </data>
+  <data name="bein" xml:space="preserve">
+    <value>b ay n</value>
+  </data>
+  <data name="bel" xml:space="preserve">
+    <value>b eh l</value>
+  </data>
+  <data name="bex" xml:space="preserve">
+    <value>b eh k s</value>
+  </data>
+  <data name="beyn" xml:space="preserve">
+    <value>b ey n</value>
+  </data>
+  <data name="bii" xml:space="preserve">
+    <value>b iy</value>
+  </data>
+  <data name="bo" xml:space="preserve">
+    <value>b ow</value>
+  </data>
+  <data name="bodiis" xml:space="preserve">
+    <value>b ow d iy s</value>
+  </data>
+  <data name="bok" xml:space="preserve">
+    <value>b ow k</value>
+  </data>
+  <data name="bolaav" xml:space="preserve">
+    <value>b ow _ l aa v</value>
+  </data>
+  <data name="bolog" xml:space="preserve">
+    <value>b ow l ow g</value>
+  </data>
+  <data name="bonaar" xml:space="preserve">
+    <value>b ow _ n aa r</value>
+  </data>
+  <data name="bormah" xml:space="preserve">
+    <value>b ow r m ax</value>
+  </data>
+  <data name="bormahu" xml:space="preserve">
+    <value>b ow r _ m aa h uw</value>
+    <comment>b ow r _ m aa x h uw</comment>
+  </data>
+  <data name="bovul" xml:space="preserve">
+    <value>b ow _ v uw l</value>
+  </data>
+  <data name="boziik" xml:space="preserve">
+    <value>b ow z iy k</value>
+  </data>
+  <data name="brendon" xml:space="preserve">
+    <value>b r eh n d ow n</value>
+  </data>
+  <data name="brii" xml:space="preserve">
+    <value>b r iy</value>
+  </data>
+  <data name="briinah" xml:space="preserve">
+    <value>b r iy n ax</value>
+  </data>
+  <data name="briinahmaar" xml:space="preserve">
+    <value>b r iy n ax m aa r</value>
+  </data>
+  <data name="brit" xml:space="preserve">
+    <value>b r iy t</value>
+  </data>
+  <data name="brod" xml:space="preserve">
+    <value>b r ow d</value>
+  </data>
+  <data name="brom" xml:space="preserve">
+    <value>b r ow m</value>
+  </data>
+  <data name="bromjunaar" xml:space="preserve">
+    <value>b r ow m zh uw n aa r</value>
+  </data>
+  <data name="bron" xml:space="preserve">
+    <value>b r ow n</value>
+  </data>
+  <data name="bronjun" xml:space="preserve">
+    <value>b r ow n zh uw n</value>
+  </data>
+  <data name="bruniik" xml:space="preserve">
+    <value>b r uw n iy k</value>
+  </data>
+  <data name="daal" xml:space="preserve">
+    <value>d aa l</value>
+  </data>
+  <data name="daan" xml:space="preserve">
+    <value>d aa n</value>
+  </data>
+  <data name="daanik" xml:space="preserve">
+    <value>d aa n iy k</value>
+  </data>
+  <data name="daar" xml:space="preserve">
+    <value>d aa r</value>
+  </data>
+  <data name="dah" xml:space="preserve">
+    <value>d aa</value>
+  </data>
+  <data name="dahmaan" xml:space="preserve">
+    <value>d aa m aa n</value>
+    <comment>d ax _ m aa n</comment>
+  </data>
+  <data name="daniik" xml:space="preserve">
+    <value>d aa n iy k</value>
+  </data>
+  <data name="dein" xml:space="preserve">
+    <value>d ay n</value>
+  </data>
+  <data name="deinmaar" xml:space="preserve">
+    <value>d ay n m aa r</value>
+  </data>
+  <data name="denek" xml:space="preserve">
+    <value>d eh n eh k</value>
+  </data>
+  <data name="denos" xml:space="preserve">
+    <value>d eh _ n ow s</value>
+  </data>
+  <data name="deyra" xml:space="preserve">
+    <value>d ey r ax</value>
+  </data>
+  <data name="deyto" xml:space="preserve">
+    <value>d ey t ow</value>
+  </data>
+  <data name="dez" xml:space="preserve">
+    <value>d eh z</value>
+  </data>
+  <data name="dii" xml:space="preserve">
+    <value>d iy</value>
+  </data>
+  <data name="diil" xml:space="preserve">
+    <value>d iy l</value>
+  </data>
+  <data name="diin" xml:space="preserve">
+    <value>d iy n</value>
+  </data>
+  <data name="diiv" xml:space="preserve">
+    <value>d iy v</value>
+  </data>
+  <data name="diivon" xml:space="preserve">
+    <value>d iy v ow n</value>
+  </data>
+  <data name="dilon" xml:space="preserve">
+    <value>d iy _ l ow n</value>
+    <comment>d iy l ow n</comment>
+  </data>
+  <data name="dilos" xml:space="preserve">
+    <value>d iy _ l ow s</value>
+    <comment>d iy l ow s</comment>
+  </data>
+  <data name="dinok" xml:space="preserve">
+    <value>d iy _ n ow k</value>
+    <comment>d iy n ow k</comment>
+  </data>
+  <data name="dinoksetiid" xml:space="preserve">
+    <value>d iy n ow k s eh _ t iy d</value>
+  </data>
+  <data name="dir" xml:space="preserve">
+    <value>d iy r</value>
+  </data>
+  <data name="do" xml:space="preserve">
+    <value>d ow</value>
+    <comment>Conflicts with English</comment>
+  </data>
+  <data name="dohaviin" xml:space="preserve">
+    <value>d ow h ax v iy n</value>
+  </data>
+  <data name="dok" xml:space="preserve">
+    <value>d ow k</value>
+  </data>
+  <data name="dov" xml:space="preserve">
+    <value>d ow v</value>
+  </data>
+  <data name="dovah" xml:space="preserve">
+    <value>d ow v ax</value>
+  </data>
+  <data name="dovahgolz" xml:space="preserve">
+    <value>d ow v ax g ow l z</value>
+  </data>
+  <data name="dovahkiin" xml:space="preserve">
+    <value>d ow v ax k iy n</value>
+  </data>
+  <data name="dovahkriid" xml:space="preserve">
+    <value>d ow v ax k r iy d</value>
+    <comment>d ow _ v aa k r iy d</comment>
+  </data>
+  <data name="dovahsebrom" xml:space="preserve">
+    <value>d ow v ax s eh _ b r ow m</value>
+  </data>
+  <data name="draal" xml:space="preserve">
+    <value>d r aa l</value>
+  </data>
+  <data name="dreh" xml:space="preserve">
+    <value>d r eh</value>
+  </data>
+  <data name="drem" xml:space="preserve">
+    <value>d r eh m</value>
+  </data>
+  <data name="drey" xml:space="preserve">
+    <value>d r ey</value>
+  </data>
+  <data name="drog" xml:space="preserve">
+    <value>d r ow g</value>
+  </data>
+  <data name="drun" xml:space="preserve">
+    <value>d r uw n</value>
+  </data>
+  <data name="du" xml:space="preserve">
+    <value>d uw</value>
+  </data>
+  <data name="du'ul" xml:space="preserve">
+    <value>d uw l</value>
+    <comment>d uw uh l, d uw _ uw l</comment>
+  </data>
+  <data name="dukaan" xml:space="preserve">
+    <value>d uw _ k aa n</value>
+  </data>
+  <data name="dun" xml:space="preserve">
+    <value>d uw n</value>
+  </data>
+  <data name="dur" xml:space="preserve">
+    <value>d er</value>
+  </data>
+  <data name="dwiin" xml:space="preserve">
+    <value>d w iy n</value>
+  </data>
+  <data name="dwiirok" xml:space="preserve">
+    <value>d w iy r ow k</value>
+  </data>
+  <data name="ek" xml:space="preserve">
+    <value>eh k</value>
+  </data>
+  <data name="enook" xml:space="preserve">
+    <value>eh _ n uw k</value>
+  </data>
+  <data name="ensosin" xml:space="preserve">
+    <value>eh n _ s ow s iy n</value>
+  </data>
+  <data name="erei" xml:space="preserve">
+    <value>eh _ r ay</value>
+  </data>
+  <data name="eruvos" xml:space="preserve">
+    <value>eh r _ r uw v ow s</value>
+  </data>
+  <data name="evenaar" xml:space="preserve">
+    <value>eh v eh n aa r</value>
+  </data>
+  <data name="evgir" xml:space="preserve">
+    <value>eh v g iy r</value>
+  </data>
+  <data name="faad" xml:space="preserve">
+    <value>f aa d</value>
+  </data>
+  <data name="faal" xml:space="preserve">
+    <value>f aa l</value>
+  </data>
+  <data name="faas" xml:space="preserve">
+    <value>f aa s</value>
+  </data>
+  <data name="faasnu" xml:space="preserve">
+    <value>f aa s n uw</value>
+  </data>
+  <data name="faaz" xml:space="preserve">
+    <value>f aa z</value>
+  </data>
+  <data name="fah" xml:space="preserve">
+    <value>f aa</value>
+  </data>
+  <data name="fahdon" xml:space="preserve">
+    <value>f aa d ow n</value>
+    <comment>f ax _ d ow n</comment>
+  </data>
+  <data name="fahliil" xml:space="preserve">
+    <value>f ax _ l iy l</value>
+  </data>
+  <data name="fahluaan" xml:space="preserve">
+    <value>f aa l uw aa n</value>
+  </data>
+  <data name="faraan" xml:space="preserve">
+    <value>f ax _ r aa n</value>
+  </data>
+  <data name="feim" xml:space="preserve">
+    <value>f ay m</value>
+  </data>
+  <data name="fel" xml:space="preserve">
+    <value>f eh l</value>
+  </data>
+  <data name="fen" xml:space="preserve">
+    <value>f eh n</value>
+  </data>
+  <data name="fent" xml:space="preserve">
+    <value>f eh n t</value>
+  </data>
+  <data name="feykro" xml:space="preserve">
+    <value>f ey k r ow</value>
+  </data>
+  <data name="feyn" xml:space="preserve">
+    <value>f ey n</value>
+  </data>
+  <data name="fiik" xml:space="preserve">
+    <value>f iy k</value>
+  </data>
+  <data name="filok" xml:space="preserve">
+    <value>f iy _ l ow k</value>
+    <comment>f iy l ow k</comment>
+  </data>
+  <data name="fin" xml:space="preserve">
+    <value>f iy n</value>
+  </data>
+  <data name="fo" xml:space="preserve">
+    <value>f ow</value>
+  </data>
+  <data name="fod" xml:space="preserve">
+    <value>f ow d</value>
+  </data>
+  <data name="fodiiz" xml:space="preserve">
+    <value>f ow d iy z</value>
+  </data>
+  <data name="folaas" xml:space="preserve">
+    <value>f ow _ l aa s</value>
+  </data>
+  <data name="folook" xml:space="preserve">
+    <value>f ow _ l uw k</value>
+  </data>
+  <data name="fonaar" xml:space="preserve">
+    <value>f ow n aa r</value>
+    <comment>f ow _ n aa r</comment>
+  </data>
+  <data name="frin" xml:space="preserve">
+    <value>f r iy n</value>
+  </data>
+  <data name="frod" xml:space="preserve">
+    <value>f r ow d</value>
+  </data>
+  <data name="fron" xml:space="preserve">
+    <value>f r ow n</value>
+  </data>
+  <data name="frul" xml:space="preserve">
+    <value>f r uw l</value>
+  </data>
+  <data name="ful" xml:space="preserve">
+    <value>f uw l</value>
+  </data>
+  <data name="fun" xml:space="preserve">
+    <value>f uw n</value>
+  </data>
+  <data name="fundein" xml:space="preserve">
+    <value>f uw n _ d ay n</value>
+  </data>
+  <data name="funt" xml:space="preserve">
+    <value>f uw n t</value>
+  </data>
+  <data name="fus" xml:space="preserve">
+    <value>f uw s</value>
+  </data>
+  <data name="gaaf" xml:space="preserve">
+    <value>g aa f</value>
+  </data>
+  <data name="gaaffesejul" xml:space="preserve">
+    <value>g aa f ax s eh _ zh uw l</value>
+    <comment>g aa f ax s eh _ y uw l</comment>
+  </data>
+  <data name="gaan" xml:space="preserve">
+    <value>g aa n</value>
+  </data>
+  <data name="gaar" xml:space="preserve">
+    <value>g aa r</value>
+  </data>
+  <data name="gahrot" xml:space="preserve">
+    <value>g aa r ow t</value>
+  </data>
+  <data name="gahvon" xml:space="preserve">
+    <value>g aa v ow n</value>
+  </data>
+  <data name="galik" xml:space="preserve">
+    <value>g ae l l iy k</value>
+  </data>
+  <data name="geh" xml:space="preserve">
+    <value>g eh</value>
+  </data>
+  <data name="gein" xml:space="preserve">
+    <value>g ay n</value>
+  </data>
+  <data name="geinmaar" xml:space="preserve">
+    <value>g ay n</value>
+  </data>
+  <data name="gogil" xml:space="preserve">
+    <value>g ow g iy l</value>
+  </data>
+  <data name="gol" xml:space="preserve">
+    <value>g ow l</value>
+  </data>
+  <data name="golah" xml:space="preserve">
+    <value>g ow l ax</value>
+  </data>
+  <data name="golt" xml:space="preserve">
+    <value>g ow l t</value>
+  </data>
+  <data name="golz" xml:space="preserve">
+    <value>g ow l z</value>
+  </data>
+  <data name="goraan" xml:space="preserve">
+    <value>g ow _ r aa n</value>
+  </data>
+  <data name="govey" xml:space="preserve">
+    <value>g ow _ v ey</value>
+  </data>
+  <data name="graag" xml:space="preserve">
+    <value>g r aa g</value>
+  </data>
+  <data name="graan" xml:space="preserve">
+    <value>g r aa n</value>
+  </data>
+  <data name="grah" xml:space="preserve">
+    <value>g r aa</value>
+  </data>
+  <data name="grah-zeymahzin" xml:space="preserve">
+    <value>g r aa z ey m aa z iy n</value>
+    <comment>g r aa z ey m aa z ih n</comment>
+  </data>
+  <data name="grahmindol" xml:space="preserve">
+    <value>g r aa m iy n d ow l</value>
+  </data>
+  <data name="gram" xml:space="preserve">
+    <value>g r ae m</value>
+  </data>
+  <data name="gravuun" xml:space="preserve">
+    <value>g r ae v uw n</value>
+  </data>
+  <data name="grik" xml:space="preserve">
+    <value>g r iy k</value>
+  </data>
+  <data name="grind" xml:space="preserve">
+    <value>g r iy n d</value>
+  </data>
+  <data name="gro" xml:space="preserve">
+    <value>g r ow</value>
+  </data>
+  <data name="grohiik" xml:space="preserve">
+    <value>g r ow h iy k</value>
+  </data>
+  <data name="gron" xml:space="preserve">
+    <value>g r ow n</value>
+    <comment>g r aa n</comment>
+  </data>
+  <data name="gruth" xml:space="preserve">
+    <value>g r uw th</value>
+  </data>
+  <data name="gut" xml:space="preserve">
+    <value>g uw t</value>
+  </data>
+  <data name="haal" xml:space="preserve">
+    <value>h aa l</value>
+  </data>
+  <data name="haalvut" xml:space="preserve">
+    <value>h aa l v uw t</value>
+  </data>
+  <data name="haas" xml:space="preserve">
+    <value>h aa s</value>
+  </data>
+  <data name="hah" xml:space="preserve">
+    <value>h aa</value>
+  </data>
+  <data name="hahdrim" xml:space="preserve">
+    <value>h aa d r iy m</value>
+  </data>
+  <data name="hahkun" xml:space="preserve">
+    <value>h aa k uw n</value>
+  </data>
+  <data name="hahnu" xml:space="preserve">
+    <value>h aa n uw</value>
+  </data>
+  <data name="hahvulon" xml:space="preserve">
+    <value>h aa v uw l ow n</value>
+  </data>
+  <data name="heim" xml:space="preserve">
+    <value>h ay m</value>
+  </data>
+  <data name="het" xml:space="preserve">
+    <value>h eh t</value>
+  </data>
+  <data name="hevno" xml:space="preserve">
+    <value>h eh v n ow</value>
+  </data>
+  <data name="hevnoraak" xml:space="preserve">
+    <value>h eh v n ow r aa k</value>
+    <comment>h eh v _ n ow r ae k</comment>
+  </data>
+  <data name="heyv" xml:space="preserve">
+    <value>h ey v</value>
+  </data>
+  <data name="hi" xml:space="preserve">
+    <value>h iy</value>
+    <comment>h ay</comment>
+  </data>
+  <data name="hillgrundhofkah" xml:space="preserve">
+    <value>h ih l g r uw n d h ow f k ax</value>
+  </data>
+  <data name="him" xml:space="preserve">
+    <value>h iy m</value>
+  </data>
+  <data name="hin" xml:space="preserve">
+    <value>h iy n</value>
+  </data>
+  <data name="hind" xml:space="preserve">
+    <value>h iy n d</value>
+  </data>
+  <data name="hofkah" xml:space="preserve">
+    <value>h ow f k ax</value>
+    <comment>h ao f k ax</comment>
+  </data>
+  <data name="hofkahsejun" xml:space="preserve">
+    <value>h ow f k ax s eh _ zh uw n , h ow f k ax s eh _</value>
+  </data>
+  <data name="hofkiin" xml:space="preserve">
+    <value>h ow f k ax</value>
+    <comment>h ao f k ax</comment>
+  </data>
+  <data name="hokoron" xml:space="preserve">
+    <value>h ow k ow r ow n</value>
+  </data>
+  <data name="hon" xml:space="preserve">
+    <value>h ow n</value>
+  </data>
+  <data name="horvut" xml:space="preserve">
+    <value>h ow r v uw t</value>
+  </data>
+  <data name="horvutah" xml:space="preserve">
+    <value>h ow r _ v uw t ax</value>
+  </data>
+  <data name="hun" xml:space="preserve">
+    <value>h uw n</value>
+  </data>
+  <data name="hungaar" xml:space="preserve">
+    <value>h uw n g aa </value>
+    <comment>h uw ng g aa r</comment>
+  </data>
+  <data name="huzrah" xml:space="preserve">
+    <value>h uw z r ax</value>
+  </data>
+  <data name="iiz" xml:space="preserve">
+    <value>iy z</value>
+  </data>
+  <data name="inhus" xml:space="preserve">
+    <value>iy n _ h uw s</value>
+  </data>
+  <data name="jer" xml:space="preserve">
+    <value>zh eh r</value>
+  </data>
+  <data name="joor" xml:space="preserve">
+    <value>zh ao r</value>
+    <comment>zh er</comment>
+  </data>
+  <data name="jot" xml:space="preserve">
+    <value>zh ow t</value>
+  </data>
+  <data name="jud" xml:space="preserve">
+    <value>zh uw d</value>
+  </data>
+  <data name="jul" xml:space="preserve">
+    <value>zh uw l</value>
+  </data>
+  <data name="jun" xml:space="preserve">
+    <value>zh uw n</value>
+  </data>
+  <data name="junaar" xml:space="preserve">
+    <value>zh uw n aa r</value>
+    <comment>zh uw _ n aa r</comment>
+  </data>
+  <data name="kaal" xml:space="preserve">
+    <value>k aa l</value>
+  </data>
+  <data name="kaan" xml:space="preserve">
+    <value>k aa n</value>
+  </data>
+  <data name="kaaz" xml:space="preserve">
+    <value>k aa z</value>
+  </data>
+  <data name="kah" xml:space="preserve">
+    <value>k aa</value>
+  </data>
+  <data name="kein" xml:space="preserve">
+    <value>k ay n</value>
+  </data>
+  <data name="keizaal" xml:space="preserve">
+    <value>k ay _ z aa l</value>
+    <comment>k iy _ z aa l</comment>
+  </data>
+  <data name="kel" xml:space="preserve">
+    <value>k eh l</value>
+  </data>
+  <data name="kendov" xml:space="preserve">
+    <value>k eh n d ow v</value>
+  </data>
+  <data name="kest" xml:space="preserve">
+    <value>k eh s t</value>
+  </data>
+  <data name="key" xml:space="preserve">
+    <value>k ey</value>
+  </data>
+  <data name="keyn" xml:space="preserve">
+    <value>k ey n</value>
+  </data>
+  <data name="kiim" xml:space="preserve">
+    <value>k iy m</value>
+  </data>
+  <data name="kiin" xml:space="preserve">
+    <value>k iy n</value>
+  </data>
+  <data name="kiir" xml:space="preserve">
+    <value>k iy r</value>
+  </data>
+  <data name="kinbok" xml:space="preserve">
+    <value>k iy n b ow k</value>
+  </data>
+  <data name="kinzon" xml:space="preserve">
+    <value>k iy n z ow n</value>
+  </data>
+  <data name="kip" xml:space="preserve">
+    <value>k iy p</value>
+  </data>
+  <data name="kipraan" xml:space="preserve">
+    <value>k iy _ p r aa n</value>
+  </data>
+  <data name="klo" xml:space="preserve">
+    <value>k l ow</value>
+  </data>
+  <data name="klov" xml:space="preserve">
+    <value>k l ow v</value>
+  </data>
+  <data name="ko" xml:space="preserve">
+    <value>k ow</value>
+  </data>
+  <data name="kod" xml:space="preserve">
+    <value>k ow d</value>
+  </data>
+  <data name="kodaav" xml:space="preserve">
+    <value>k ow _ d aa v</value>
+  </data>
+  <data name="kogaan" xml:space="preserve">
+    <value>k ow _ g aa n</value>
+  </data>
+  <data name="kol" xml:space="preserve">
+    <value>k ow l</value>
+  </data>
+  <data name="kolos" xml:space="preserve">
+    <value>k ow _ l ow s</value>
+  </data>
+  <data name="komeyt" xml:space="preserve">
+    <value>k ow _ m ey t</value>
+    <comment>k ow m ey t</comment>
+  </data>
+  <data name="konahrik" xml:space="preserve">
+    <value>k ow _ n aa r iy k</value>
+  </data>
+  <data name="koor" xml:space="preserve">
+    <value>k ao r</value>
+    <comment>k er</comment>
+  </data>
+  <data name="kopraan" xml:space="preserve">
+    <value>k ow _ p r aa n</value>
+  </data>
+  <data name="koraav" xml:space="preserve">
+    <value>k ow _ r aa v</value>
+  </data>
+  <data name="korvanjund" xml:space="preserve">
+    <value>k ow r v ae n zh uw n d</value>
+  </data>
+  <data name="kos" xml:space="preserve">
+    <value>k ow s</value>
+  </data>
+  <data name="kosil" xml:space="preserve">
+    <value>k ow _ s iy l</value>
+  </data>
+  <data name="kotin" xml:space="preserve">
+    <value>k ow t iy n</value>
+    <comment>k ow _ t iy n</comment>
+  </data>
+  <data name="krah" xml:space="preserve">
+    <value>k r aa</value>
+  </data>
+  <data name="kras" xml:space="preserve">
+    <value>k r ae s</value>
+    <comment>k r aa s</comment>
+  </data>
+  <data name="krasaar" xml:space="preserve">
+    <value>k r ae s aa r</value>
+    <comment>k r aa s aa r</comment>
+  </data>
+  <data name="krasnovaar" xml:space="preserve">
+    <value>k r ae s n ow v aa r</value>
+  </data>
+  <data name="kreh" xml:space="preserve">
+    <value>k r eh</value>
+  </data>
+  <data name="krein" xml:space="preserve">
+    <value>k r ay n</value>
+  </data>
+  <data name="kren" xml:space="preserve">
+    <value>k r eh n</value>
+  </data>
+  <data name="krent" xml:space="preserve">
+    <value>k r eh n t</value>
+  </data>
+  <data name="kriaan" xml:space="preserve">
+    <value>k r iy _ aa n</value>
+  </data>
+  <data name="krif" xml:space="preserve">
+    <value>k r iy f</value>
+  </data>
+  <data name="krii" xml:space="preserve">
+    <value>k r iy</value>
+  </data>
+  <data name="kriid" xml:space="preserve">
+    <value>k r iy d</value>
+  </data>
+  <data name="kriin" xml:space="preserve">
+    <value>k r iy n</value>
+  </data>
+  <data name="kriist" xml:space="preserve">
+    <value>k r iy s t</value>
+  </data>
+  <data name="kriivah" xml:space="preserve">
+    <value>k r iy v ax</value>
+  </data>
+  <data name="kril" xml:space="preserve">
+    <value>k r iy l</value>
+  </data>
+  <data name="krilot" xml:space="preserve">
+    <value>k r iy l ow t</value>
+  </data>
+  <data name="krin" xml:space="preserve">
+    <value>k r iy n</value>
+  </data>
+  <data name="krivaan" xml:space="preserve">
+    <value>k r iy v aa n</value>
+    <comment>k r iy _ v aa n</comment>
+  </data>
+  <data name="kro" xml:space="preserve">
+    <value>k r ow</value>
+  </data>
+  <data name="kron" xml:space="preserve">
+    <value>k r ow n</value>
+  </data>
+  <data name="krongrah" xml:space="preserve">
+    <value>k r ow n g r aa</value>
+  </data>
+  <data name="kroniid" xml:space="preserve">
+    <value>k r ow n iy d</value>
+  </data>
+  <data name="krosis" xml:space="preserve">
+    <value>k r ow s ih s</value>
+  </data>
+  <data name="kruziik" xml:space="preserve">
+    <value>k r uw z iy k</value>
+  </data>
+  <data name="kul" xml:space="preserve">
+    <value>k uw l</value>
+  </data>
+  <data name="kulaan" xml:space="preserve">
+    <value>k uw l aa n</value>
+  </data>
+  <data name="kulaas" xml:space="preserve">
+    <value>k uw l aa s</value>
+  </data>
+  <data name="kun" xml:space="preserve">
+    <value>k uw n</value>
+  </data>
+  <data name="laan" xml:space="preserve">
+    <value>l aa n</value>
+  </data>
+  <data name="laas" xml:space="preserve">
+    <value>l aa s</value>
+  </data>
+  <data name="laat" xml:space="preserve">
+    <value>l aa t</value>
+  </data>
+  <data name="lah" xml:space="preserve">
+    <value>l aa</value>
+  </data>
+  <data name="lahney" xml:space="preserve">
+    <value>l aa n ey</value>
+  </data>
+  <data name="lahvraan" xml:space="preserve">
+    <value>l ax _ v r aa n</value>
+    <comment>l aa v r aa n</comment>
+  </data>
+  <data name="lahvu" xml:space="preserve">
+    <value>l aa v uw</value>
+  </data>
+  <data name="leh" xml:space="preserve">
+    <value>l eh</value>
+  </data>
+  <data name="lein" xml:space="preserve">
+    <value>l ay n</value>
+  </data>
+  <data name="liiv" xml:space="preserve">
+    <value>l iy v</value>
+  </data>
+  <data name="liivrah" xml:space="preserve">
+    <value>l iy v r ax</value>
+  </data>
+  <data name="lingrah" xml:space="preserve">
+    <value>l iy ng g r aa</value>
+    <comment>l iy n g r aa</comment>
+  </data>
+  <data name="lir" xml:space="preserve">
+    <value>l iy r</value>
+  </data>
+  <data name="lo" xml:space="preserve">
+    <value>l ow</value>
+  </data>
+  <data name="lok" xml:space="preserve">
+    <value>l ow k</value>
+  </data>
+  <data name="lon" xml:space="preserve">
+    <value>l ow n</value>
+  </data>
+  <data name="loost" xml:space="preserve">
+    <value>l uw s t</value>
+  </data>
+  <data name="los" xml:space="preserve">
+    <value>l ow s</value>
+  </data>
+  <data name="losei" xml:space="preserve">
+    <value>l ow _ s aa ih</value>
+  </data>
+  <data name="lost" xml:space="preserve">
+    <value>l ow s t</value>
+  </data>
+  <data name="lot" xml:space="preserve">
+    <value>l ow t</value>
+  </data>
+  <data name="lovaas" xml:space="preserve">
+    <value>l ow _ v aa s</value>
+  </data>
+  <data name="luft" xml:space="preserve">
+    <value>l uw f t</value>
+  </data>
+  <data name="lumnaar" xml:space="preserve">
+    <value>l uw m n aa r</value>
+  </data>
+  <data name="lun" xml:space="preserve">
+    <value>l uw n</value>
+  </data>
+  <data name="luv" xml:space="preserve">
+    <value>l uw v</value>
+  </data>
+  <data name="maar" xml:space="preserve">
+    <value>m aa r</value>
+  </data>
+  <data name="mah" xml:space="preserve">
+    <value>m aa</value>
+  </data>
+  <data name="mahfaeraak" xml:space="preserve">
+    <value>m ax _ f ey r aa k</value>
+    <comment>m aa f ey r aa k</comment>
+  </data>
+  <data name="mahlaan" xml:space="preserve">
+    <value>m ax _ l aa n</value>
+  </data>
+  <data name="mal" xml:space="preserve">
+    <value>m ae l</value>
+    <comment>m aa l</comment>
+  </data>
+  <data name="maltiid" xml:space="preserve">
+    <value>m ae l t iy d</value>
+  </data>
+  <data name="med" xml:space="preserve">
+    <value>m eh d</value>
+  </data>
+  <data name="mey" xml:space="preserve">
+    <value>m ey</value>
+  </data>
+  <data name="meyz" xml:space="preserve">
+    <value>m ey z</value>
+  </data>
+  <data name="mid" xml:space="preserve">
+    <value>m iy d</value>
+  </data>
+  <data name="middovah" xml:space="preserve">
+    <value>m iy d _ d ow v ax</value>
+  </data>
+  <data name="midrot" xml:space="preserve">
+    <value>m iy d r ow t</value>
+  </data>
+  <data name="midun" xml:space="preserve">
+    <value>m iy d uw n</value>
+  </data>
+  <data name="miin" xml:space="preserve">
+    <value>m iy n</value>
+  </data>
+  <data name="miiraad" xml:space="preserve">
+    <value>m iy r aa d</value>
+    <comment>m iy r _ aa d</comment>
+  </data>
+  <data name="miiraak" xml:space="preserve">
+    <value>m iy r aa k</value>
+    <comment>m iy r _ aa k</comment>
+  </data>
+  <data name="mindin" xml:space="preserve">
+    <value>m iy n d iy n</value>
+  </data>
+  <data name="mindok" xml:space="preserve">
+    <value>m iy n d ow k</value>
+  </data>
+  <data name="mindol" xml:space="preserve">
+    <value>m iy n d ow l</value>
+  </data>
+  <data name="mindoraan" xml:space="preserve">
+    <value>m iy n d ow r aa n</value>
+  </data>
+  <data name="mir" xml:space="preserve">
+    <value>m iy r</value>
+  </data>
+  <data name="miraad" xml:space="preserve">
+    <value>m iy r _ aa d</value>
+  </data>
+  <data name="mon" xml:space="preserve">
+    <value>m ow n</value>
+  </data>
+  <data name="monah" xml:space="preserve">
+    <value>m ow n ax</value>
+  </data>
+  <data name="monahven" xml:space="preserve">
+    <value>m ow _ n aa v eh n</value>
+  </data>
+  <data name="morah" xml:space="preserve">
+    <value>m ow r ax</value>
+    <comment>m ow _ r aa</comment>
+  </data>
+  <data name="moro" xml:space="preserve">
+    <value>m ow r ow</value>
+  </data>
+  <data name="morokei" xml:space="preserve">
+    <value>m ow r ow k ay</value>
+  </data>
+  <data name="motaad" xml:space="preserve">
+    <value>m ow _ t aa d</value>
+    <comment>m ow t aa d</comment>
+  </data>
+  <data name="motmah" xml:space="preserve">
+    <value>m ow t m ax</value>
+  </data>
+  <data name="motmahus" xml:space="preserve">
+    <value>m ow t _ m aa h uw s</value>
+  </data>
+  <data name="mu" xml:space="preserve">
+    <value>m uw</value>
+  </data>
+  <data name="mul" xml:space="preserve">
+    <value>m uw l</value>
+  </data>
+  <data name="mulaag" xml:space="preserve">
+    <value>m uw l aa g</value>
+    <comment>m uw l _ aa g</comment>
+  </data>
+  <data name="mulhaan" xml:space="preserve">
+    <value>m uw l h aa n</value>
+  </data>
+  <data name="mun" xml:space="preserve">
+    <value>m uw n</value>
+  </data>
+  <data name="munax" xml:space="preserve">
+    <value>m uw n ae k s</value>
+  </data>
+  <data name="muz" xml:space="preserve">
+    <value>m uw z</value>
+  </data>
+  <data name="naak" xml:space="preserve">
+    <value>n aa k</value>
+  </data>
+  <data name="naako" xml:space="preserve">
+    <value>n aa k ow</value>
+  </data>
+  <data name="naal" xml:space="preserve">
+    <value>n aa l</value>
+  </data>
+  <data name="naan" xml:space="preserve">
+    <value>n aa n</value>
+  </data>
+  <data name="naar" xml:space="preserve">
+    <value>n aa r</value>
+  </data>
+  <data name="nah" xml:space="preserve">
+    <value>n aa</value>
+  </data>
+  <data name="nahgahdinok" xml:space="preserve">
+    <value>n aa g ax _ d iy n ow k</value>
+    <comment>n ax _ g aa d iy n ow k</comment>
+  </data>
+  <data name="nahkip" xml:space="preserve">
+    <value>n aa k iy p</value>
+    <comment>n ax _ k iy p</comment>
+  </data>
+  <data name="nahkriin" xml:space="preserve">
+    <value>n aa k r iy n</value>
+  </data>
+  <data name="nahl" xml:space="preserve">
+    <value>n aa l</value>
+  </data>
+  <data name="nahlaas" xml:space="preserve">
+    <value>n ax _ l aa s</value>
+  </data>
+  <data name="nahlot" xml:space="preserve">
+    <value>n aa l ow t</value>
+  </data>
+  <data name="nau" xml:space="preserve">
+    <value>n aw</value>
+  </data>
+  <data name="nax" xml:space="preserve">
+    <value>n ae k s</value>
+  </data>
+  <data name="neh" xml:space="preserve">
+    <value>n eh</value>
+  </data>
+  <data name="ney" xml:space="preserve">
+    <value>n ey</value>
+  </data>
+  <data name="ni" xml:space="preserve">
+    <value>n iy</value>
+  </data>
+  <data name="nid" xml:space="preserve">
+    <value>n iy d</value>
+  </data>
+  <data name="nii" xml:space="preserve">
+    <value>n iy</value>
+  </data>
+  <data name="niid" xml:space="preserve">
+    <value>n iy d</value>
+  </data>
+  <data name="niin" xml:space="preserve">
+    <value>n iy n</value>
+  </data>
+  <data name="nikriin" xml:space="preserve">
+    <value>n iy k r iy n</value>
+    <comment>n iy _ k r iy n</comment>
+  </data>
+  <data name="nil" xml:space="preserve">
+    <value>n iy l</value>
+  </data>
+  <data name="nimaar" xml:space="preserve">
+    <value>n iy _ m aa r</value>
+  </data>
+  <data name="nin" xml:space="preserve">
+    <value>n iy n</value>
+  </data>
+  <data name="nir" xml:space="preserve">
+    <value>n iy r</value>
+  </data>
+  <data name="nis" xml:space="preserve">
+    <value>n iy s</value>
+  </data>
+  <data name="nivahriin" xml:space="preserve">
+    <value>n iy v ax r iy n</value>
+  </data>
+  <data name="nok" xml:space="preserve">
+    <value>n ow k</value>
+  </data>
+  <data name="nol" xml:space="preserve">
+    <value>n ow l</value>
+  </data>
+  <data name="nonvul" xml:space="preserve">
+    <value>n ow n v uw l</value>
+  </data>
+  <data name="norok" xml:space="preserve">
+    <value>n ow r ow k</value>
+  </data>
+  <data name="nos" xml:space="preserve">
+    <value>n ow s</value>
+  </data>
+  <data name="nu" xml:space="preserve">
+    <value>n uw</value>
+  </data>
+  <data name="nunon" xml:space="preserve">
+    <value>n uw _ n ow n</value>
+    <comment>n uw n ow n</comment>
+  </data>
+  <data name="nus" xml:space="preserve">
+    <value>n uw s</value>
+  </data>
+  <data name="nust" xml:space="preserve">
+    <value>n uw s t</value>
+  </data>
+  <data name="nuz" xml:space="preserve">
+    <value>n uw z</value>
+  </data>
+  <data name="oblaan" xml:space="preserve">
+    <value>ow _ b l aa n</value>
+    <comment>ow b l aa n</comment>
+  </data>
+  <data name="oblivion" xml:space="preserve">
+    <value>ow _ b l ih v iy ow n</value>
+    <comment>English word, but it matches the pronunciation</comment>
+  </data>
+  <data name="od" xml:space="preserve">
+    <value>ow d</value>
+  </data>
+  <data name="odus" xml:space="preserve">
+    <value>ow d uw s</value>
+  </data>
+  <data name="ofaal" xml:space="preserve">
+    <value>ow _ f aa l</value>
+  </data>
+  <data name="ofan" xml:space="preserve">
+    <value>ow _ f ae n</value>
+    <comment>ow _ f aa n</comment>
+  </data>
+  <data name="ogiim" xml:space="preserve">
+    <value>ow g iy m</value>
+  </data>
+  <data name="ok" xml:space="preserve">
+    <value>ow k</value>
+  </data>
+  <data name="okaaz" xml:space="preserve">
+    <value>ow _ k aa z</value>
+  </data>
+  <data name="ol" xml:space="preserve">
+    <value>ow l</value>
+  </data>
+  <data name="om" xml:space="preserve">
+    <value>ow m</value>
+  </data>
+  <data name="ond" xml:space="preserve">
+    <value>ow n d</value>
+  </data>
+  <data name="onik" xml:space="preserve">
+    <value>ow n iy k</value>
+  </data>
+  <data name="onikaan" xml:space="preserve">
+    <value>ow n iy k aa n</value>
+  </data>
+  <data name="onikiv" xml:space="preserve">
+    <value>ow n iy k iy v</value>
+  </data>
+  <data name="ont" xml:space="preserve">
+    <value>ow n t</value>
+  </data>
+  <data name="orin" xml:space="preserve">
+    <value>ow r iy n</value>
+  </data>
+  <data name="osos" xml:space="preserve">
+    <value>ow s ow s</value>
+  </data>
+  <data name="oth" xml:space="preserve">
+    <value>ow th</value>
+  </data>
+  <data name="ov" xml:space="preserve">
+    <value>ow v</value>
+  </data>
+  <data name="ozinvey" xml:space="preserve">
+    <value>ow z iy n v ey</value>
+  </data>
+  <data name="paak" xml:space="preserve">
+    <value>p aa k</value>
+  </data>
+  <data name="paal" xml:space="preserve">
+    <value>p aa l</value>
+  </data>
+  <data name="paar" xml:space="preserve">
+    <value>p aa r</value>
+  </data>
+  <data name="paaz" xml:space="preserve">
+    <value>p aa z</value>
+  </data>
+  <data name="pah" xml:space="preserve">
+    <value>p aa</value>
+  </data>
+  <data name="pahlok" xml:space="preserve">
+    <value>p aa l ow k</value>
+  </data>
+  <data name="pel" xml:space="preserve">
+    <value>p eh l</value>
+  </data>
+  <data name="peyt" xml:space="preserve">
+    <value>p ey t</value>
+  </data>
+  <data name="pindaar" xml:space="preserve">
+    <value>p iy n d ax r</value>
+  </data>
+  <data name="piraak" xml:space="preserve">
+    <value>p iy r _ aa k</value>
+    <comment>p iy r ax k</comment>
+  </data>
+  <data name="pogaan" xml:space="preserve">
+    <value>p ow g aa n</value>
+  </data>
+  <data name="pogaas" xml:space="preserve">
+    <value>p ow g aa s</value>
+  </data>
+  <data name="pook" xml:space="preserve">
+    <value>p uw k</value>
+    <comment>p ao k</comment>
+  </data>
+  <data name="praal" xml:space="preserve">
+    <value>p r aa l</value>
+  </data>
+  <data name="praan" xml:space="preserve">
+    <value>p r aa n</value>
+  </data>
+  <data name="prodah" xml:space="preserve">
+    <value>p r ow d ax</value>
+    <comment>p r ow _ d aa</comment>
+  </data>
+  <data name="pruzaan" xml:space="preserve">
+    <value>p r uw z aa n</value>
+  </data>
+  <data name="pruzah" xml:space="preserve">
+    <value>p r uw z ax</value>
+  </data>
+  <data name="qah" xml:space="preserve">
+    <value>k w aa</value>
+    <comment>k aa</comment>
+  </data>
+  <data name="qahnaar" xml:space="preserve">
+    <value>k w ax _ n aa r</value>
+  </data>
+  <data name="qahnaarin" xml:space="preserve">
+    <value>k w ax _ n aa r iy n</value>
+    <comment>k w ax _ n aa r ih n</comment>
+  </data>
+  <data name="qalos" xml:space="preserve">
+    <value>k w ax _ l ow s</value>
+    <comment>k w ae l ow s, k w aa l ow s</comment>
+  </data>
+  <data name="qeth" xml:space="preserve">
+    <value>k w eh th</value>
+  </data>
+  <data name="qethsegol" xml:space="preserve">
+    <value>k w eh th s eh g ow l</value>
+  </data>
+  <data name="qiilaan" xml:space="preserve">
+    <value>k w iy _ l aa n</value>
+    <comment>k w iy l ax n</comment>
+  </data>
+  <data name="qo" xml:space="preserve">
+    <value>k w ow</value>
+  </data>
+  <data name="qolaas" xml:space="preserve">
+    <value>k w ow _ l aa s</value>
+  </data>
+  <data name="qostiid" xml:space="preserve">
+    <value>k w ow s _ t iy d</value>
+  </data>
+  <data name="qoth" xml:space="preserve">
+    <value>k w ow th</value>
+  </data>
+  <data name="quethsegol ahrol" xml:space="preserve">
+    <value>k w eh th s eh g ow l ax r ow l</value>
+  </data>
+  <data name="raan" xml:space="preserve">
+    <value>r aa n</value>
+  </data>
+  <data name="rah" xml:space="preserve">
+    <value>r aa</value>
+  </data>
+  <data name="rahgol" xml:space="preserve">
+    <value>r aa g ow l</value>
+  </data>
+  <data name="rahgot" xml:space="preserve">
+    <value>r aa g ow t</value>
+  </data>
+  <data name="rahgron" xml:space="preserve">
+    <value>r aa g r ow n</value>
+  </data>
+  <data name="rath" xml:space="preserve">
+    <value>r ae th</value>
+  </data>
+  <data name="rein" xml:space="preserve">
+    <value>r ay n</value>
+  </data>
+  <data name="rek" xml:space="preserve">
+    <value>r eh k</value>
+  </data>
+  <data name="rel" xml:space="preserve">
+    <value>r eh l</value>
+  </data>
+  <data name="revak" xml:space="preserve">
+    <value>r eh v ae k</value>
+    <comment>r eh v aa k</comment>
+  </data>
+  <data name="reyliik" xml:space="preserve">
+    <value>r ey l iy k</value>
+  </data>
+  <data name="reyth" xml:space="preserve">
+    <value>r ey th</value>
+  </data>
+  <data name="rii" xml:space="preserve">
+    <value>r iy</value>
+  </data>
+  <data name="riik" xml:space="preserve">
+    <value>r iy k</value>
+  </data>
+  <data name="rinik" xml:space="preserve">
+    <value>r iy n iy k</value>
+  </data>
+  <data name="ro" xml:space="preserve">
+    <value>r ow</value>
+  </data>
+  <data name="rok" xml:space="preserve">
+    <value>r ow k</value>
+  </data>
+  <data name="ronaan" xml:space="preserve">
+    <value>r ow _ n aa n</value>
+    <comment>r ow n aa n</comment>
+  </data>
+  <data name="ronaaz" xml:space="preserve">
+    <value>r ow _ n aa z</value>
+    <comment>r ow n ax z</comment>
+  </data>
+  <data name="ronax" xml:space="preserve">
+    <value>r ow n ae k s</value>
+    <comment>r ow _ n ae k s</comment>
+  </data>
+  <data name="ronit" xml:space="preserve">
+    <value>r ow n iy t</value>
+  </data>
+  <data name="rorikhofkah" xml:space="preserve">
+    <value>r ow r iy k h ow f k ax</value>
+  </data>
+  <data name="rot" xml:space="preserve">
+    <value>r ow t</value>
+  </data>
+  <data name="rotmulaag" xml:space="preserve">
+    <value>r ow t m uw l aa g</value>
+  </data>
+  <data name="rovaan" xml:space="preserve">
+    <value>r ow _ v aa n</value>
+    <comment>r ow v ax n</comment>
+  </data>
+  <data name="ru" xml:space="preserve">
+    <value>r uw</value>
+  </data>
+  <data name="rul" xml:space="preserve">
+    <value>r uw l</value>
+  </data>
+  <data name="ruth" xml:space="preserve">
+    <value>r uw th</value>
+  </data>
+  <data name="ruvaak" xml:space="preserve">
+    <value>r uw v ax k</value>
+  </data>
+  <data name="ruz" xml:space="preserve">
+    <value>r uw z</value>
+  </data>
+  <data name="saan" xml:space="preserve">
+    <value>s aa n</value>
+  </data>
+  <data name="sadon" xml:space="preserve">
+    <value>s ae d ow n</value>
+    <comment>s aa d ow n</comment>
+  </data>
+  <data name="sadonvum" xml:space="preserve">
+    <value>s ae d ow n v uw m</value>
+    <comment>s aa d ow n v uw m</comment>
+  </data>
+  <data name="sah" xml:space="preserve">
+    <value>s aa</value>
+  </data>
+  <data name="sahlo" xml:space="preserve">
+    <value>s aa l ow</value>
+  </data>
+  <data name="sahqo" xml:space="preserve">
+    <value>s aa k w ow</value>
+  </data>
+  <data name="sahqon" xml:space="preserve">
+    <value>s aa k w ow n</value>
+  </data>
+  <data name="sahrot" xml:space="preserve">
+    <value>s aa r ow t</value>
+  </data>
+  <data name="sahsun" xml:space="preserve">
+    <value>s aa s uw n</value>
+  </data>
+  <data name="sahsunaar" xml:space="preserve">
+    <value>s aa s uw n aa r</value>
+  </data>
+  <data name="sahvot" xml:space="preserve">
+    <value>s aa v ow t</value>
+  </data>
+  <data name="saraan" xml:space="preserve">
+    <value>s ax _ r aa n</value>
+    <comment>s aa r _ ax n</comment>
+  </data>
+  <data name="saviik" xml:space="preserve">
+    <value>s aa v iy k</value>
+  </data>
+  <data name="se" xml:space="preserve">
+    <value>s eh</value>
+  </data>
+  <data name="shaan" xml:space="preserve">
+    <value>sh aa n</value>
+  </data>
+  <data name="shul" xml:space="preserve">
+    <value>sh uw l</value>
+  </data>
+  <data name="siigonis" xml:space="preserve">
+    <value>s iy g ow n iy s</value>
+    <comment>s iy _ g ow n iy s</comment>
+  </data>
+  <data name="siiv" xml:space="preserve">
+    <value>s iy v</value>
+  </data>
+  <data name="sik" xml:space="preserve">
+    <value>s iy k</value>
+  </data>
+  <data name="sil" xml:space="preserve">
+    <value>s iy l</value>
+  </data>
+  <data name="sillesejoor" xml:space="preserve">
+    <value>s iy l l e s eh _ zh ao r</value>
+    <comment>s iy l eh _ s y er</comment>
+  </data>
+  <data name="sinak" xml:space="preserve">
+    <value>s iy n ae k s iy n aa k</value>
+  </data>
+  <data name="sindugahvon" xml:space="preserve">
+    <value>s iy n d uw _ g aa v ow n</value>
+    <comment>s iy n _ d uw g ax v ow n</comment>
+  </data>
+  <data name="sinon" xml:space="preserve">
+    <value>s iy _ n ow n</value>
+    <comment>s iy n ow n</comment>
+  </data>
+  <data name="sivaas" xml:space="preserve">
+    <value>s iy _ v aa s</value>
+    <comment>s iy v ax s</comment>
+  </data>
+  <data name="sizaan" xml:space="preserve">
+    <value>s iy _ z aa n</value>
+  </data>
+  <data name="slen" xml:space="preserve">
+    <value>s l eh n</value>
+  </data>
+  <data name="smoliin" xml:space="preserve">
+    <value>s m ow l iy iy n</value>
+  </data>
+  <data name="so" xml:space="preserve">
+    <value>s ow</value>
+    <comment>Pronounced the same in English</comment>
+  </data>
+  <data name="sod" xml:space="preserve">
+    <value>s ow d</value>
+  </data>
+  <data name="sonaak" xml:space="preserve">
+    <value>s ow _ n aa k</value>
+  </data>
+  <data name="sonaan" xml:space="preserve">
+    <value>s ow _ n aa n</value>
+  </data>
+  <data name="sos" xml:space="preserve">
+    <value>s ow s</value>
+  </data>
+  <data name="sosaal" xml:space="preserve">
+    <value>s ow _ z aa l</value>
+    <comment>s ow s aa l</comment>
+  </data>
+  <data name="sossedov" xml:space="preserve">
+    <value>s ow s s eh _ d ow v</value>
+  </data>
+  <data name="sot" xml:space="preserve">
+    <value>s ow t</value>
+  </data>
+  <data name="sov" xml:space="preserve">
+    <value>s ow v</value>
+  </data>
+  <data name="sovngarde" xml:space="preserve">
+    <value>s aa v ih n g aa r d</value>
+    <comment>s ow v ih n g aa r d</comment>
+  </data>
+  <data name="sovrahzun" xml:space="preserve">
+    <value>s ow v r ax z uw n</value>
+    <comment>s ow v _ r aa z uw n</comment>
+  </data>
+  <data name="spaan" xml:space="preserve">
+    <value>s p aa n</value>
+  </data>
+  <data name="staadnau" xml:space="preserve">
+    <value>s t ax d _ n aw</value>
+    <comment>s t aa d n aw</comment>
+  </data>
+  <data name="stin" xml:space="preserve">
+    <value>s t iy n</value>
+  </data>
+  <data name="strun" xml:space="preserve">
+    <value>s t r uw n</value>
+  </data>
+  <data name="strundu'ul" xml:space="preserve">
+    <value>s t r uw n _ d uw l</value>
+    <comment>s t r uw n _ d uw uh l, s t r uw n d uw uw l</comment>
+  </data>
+  <data name="strunmah" xml:space="preserve">
+    <value>s t r uw n m ax</value>
+  </data>
+  <data name="su" xml:space="preserve">
+    <value>s uw</value>
+  </data>
+  <data name="su'um" xml:space="preserve">
+    <value>s uw m s uw uh m</value>
+    <comment>s uw _ uw m</comment>
+  </data>
+  <data name="sul" xml:space="preserve">
+    <value>s uw l</value>
+  </data>
+  <data name="suleyk" xml:space="preserve">
+    <value>s uw l ey k</value>
+    <comment>s uw _ l iy k</comment>
+  </data>
+  <data name="suleykaar" xml:space="preserve">
+    <value>s uw l ey k aa r</value>
+  </data>
+  <data name="suleyksejun" xml:space="preserve">
+    <value>s uw l ey k s eh _ zh uw n</value>
+    <comment>s uw l ey k s eh _ y uw n</comment>
+  </data>
+  <data name="sunvaar" xml:space="preserve">
+    <value>s uw n v aa r</value>
+  </data>
+  <data name="suvulaan" xml:space="preserve">
+    <value>s uw v uw l aa n</value>
+    <comment>s uw _ v uw l aa n</comment>
+  </data>
+  <data name="taazokaan" xml:space="preserve">
+    <value>t aa z ow k aa n</value>
+  </data>
+  <data name="tafiir" xml:space="preserve">
+    <value>t aa f iy r</value>
+    <comment>t aa _ f iy r</comment>
+  </data>
+  <data name="tah" xml:space="preserve">
+    <value>t aa</value>
+  </data>
+  <data name="tahrodiis" xml:space="preserve">
+    <value>t ax _ r ow d iy s</value>
+  </data>
+  <data name="tahrovin" xml:space="preserve">
+    <value>t ax _ r ow v iy n</value>
+  </data>
+  <data name="tey" xml:space="preserve">
+    <value>t ey</value>
+  </data>
+  <data name="thaarn" xml:space="preserve">
+    <value>th aa r n</value>
+  </data>
+  <data name="thu'um" xml:space="preserve">
+    <value>th uw m</value>
+    <comment>th uw uh m, th uw _ uw m</comment>
+  </data>
+  <data name="thur" xml:space="preserve">
+    <value>th er</value>
+  </data>
+  <data name="tiid" xml:space="preserve">
+    <value>t iy d</value>
+  </data>
+  <data name="tiid-ahraan" xml:space="preserve">
+    <value>t iy d ax _ r aa n</value>
+  </data>
+  <data name="tiiraaz" xml:space="preserve">
+    <value>t iy r _ aa z</value>
+  </data>
+  <data name="til" xml:space="preserve">
+    <value>t iy l</value>
+  </data>
+  <data name="tinvaak" xml:space="preserve">
+    <value>t iy n v aa k</value>
+  </data>
+  <data name="togaat" xml:space="preserve">
+    <value>t ow _ g aa t</value>
+  </data>
+  <data name="tol" xml:space="preserve">
+    <value>t ow l</value>
+  </data>
+  <data name="toor" xml:space="preserve">
+    <value>t ao r</value>
+  </data>
+  <data name="tovit" xml:space="preserve">
+    <value>t ow v iy t</value>
+  </data>
+  <data name="tovitaan" xml:space="preserve">
+    <value>t ow v iy t aa n</value>
+  </data>
+  <data name="tu" xml:space="preserve">
+    <value>t uw</value>
+  </data>
+  <data name="tu'um" xml:space="preserve">
+    <value>t uw m</value>
+    <comment>t uw uh m, t uw _ uw m</comment>
+  </data>
+  <data name="tum" xml:space="preserve">
+    <value>t uw m</value>
+  </data>
+  <data name="tuz" xml:space="preserve">
+    <value>t uw z</value>
+  </data>
+  <data name="ufiik" xml:space="preserve">
+    <value>uw f iy k</value>
+  </data>
+  <data name="ul" xml:space="preserve">
+    <value>uw l</value>
+  </data>
+  <data name="ulse" xml:space="preserve">
+    <value>uw l s ax</value>
+  </data>
+  <data name="un" xml:space="preserve">
+    <value>uw n</value>
+  </data>
+  <data name="unahzaal" xml:space="preserve">
+    <value>uw n ax z aa l</value>
+  </data>
+  <data name="unslaad" xml:space="preserve">
+    <value>uw n s l aa d</value>
+  </data>
+  <data name="unt" xml:space="preserve">
+    <value>uw n t</value>
+  </data>
+  <data name="uth" xml:space="preserve">
+    <value>uw th</value>
+  </data>
+  <data name="uv" xml:space="preserve">
+    <value>uw v</value>
+  </data>
+  <data name="uznahgaar" xml:space="preserve">
+    <value>uw z n e g aa r</value>
+  </data>
+  <data name="vaal" xml:space="preserve">
+    <value>v aa l</value>
+  </data>
+  <data name="vaat" xml:space="preserve">
+    <value>v aa t</value>
+  </data>
+  <data name="vaaz" xml:space="preserve">
+    <value>v aa z</value>
+  </data>
+  <data name="vah" xml:space="preserve">
+    <value>v aa</value>
+  </data>
+  <data name="vahdin" xml:space="preserve">
+    <value>v aa d iy n</value>
+    <comment>v ax _ d iy n</comment>
+  </data>
+  <data name="vahlok" xml:space="preserve">
+    <value>v aa l ow k</value>
+  </data>
+  <data name="vahriin" xml:space="preserve">
+    <value>v ax _ r iy n</value>
+  </data>
+  <data name="vahrukiv" xml:space="preserve">
+    <value>v ax _ r uw k iy v</value>
+  </data>
+  <data name="vahrukt" xml:space="preserve">
+    <value>v ax _ r uw k t</value>
+  </data>
+  <data name="vahzah" xml:space="preserve">
+    <value>v aa z ax</value>
+  </data>
+  <data name="vahzen" xml:space="preserve">
+    <value>v aa z eh n</value>
+    <comment>v ax _ z eh n</comment>
+  </data>
+  <data name="ved" xml:space="preserve">
+    <value>v eh d</value>
+  </data>
+  <data name="ven" xml:space="preserve">
+    <value>v eh n</value>
+  </data>
+  <data name="vennesetiid" xml:space="preserve">
+    <value>v eh n n ax s eh _ t iy d</value>
+  </data>
+  <data name="vey" xml:space="preserve">
+    <value>v ey</value>
+  </data>
+  <data name="veydo" xml:space="preserve">
+    <value>v ey d ow</value>
+  </data>
+  <data name="veysun" xml:space="preserve">
+    <value>v ey s uw n</value>
+  </data>
+  <data name="viidost" xml:space="preserve">
+    <value>v iy d ow s t</value>
+  </data>
+  <data name="viik" xml:space="preserve">
+    <value>v iy k</value>
+  </data>
+  <data name="viin" xml:space="preserve">
+    <value>v iy n</value>
+  </data>
+  <data name="viing" xml:space="preserve">
+    <value>v iy ng</value>
+  </data>
+  <data name="viintaas" xml:space="preserve">
+    <value>v iy n t aa s</value>
+  </data>
+  <data name="viir" xml:space="preserve">
+    <value>v iy r</value>
+  </data>
+  <data name="vith" xml:space="preserve">
+    <value>v iy th</value>
+  </data>
+  <data name="vo" xml:space="preserve">
+    <value>v ow</value>
+  </data>
+  <data name="vobalaan" xml:space="preserve">
+    <value>v ow _ b ae l aa n</value>
+    <comment>v ow _ b aa l aa n</comment>
+  </data>
+  <data name="vod" xml:space="preserve">
+    <value>v ow d</value>
+  </data>
+  <data name="vodahmin" xml:space="preserve">
+    <value>v ow _ d aa m iy n</value>
+  </data>
+  <data name="vokiin" xml:space="preserve">
+    <value>v ow k iy n</value>
+  </data>
+  <data name="vokrii" xml:space="preserve">
+    <value>v ow _ k r iy</value>
+  </data>
+  <data name="vokul" xml:space="preserve">
+    <value>v ow k uw l</value>
+    <comment>v ow _ k uw l</comment>
+  </data>
+  <data name="vokun" xml:space="preserve">
+    <value>v ow k uw n</value>
+    <comment>v ow _ k uw n</comment>
+  </data>
+  <data name="vol" xml:space="preserve">
+    <value>v ow l</value>
+  </data>
+  <data name="volaan" xml:space="preserve">
+    <value>v ow _ l aa n</value>
+  </data>
+  <data name="volunruud" xml:space="preserve">
+    <value>v ow l uw n r uw d</value>
+  </data>
+  <data name="vomindok" xml:space="preserve">
+    <value>v ow m iy n d ow k</value>
+    <comment>v ow _ m iy n d ow k</comment>
+  </data>
+  <data name="vomir" xml:space="preserve">
+    <value>v ow _ m iy r</value>
+  </data>
+  <data name="vonmindoraan" xml:space="preserve">
+    <value>v ow n _ m iy n d ow r aa n</value>
+  </data>
+  <data name="vonun" xml:space="preserve">
+    <value>v ow n uw n</value>
+    <comment>v ow _ n uw n</comment>
+  </data>
+  <data name="vonuz" xml:space="preserve">
+    <value>v ow n uw z</value>
+    <comment>v ow _ n uw z</comment>
+  </data>
+  <data name="vosaraan" xml:space="preserve">
+    <value>v ow _ s ax r aa n</value>
+    <comment>v ow ’ s aa r ax n</comment>
+  </data>
+  <data name="voth" xml:space="preserve">
+    <value>v ow th</value>
+  </data>
+  <data name="vothaarn" xml:space="preserve">
+    <value>v ow _ th aa r n</value>
+    <comment>v ow th aa r n</comment>
+  </data>
+  <data name="vu" xml:space="preserve">
+    <value>v uw</value>
+  </data>
+  <data name="vukein" xml:space="preserve">
+    <value>v uw _ k ay n</value>
+    <comment>v uw k ay n</comment>
+  </data>
+  <data name="vul" xml:space="preserve">
+    <value>v uw l</value>
+  </data>
+  <data name="vulom" xml:space="preserve">
+    <value>v uw l ow m</value>
+  </data>
+  <data name="vulon" xml:space="preserve">
+    <value>v uw l ow n</value>
+  </data>
+  <data name="vum" xml:space="preserve">
+    <value>v uw m</value>
+  </data>
+  <data name="vur" xml:space="preserve">
+    <value>v er</value>
+  </data>
+  <data name="vus" xml:space="preserve">
+    <value>v uw s</value>
+  </data>
+  <data name="wah" xml:space="preserve">
+    <value>w aa</value>
+  </data>
+  <data name="wahl" xml:space="preserve">
+    <value>w aa l</value>
+  </data>
+  <data name="wahlaan" xml:space="preserve">
+    <value>w ax _ l aa n</value>
+  </data>
+  <data name="wen" xml:space="preserve">
+    <value>w eh n</value>
+  </data>
+  <data name="werid" xml:space="preserve">
+    <value>w eh r iy d</value>
+  </data>
+  <data name="win" xml:space="preserve">
+    <value>w iy n</value>
+  </data>
+  <data name="wo" xml:space="preserve">
+    <value>w ow</value>
+  </data>
+  <data name="wol" xml:space="preserve">
+    <value>w ow l</value>
+  </data>
+  <data name="wuld" xml:space="preserve">
+    <value>w uw l d</value>
+  </data>
+  <data name="wuldsetiid" xml:space="preserve">
+    <value>w uw l d s eh _ t iy d</value>
+  </data>
+  <data name="wundun" xml:space="preserve">
+    <value>w uw n d uw n</value>
+  </data>
+  <data name="wunduniik" xml:space="preserve">
+    <value>w uw n d uw n iy k</value>
+  </data>
+  <data name="wuth" xml:space="preserve">
+    <value>w uw th</value>
+  </data>
+  <data name="yah" xml:space="preserve">
+    <value>y aa</value>
+  </data>
+  <data name="yol" xml:space="preserve">
+    <value>y ow l</value>
+  </data>
+  <data name="yolos" xml:space="preserve">
+    <value>y ow l ow s</value>
+  </data>
+  <data name="yoriik" xml:space="preserve">
+    <value>y ow r iy k</value>
+  </data>
+  <data name="yuvon" xml:space="preserve">
+    <value>y uw v ow n</value>
+  </data>
+  <data name="zaam" xml:space="preserve">
+    <value>z aa m</value>
+  </data>
+  <data name="zaamhus" xml:space="preserve">
+    <value>z aa m h uw s</value>
+  </data>
+  <data name="zaan" xml:space="preserve">
+    <value>z aa n</value>
+  </data>
+  <data name="zah" xml:space="preserve">
+    <value>z aa</value>
+  </data>
+  <data name="zahkrii" xml:space="preserve">
+    <value>z aa k r iy</value>
+  </data>
+  <data name="zahrahmiik" xml:space="preserve">
+    <value>z aa r ax m iy k</value>
+  </data>
+  <data name="zeim" xml:space="preserve">
+    <value>z ay m</value>
+  </data>
+  <data name="zein" xml:space="preserve">
+    <value>z ay n</value>
+  </data>
+  <data name="zeymah" xml:space="preserve">
+    <value>z ey m ax</value>
+  </data>
+  <data name="zeymahzin" xml:space="preserve">
+    <value>z ey _ m aa z iy n</value>
+    <comment>z ey _ m aa z ih n</comment>
+  </data>
+  <data name="zii" xml:space="preserve">
+    <value>z iy</value>
+  </data>
+  <data name="zin" xml:space="preserve">
+    <value>z iy n</value>
+  </data>
+  <data name="zind" xml:space="preserve">
+    <value>z iy n d</value>
+  </data>
+  <data name="zofaas" xml:space="preserve">
+    <value>z ow _ f aa s</value>
+    <comment>z ow f aa s</comment>
+  </data>
+  <data name="zohungaar" xml:space="preserve">
+    <value>z ow _ h uw n g aa r</value>
+  </data>
+  <data name="zok" xml:space="preserve">
+    <value>z ow k</value>
+  </data>
+  <data name="zol" xml:space="preserve">
+    <value>z ow l</value>
+  </data>
+  <data name="zoor" xml:space="preserve">
+    <value>z ao r</value>
+    <comment>z er</comment>
+  </data>
+  <data name="zorox" xml:space="preserve">
+    <value>z ow _ r ow k s</value>
+  </data>
+  <data name="zu'u" xml:space="preserve">
+    <value>z uw _ uw</value>
+    <comment>z uw</comment>
+  </data>
+  <data name="zul" xml:space="preserve">
+    <value>z uw l</value>
+  </data>
+  <data name="zun" xml:space="preserve">
+    <value>z uw n</value>
+  </data>
+</root>

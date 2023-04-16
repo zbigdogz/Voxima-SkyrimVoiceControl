@@ -68,7 +68,7 @@ void TerminateWebsocket() {
 // Launch companion speech recognition application
 void LaunchSpeechRecoApp() {
     try {
-        string path = "Data/SKSE/Plugins/DBU/Speech Recognition Application/Voxima.exe";  // Relative path to companion appliation that reflects the Skyrim SKSE plugin structure
+        string path = "Data/SKSE/Plugins/VOX/Speech Recognition Application/Voxima.exe";  // Relative path to companion appliation that reflects the Skyrim SKSE plugin structure
         logger::info("Launching Voice Recognition from: {}", path);
         STARTUPINFO info = {sizeof(info)};
         PROCESS_INFORMATION processInfo;
@@ -89,8 +89,8 @@ void LaunchSpeechRecoApp() {
 // Write websocket port configuration to file
 void ConfigureWebsocketPort() {
     try {
-        /// string portConfigPath = "Data\\SKSE\\Plugins\\DBU\\Websocket Configuration\\PortConfig.txt";
-        string portConfigPath = "Data/SKSE/Plugins/DBU/Websocket Configuration/PortConfig.txt";
+        /// string portConfigPath = "Data\\SKSE\\Plugins\\VOX\\Websocket Configuration\\PortConfig.txt";
+        string portConfigPath = "Data/SKSE/Plugins/VOX/Websocket Configuration/PortConfig.txt";
         ofstream filePortConfig;
         filePortConfig.open(portConfigPath);
         filePortConfig.clear();

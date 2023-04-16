@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-    "name": "dragonborn-unlimited",
+    "name": "voxima",
     "version-string": "0.0.2",
 	"dependencies": [
         "commonlibsse-ng",

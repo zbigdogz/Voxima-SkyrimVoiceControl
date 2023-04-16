@@ -19,10 +19,10 @@ namespace Utilities
         #region structs/Enums
         public struct logs
         {
-            public const string Activity = @"Data\SKSE\Plugins\DBU\Debug\Activity.txt";
-            public const string Debug = @"Data\SKSE\Plugins\DBU\Logs\DragonbornUnlimitedApp.log";
-            public const string EnabledCommands = @"Data\SKSE\Plugins\DBU\Debug\Enabled Commands.txt";
-            public const string AllCommands = @"Data\SKSE\Plugins\DBU\Debug\Commands.txt";
+            public const string Activity = @"Data\SKSE\Plugins\VOX\Debug\Activity.txt";
+            public const string Debug = @"Data\SKSE\Plugins\VOX\Logs\VoximaApp.log";
+            public const string EnabledCommands = @"Data\SKSE\Plugins\VOX\Debug\Enabled Commands.txt";
+            public const string AllCommands = @"Data\SKSE\Plugins\VOX\Debug\Commands.txt";
         }
 
         public enum LogType
@@ -53,16 +53,16 @@ namespace Utilities
                 debugContent = "\n\n\n";
             }
 
-            activityContent = "Loaded Settings:\n--------------------";
+            activityContent += "Loaded Settings:\n--------------------";
 
 
             if (File.ReadAllText(logs.Debug) != "")
             {
-                debugContent += "\n\n\n";
+                debugContent = "\n\n\n";
             }
 
             debugContent += "------------------------\n";
-            debugContent += "| Dragonborn Unlimited |\n";
+            debugContent += "|        Voxima        |\n";
             debugContent += "| Application Log File |\n";
             debugContent += "------------------------\n";
 
@@ -118,7 +118,7 @@ namespace Utilities
         }//End Log
 
         /// <summary>
-        /// Sends a log to DragonbornUnlimitedApp.log
+        /// Sends a log to VoximaApp.log
         /// </summary>
         public static void Debug(string logContent, LogType type = LogType.Info, bool showInfo = true)
         {
@@ -135,7 +135,7 @@ namespace Utilities
         }//End Log
 
         /// <summary>
-        /// Sends a log to DragonbornUnlimitedApp.log
+        /// Sends a log to VoximaApp.log
         /// </summary>
         public static void Console(string logContent, LogType type = LogType.Info, bool showInfo = true)
         {

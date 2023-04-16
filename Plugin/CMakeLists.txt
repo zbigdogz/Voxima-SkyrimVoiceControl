@@ -3,10 +3,10 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Set your project name. This will be the name of your SKSE .dll file. Version Notation = major.minor.patch.tweak
-project(DragonbornUnlimited VERSION 0.0.0.2 LANGUAGES CXX)
+project(Voxima VERSION 0.0.0.2 LANGUAGES CXX)
 
 # Set name of project folder
-set(FOLDER_NAME "Dragonborn Unlimited")
+set(FOLDER_NAME "Voxima - Skyrim Voice Control")
 
 #Add flag to allow more "sections" in the code
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
