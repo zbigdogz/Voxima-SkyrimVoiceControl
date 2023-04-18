@@ -83,7 +83,7 @@ namespace Utilities
                     Console.WriteLine(message);
                 else
                     File.WriteAllText(voxLogFilePath, message);
-                Debug("Application started and log file created", LogType.Info); // Write first entry to log file
+                WriteToLog("Application started and log file created", LogType.Info); // Write first entry to log file
                 return true;
             }
             catch (Exception ex)
@@ -101,7 +101,7 @@ namespace Utilities
         /// <param name="logContent">Text to log</param>
         /// <param name="type">Specific logging context</param>
         /// <param name="outputToConsole">Boolean indicating if log should be sent to application console</param>
-        public static void Debug(string logContent, LogType type)
+        public static void WriteToLog(string logContent, LogType type)
         {
             try
             {

@@ -135,7 +135,7 @@ namespace Utilities
         }//End Log
 
         /// <summary>
-        /// Sends a log to VoximaApp.log
+        /// Sends a log to Voxima's console window
         /// </summary>
         public static void Console(string logContent, LogType type = LogType.Info, bool showInfo = true)
         {

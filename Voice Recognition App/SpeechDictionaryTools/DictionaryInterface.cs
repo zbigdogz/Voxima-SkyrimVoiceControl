@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Utilities;
 
 namespace SpeechDictionaryTools
 {
@@ -195,11 +196,12 @@ namespace SpeechDictionaryTools
                             }
                             ///w.Watch("Modification Task Setup"); // Report TrackingStopwatch
                             Task.WhenAll(modifyDictionaryTaskList).Wait(cancellationToken: cts.Token); // Execute all the dictionary data modification tasks concurrently
-                            //foreach (var task in modifyDictionaryTaskList) // Loop through each task in modifyDictionaryTaskList
-                            //{
-                            //    if (task.Result.message != null) // Check if result key is NOT null
-                            //        Logging.OutputToLog(task.Result.message, VA, task.Result.color); // Output info to event log
-                            //}
+                            foreach (var task in modifyDictionaryTaskList) // Loop through each task in modifyDictionaryTaskList
+                            {
+                                if (task.Result.message != null) // Check if result key is NOT null
+                                    Log.Debug(task.Result.message, Log.LogType.Error);
+                                    ///Logging.WriteToLog(task.Result.message, Logging.LogType.Error); // Output info to event log
+                            }
                             ///w.Watch("Speech Dictionary Modification"); // Report TrackingStopwatch (debug)
                             result = true; // Set boolean flag indicating successful processing of speech dictionary modification
 
@@ -244,8 +246,9 @@ namespace SpeechDictionaryTools
                             Task.WhenAll(modifyDictionaryTaskList).Wait(cancellationToken: cts.Token); // Execute all the dictionary data modification tasks concurrently
                             foreach (var task in modifyDictionaryTaskList) // Loop through each task in modifyDictionaryTaskList
                             {
-                                ///if (task.Result.message != null) // Check if result key is NOT null
-                                ///Logging.OutputToLog(task.Result.message, VA, task.Result.color); // Output info to event log
+                                if (task.Result.message != null) // Check if result key is NOT null
+                                    Log.Debug(task.Result.message, Log.LogType.Error);
+                                    ///Logging.WriteToLog(task.Result.message, Logging.LogType.Error); // Output info to event log
                             }
                             ///w.Watch("Speech Dictionary Modification"); // Create new TrackingStopwatch instance for speech dictionary modification
                             result = true; // Set boolean flag indicating successful processing of speech dictionary modification
@@ -524,6 +527,8 @@ namespace SpeechDictionaryTools
                 }
                 catch (Exception ex) // Handle errors encountered in above code
                 {
+                    if (ex.Message == "Value does not fall within the expected range.") // Check if error message has specific content
+                        return ($"\"{word}\" cannot be added to speech dictionary. Check inputted word data (most likely pronunciation issue).", "red"); // Return from this method
                     //if (ex.Message == "Value does not fall within the expected range." && stopProcessing == false) // Check if error message has specific content and processing termination request was NOT triggered
                     //    return ($"\"{word}\" cannot be added to speech dictionary. Check inputted word data (most likely pronunciation issue).", "red"); // Return from this method
                 }
@@ -601,7 +606,7 @@ namespace SpeechDictionaryTools
         /// </summary>
         /// <param name="input">Input text string</param>
         /// <returns>String with first character as uppercase and everything else as lowercase</returns>
-        private string FirstLetterToUppercase(string input)
+        public string FirstLetterToUppercase(string input)
         {
             try // Attempt the following code...
             {

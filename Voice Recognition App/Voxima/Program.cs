@@ -2,10 +2,11 @@
 // Update the code marked with *** in comments
 // more testing for changing the port on the fly, as well as providing bad port information
 
-// zbigdogz VOX build path => ..\..\..\..\..\..\Games\Skyrim\MO2\Appdata\SkyrimSE\mods\Voxima\SKSE\Plugins
-// exergist VOX build path => G:\Modding\Tools\Mod Organizer 2 - Games\Skyrim Special Edition\mods\Voxima\SKSE\Plugins\VOX\Speech Recognition Application\
+// zbigdogz VOX build path => ..\..\..\..\..\..\Games\Skyrim\MO2\Appdata\SkyrimSE\mods\Voxima - Skyrim Voice Control\SKSE\Plugins
+// exergist VOX build path => G:\Modding\Tools\Mod Organizer 2 - Games\Skyrim Special Edition\mods\Voxima - Skyrim Voice Control\SKSE\Plugins\VOX\Speech Recognition Application\
 
 using SpeechDictionaryTools;
+using SpeechLib;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -180,7 +181,12 @@ namespace Voxima
 
         static void Main(string[] args)
         {
-            MessageBox.Show("Waiting for confirmation that a debugger has been attatcehd", "C# Voice Recognition Application", MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+
+            #region Debugger Attachment
+
+            MessageBox.Show("Attach debugger to Voxima C# application now. Press OK when you're ready!", "Skyrim Voxima (C#)", MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+
+            #endregion
 
             #region Directory and File Setup
 
@@ -352,6 +358,7 @@ namespace Voxima
             #region Log File Setup
 
             //log.InitializeLog(logOutput); // Initialize log file
+            ///Logging.InitializeLog(Logging.LogOutput.VOX_File);
             Log.InitializeLogs();
 
             #endregion
@@ -377,7 +384,7 @@ namespace Voxima
 
             #endregion
 
-            #region Add Voxima Content to Speech Dictionary
+            #region Initialize Speech Dictionary Tool Instance
 
             /* #region Demo
 
@@ -411,8 +418,8 @@ namespace Voxima
             // Create DictionaryInterface instance so that speech dictionary modifications and other processing can be performed
             dictionaryInterface = new DictionaryInterface();
 
-            // Now let's teach the speech dictionary dragon shouts
-            dictionaryInterface.ModifyDictionaryDataAsync(DictionaryInterface.DictionaryAction.Add, false, "Skyrim Dictionary Training.txt", true);
+            //// Now let's teach the speech dictionary dragon shouts
+            //dictionaryInterface.ModifyDictionaryDataAsync(DictionaryInterface.DictionaryAction.Add, false, "Skyrim Dictionary Training.txt", true);
 
             #endregion
 
@@ -1941,6 +1948,9 @@ namespace Voxima
             if (info.Length >= 3)
                 type = info[2];
 
+            // Create new List of tasks for populating speech dictionary
+            var modifyDictionaryTaskList = new List<Task<(string message, string color)>>();
+
             //Fill in item's title
             foreach (string item in items)
             {
@@ -1951,14 +1961,26 @@ namespace Voxima
                     string phonemes = dovahzulPhonemes.GetString(dovahzulWord);
                     if (phonemes != null && !trainedWords.Contains(dovahzulWord))
                     {
-                        //Exergist, this is your section
-                        //Dovahzul: item
-                        //Phonemes: phonemes
-                        //Using the above information, add to the Speech Dictionary
+                        string word1 = dovahzulWord.ToLower();
+                        //string word2 = dictionaryInterface.FirstLetterToUppercase(word1);
 
+                        // Create a new task to add dictionary data for dictionaryItem
+                        var task = dictionaryInterface.AddDictionaryDataAsync(word1, phonemes, SpeechPartOfSpeech.SPSUnknown.ToString(), false);
 
-                        
-                        trainedWords.Add(dovahzulWord);
+                        // Store task in list of tasks
+                        modifyDictionaryTaskList.Add(task);
+
+                        // Add Dovahzul word to list of trainedWords
+                        trainedWords.Add(word1);
+
+                        //// Create a new task to add dictionary data for dictionaryItem
+                        //var task2 = dictionaryInterface.AddDictionaryDataAsync(word2, phonemes, SpeechPartOfSpeech.SPSUnknown.ToString(), false);
+
+                        //// Store task in list of tasks
+                        //modifyDictionaryTaskList.Add(task2);
+
+                        //// Add Dovahzul word to list of trainedWords
+                        //trainedWords.Add(word2);
                     }
                 }
                 command = item;
@@ -2089,7 +2111,15 @@ namespace Voxima
                         break;
                 }//End switch
             }//End Cycle Items
-
+            if (modifyDictionaryTaskList.Count > 0)
+                Task.WhenAll(modifyDictionaryTaskList).Wait(); // Execute all the dictionary data modification tasks concurrently
+            foreach (var task in modifyDictionaryTaskList) // Loop through each task in modifyDictionaryTaskList
+            {
+                if (task.Result.message != null) // Check if result key is NOT null
+                    Log.Debug(task.Result.message, Log.LogType.Error);
+                ///Logging.WriteToLog(task.Result.message, Logging.LogType.Error); // Output info to event log
+            }
+            dictionaryInterface.GetDictionaryDataAsync(); // Update internal catalog of speech dictionary data
 
             return commands;
         }
@@ -2507,7 +2537,7 @@ namespace Voxima
                         Log.Debug($"Stopped current update in favor of a new incoming update", Log.LogType.Info);
                     }
 
-                    Log.Debug($"Initialization Finished (Num: {currentUpdateNum})\n", Log.LogType.Info);
+                    Log.Debug($"Initialization Finished (Num: {currentUpdateNum})\n", Log.LogType.Info); ///*** do we want this extra space?
                     isUpdating = false;
 
                 }
@@ -3191,8 +3221,28 @@ namespace Voxima
 
                 #region Remove Modification to Speech Dictionary 
 
-                // Remove the dragon shout words from the speech dictionary
-                dictionaryInterface.ModifyDictionaryDataAsync(DictionaryInterface.DictionaryAction.Remove, false, "Skyrim Dictionary Training.txt", true);
+                //// Remove the dragon shout words from the speech dictionary
+                //dictionaryInterface.ModifyDictionaryDataAsync(DictionaryInterface.DictionaryAction.Remove, false, "Skyrim Dictionary Training.txt", true);
+
+                // Create new List of tasks for populating speech dictionary
+                var modifyDictionaryTaskList = new List<Task<(string message, string color)>>();
+
+                foreach (string dovahzulWord in trainedWords)
+                {
+                    // Create a new task to add dictionary data for dictionaryItem
+                    var task = dictionaryInterface.RemoveDictionaryDataAsync(dovahzulWord, false);
+
+                    // Store task in list of tasks
+                    modifyDictionaryTaskList.Add(task);
+                }
+                if (modifyDictionaryTaskList.Count > 0)
+                    Task.WhenAll(modifyDictionaryTaskList).Wait(); // Execute all the dictionary data modification tasks concurrently
+                foreach (var task in modifyDictionaryTaskList) // Loop through each task in modifyDictionaryTaskList
+                {
+                    if (task.Result.message != null) // Check if result key is NOT null
+                        Log.Debug(task.Result.message, Log.LogType.Error);
+                    ///Logging.WriteToLog(task.Result.message, Logging.LogType.Error); // Output info to event log
+                }
 
                 #endregion
 
