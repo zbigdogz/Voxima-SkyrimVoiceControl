@@ -1218,6 +1218,13 @@ void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* but
 
 #pragma endregion Device input triggers for speech recognition listening
 
+//#pragma region VR Input Processing
+//
+//
+//
+//#pragma endregion
+
+
 //Initializes Plugin, Speech Recognition, Websocket, and data tracker
 SKSEPluginLoad(const SKSE::LoadInterface* skse) {
     try {

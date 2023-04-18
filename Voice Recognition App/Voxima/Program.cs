@@ -182,10 +182,10 @@ namespace Voxima
         {
             MessageBox.Show("Waiting for confirmation that a debugger has been attatcehd", "C# Voice Recognition Application", MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
 
+            #region Directory and File Setup
 
             //Initialize the Global Variables\\
             //Addresses
-
 
             if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX"))
                 System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX");
@@ -346,6 +346,8 @@ namespace Voxima
             ConflictsAddress = ProgressionsAddress + @"\Conflicts.ini";
             if (System.IO.File.Exists(ConflictsAddress))
                 System.IO.File.Delete(ConflictsAddress);
+
+            #endregion
 
             #region Log File Setup
 
@@ -1951,8 +1953,11 @@ namespace Voxima
                     {
                         //Exergist, this is your section
                         //Dovahzul: item
-                        //Phoneems: phonemes
+                        //Phonemes: phonemes
                         //Using the above information, add to the Speech Dictionary
+
+
+                        
                         trainedWords.Add(dovahzulWord);
                     }
                 }
