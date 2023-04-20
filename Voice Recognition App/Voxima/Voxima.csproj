@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\..\Games\Skyrim\MO2\Appdata\SkyrimSE\mods\Voxima - Skyrim Voice Control\SKSE\Plugins\VOX\Speech Recognition Application\</OutputPath>
+    <OutputPath>G:\Modding\Tools\Mod Organizer 2 - Games\Skyrim Special Edition\mods\Voxima - Skyrim Voice Control\SKSE\Plugins\VOX\Speech Recognition Application\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -98,6 +98,7 @@
     <EmbeddedResource Include="DovahzulPhonemes.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>DovahzulPhonemes.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

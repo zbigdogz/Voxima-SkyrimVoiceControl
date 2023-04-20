@@ -55,7 +55,7 @@ endif()
 
 # Setup your SKSE plugin as an SKSE plugin!
 find_package(CommonLibSSE CONFIG REQUIRED)
-add_commonlibsse_plugin(${PROJECT_NAME} SOURCES plugin.cpp) # <--- specifies plugin.cpp
+add_commonlibsse_plugin(${PROJECT_NAME} SOURCES source/plugin.cpp) # <--- specifies plugin.cpp
 
 set(COMMONLIBSSE_VERSION_MATCH TRUE PARENT_SCOPE)
     set(COMMONLIBSSE_VERSION_MAJOR "$0" PARENT_SCOPE)

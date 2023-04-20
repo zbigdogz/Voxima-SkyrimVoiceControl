@@ -1,4 +1,4 @@
-#include "logger.hpp"
+#include "../functions/logger.hpp"
 
 RE::TESForm* currentVoice;
 HWND windowHandle = GetActiveWindow();

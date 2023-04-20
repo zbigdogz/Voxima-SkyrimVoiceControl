@@ -61,7 +61,7 @@ namespace DeviceInputEvent {
                         }
                         /*string result = deviceType + " " + std::to_string(key) + " pressed";
                         RE::DebugNotification(result.c_str());*/
-                        InputDeviceEvent(button, key);
+                        FlatrimInputDeviceEvent(button, key);
                     }
                 }
             }
@@ -130,7 +130,7 @@ namespace DeviceInputEvent {
         }
 
         // Respond to input device events
-        static void InputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode);
+        static void FlatrimInputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode);
         
     protected:
         DeviceInputHandler() = default;
@@ -149,10 +149,10 @@ void InitializeDeviceInputHooking() { DeviceInputEvent::DeviceInputHandler::Regi
 
 /*
 
-Call InitializeDeviceInputHooking and then employ DeviceInputEvent where you want to process captured device input events
+Call InitializeDeviceInputHooking and then employ FlatrimInputDeviceEvent where you want to process captured device input events
 
 // Executes when device input events are received
-void DeviceInputEvent::EventHandler::DeviceInputEvent(RE::ButtonEvent* button, uint32_t keyCode) {
+void DeviceInputEvent::EventHandler::FlatrimInputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode) {
     logger::debug("device input received!");
     // do other stuff
 }

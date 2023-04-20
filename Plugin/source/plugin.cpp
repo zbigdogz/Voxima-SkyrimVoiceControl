@@ -12,7 +12,6 @@
  * check out what SKSEVR is doing with openvr*/
 
 
-
 #include <windows.h>
 #include <stdlib.h>
 #include <iostream>
@@ -22,15 +21,16 @@
 #include <format>
 #include <string>
 
-#include "functions.hpp"  // Miscellaneous custom functions
-#include "websocket.hpp" // Websocket functionality
-#include "animation-events.hpp" // Animation event hooking and processing
-#include "spell-learned-event.hpp" // Spell learn event hooking and processing
-#include "morph-changed-event.hpp" // Player morph event hooking and processing
-#include "load-game-event.hpp" // Game load event hooking and processing
-#include "menu-close-event.hpp" // Menu close event hooking and processing
-#include "location-discovery-event.hpp" // Location discovery event hooking and processing
-#include "device-input-event.hpp"
+#include "../functions/logger.hpp"
+#include "../functions/functions.hpp"  // Miscellaneous custom functions
+#include "../functions/websocket.hpp" // Websocket functionality
+#include "../events/animation-events.hpp" // Animation event hooking and processing
+#include "../events/spell-learned-event.hpp" // Spell learn event hooking and processing
+#include "../events/morph-changed-event.hpp" // Player morph event hooking and processing
+#include "../events/load-game-event.hpp" // Game load event hooking and processing
+#include "../events/menu-close-event.hpp" // Menu close event hooking and processing
+#include "../events/location-discovery-event.hpp" // Location discovery event hooking and processing
+#include "../events/device-input-event.hpp" // Flatrim device input event hooking and processing
 
 struct Command {
     std::string Name = "";
@@ -1182,8 +1182,8 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
 bool pushToTalk = true;
 bool isListening = false;
 
-// Executes when input device events are received
-void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode) {
+// Executes when "Flatrim" (non-VR) input device events are received
+void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode) {
     /*
         EXAMPLE "KEY" TRIGGERS
         Keyboard backslash (\) = 43
