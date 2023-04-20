@@ -4,6 +4,15 @@
 // is the content related to PlayerInfo.txt still relevant/accurate?
 // disposition GameLoaded vs. kPostLoadGame vs. Is3DLoaded() looping for getting FIRST full game and app update (first two options don't trigger at beginning of Alternate Start)
 
+
+// VR
+/*anyway it sounds like your recommendations are thus:
+ * add openvr to CLib project dependencies
+ * check out what higgs is doing with SKSEVR
+ * check out what SKSEVR is doing with openvr*/
+
+
+
 #include <windows.h>
 #include <stdlib.h>
 #include <iostream>
