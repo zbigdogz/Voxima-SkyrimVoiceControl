@@ -21,8 +21,9 @@
 #include <format>
 #include <string>
 
-#include "../functions/logger.hpp"
 #include "../functions/functions.hpp"  // Miscellaneous custom functions
+#include "../functions/logger.hpp" // SKSE log functions
+#include "../functions/openvr.hpp"
 #include "../functions/websocket.hpp" // Websocket functionality
 #include "../events/animation-events.hpp" // Animation event hooking and processing
 #include "../events/spell-learned-event.hpp" // Spell learn event hooking and processing
@@ -31,6 +32,7 @@
 #include "../events/menu-close-event.hpp" // Menu close event hooking and processing
 #include "../events/location-discovery-event.hpp" // Location discovery event hooking and processing
 #include "../events/device-input-event.hpp" // Flatrim device input event hooking and processing
+
 
 struct Command {
     std::string Name = "";
