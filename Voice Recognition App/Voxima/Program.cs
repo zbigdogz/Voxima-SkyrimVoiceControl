@@ -182,11 +182,11 @@ namespace Voxima
         static void Main(string[] args)
         {
 
-            #region Debugger Attachment
+            /* #region Debugger Attachment
 
             MessageBox.Show("Attach debugger to Voxima C# application now. Press OK when you're ready!", "Skyrim Voxima (C#)", MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
 
-            #endregion
+            #endregion */
 
             #region Directory and File Setup
 
