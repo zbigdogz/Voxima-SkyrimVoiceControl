@@ -143,7 +143,7 @@ namespace DeviceInputEvent {
     };
 }
 
-void InitializeDeviceInputHooking() { DeviceInputEvent::DeviceInputHandler::Register(); }
+void InitializeFlatrimDeviceInputHooking() { DeviceInputEvent::DeviceInputHandler::Register(); }
 
 #pragma region How to use
 

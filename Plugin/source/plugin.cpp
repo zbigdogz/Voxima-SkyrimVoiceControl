@@ -51,6 +51,7 @@ void InitialUpdate();
 void CheckUpdate(bool loop = false, bool isAsync = false);
 void Update(std::string update = "");
 void ExecuteCommand(Command command);
+void DetectVrInput();
 
 float currentVocalPTS;
 float currentSensitivity;
@@ -138,8 +139,10 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 InitializeMorphChangeHooking();        // Setup player morph change event monitoring
                 InitializeMenuOpenCloseHooking();      // Setup menu open/close event monitoring
                 InitializeLocationDiscoveryHooking();  // Setup location discovery event monitoring
-                //if (REL::Module::IsVR() == false)
-                //    InitializeDeviceInputHooking();        // Setup device input event monitoring
+                if (REL::Module::IsVR())
+                    thread([]() { DetectVrInput(); }).detach();
+                else
+                    InitializeFlatrimDeviceInputHooking();  // Setup "flatrim" device input event monitoring
                 
                 while (connected == false)                                        // Loop while websocket connection has not been made
                     std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to allow for websocket connection to be made
@@ -975,15 +978,14 @@ void TestMethod() {
 
 }
 
-//#pragma region VR Input Processing
-//
-//void DetectVrInput() {
-//    if (InitializeOpenVR()) {
-//    } else
-//        RE::DebugNotification("DetectVrInput not initialized");
-//}
-//
-//#pragma endregion
+#pragma region VR Input Processing
+
+void DetectVrInput() {
+    if (InitializeOpenVR() == false)
+        RE::DebugNotification("DetectVrInput not initialized");
+}
+
+#pragma endregion
 
 #pragma region Event triggers for CheckUpdate()
 
@@ -1074,9 +1076,6 @@ void MorphEvents::EventHandler::MorphChanged() {
 void LoadGameEvent::EventHandler::GameLoaded() {
     logger::debug("Game loaded!!");
     CheckUpdate();  // Call method to check for game data updates
-
-    /*if (REL::Module::IsVR())
-        thread([]() { DetectVrInput(); }).detach();*/
 }
 
 // Executes when a menu opens or closes
@@ -1192,7 +1191,7 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
 
 #pragma endregion All tracked game events that trigger an UpdateCheck
 
-#pragma region Device Input Processing
+#pragma region Flatrim Device Input Processing
 
 bool pushToTalk = true;
 bool isListening = false;
@@ -1210,12 +1209,12 @@ void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEve
 
     if (pushToTalk) {        // Check if push-to-talk mode is enabled (true)
         thread([button]() {  // Create new thread for execution (passing in button)
-            RE::DebugNotification("Input Triggered - Start listening!");
+            RE::DebugNotification("Flatrim Input Triggered - Start listening!");
 
             /// *** do stuff to activate listening of C# app
 
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
-            RE::DebugNotification("Input released - Stop Listening!");
+            RE::DebugNotification("Flatrim Input released - Stop Listening!");
 
             /// *** do stuff to deactivate listening of C# app
         })
@@ -1225,13 +1224,13 @@ void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEve
             if (isListening == false) {  // Check if recognition app is NOT listening
                 isListening = true;      // Set isListening flag
 
-                RE::DebugNotification("Input Triggered - Start listening!");
+                RE::DebugNotification("Flatrim Input Triggered - Start listening!");
 
                 /// *** do stuff to activate listening of C# app
 
             } else {
                 isListening = false;  // Reset isListening flag
-                RE::DebugNotification("Input released - Stop Listening!");
+                RE::DebugNotification("Flatrim Input released - Stop Listening!");
 
                 /// *** do stuff to deactivate listening of C# app
             }
