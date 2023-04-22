@@ -9,7 +9,14 @@ bool InitializeOpenVR() {
         // Failed to initialize OpenVR system
         return false;
     } else {
+
         vr::VREvent_t event;
+
+        //// Register event handler function to receive OpenVR events
+        //vr::VRSystem()->PollNextEvent(&event, sizeof(event));
+        //vr::VRSystem()->RegisterCallback(&HandleOpenVREvent);
+
+        
         while (g_pOpenVRSystem->PollNextEvent(&event, sizeof(event))) {
             // Check if the event is a button press event
             if (event.eventType == vr::VREvent_ButtonPress) {
@@ -53,7 +60,20 @@ public:
     }
 };
 
-
+//// Event handler function to handle OpenVR events
+//void HandleOpenVREvent(const vr::VREvent_t& event) {
+//    // Check if the event is a button press event
+//    if (event.eventType == vr::VREvent_ButtonPress) {
+//        // Get the controller state for the device that generated the event
+//        vr::VRControllerState_t state;
+//        if (vr::VRSystem()->GetControllerState(event.trackedDeviceIndex, &state, sizeof(vr::VRControllerState_t))) {
+//            // Check if the button that was pressed is the trigger button
+//            if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger)) {
+//                RE::DebugNotification("VR trigger button pressed!!");
+//            }
+//        }
+//    }
+//}
 
 
 //#include "openvr.h"
