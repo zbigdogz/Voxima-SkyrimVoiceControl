@@ -13,7 +13,7 @@ void OnPapyrusVRMessage(SKSE::MessagingInterface::Message* message) {
 }
 
 std::string GetButtonName(vr::EVRButtonId buttonId) {
-    string name = "";
+    std::string name = "";
     switch (buttonId) {
         case vr::k_EButton_System:
             name = "System button was pressed";
