@@ -18,12 +18,8 @@ bool InitializeOpenVR() {
                 if (g_pOpenVRSystem->GetControllerState(event.trackedDeviceIndex, &state, sizeof(vr::VRControllerState_t))) {
                     
                     // Check if the button that was pressed is the trigger button
-                    if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger)) {
-                        // Trigger button was pressed, do something
-                        // ...
-
+                    if (state.ulButtonPressed & vr::ButtonMaskFromId(vr::k_EButton_SteamVR_Trigger))
                         RE::DebugNotification("VR trigger button pressed!!");
-                    }
 
                     //// Check if any button was pressed
                     //if (g_pOpenVRSystem->GetControllerState(event.trackedDeviceIndex, &state, sizeof(vr::VRControllerState_t))) {
