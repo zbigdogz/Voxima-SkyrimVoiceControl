@@ -23,7 +23,7 @@
 
 #include "../functions/functions.hpp"  // Miscellaneous custom functions
 #include "../functions/logger.hpp" // SKSE log functions
-#include "../vrinput/vrinput.hpp"
+#include "../functions/vrinput.hpp"
 #include "../functions/websocket.hpp" // Websocket functionality
 #include "../events/animation-events.hpp" // Animation event hooking and processing
 #include "../events/spell-learned-event.hpp" // Spell learn event hooking and processing
@@ -51,7 +51,6 @@ void InitialUpdate();
 void CheckUpdate(bool loop = false, bool isAsync = false);
 void Update(std::string update = "");
 void ExecuteCommand(Command command);
-void DetectVrInput();
 
 float currentVocalPTS;
 float currentSensitivity;
@@ -128,6 +127,9 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 ConfigureWebsocketPort();  // Write target websocket port to file, which will be read by speech recognition application
                 LaunchSpeechRecoApp();     // Launch the companion speech recognition application
                 ///MessageBoxA(NULL, "Attach Voxima plugin debugger to Skyrim game process now. Press OK when you're ready!", "Skyrim Voxima (C++)", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
+                
+                logger::debug("SKSE PostLoad message received, registering for PapyrusVR messages from SkyrimVRTools");
+                SKSE::GetMessagingInterface()->RegisterListener("SkyrimVRTools", OnPapyrusVRMessage);                
                 break;
 
             // Data handler has loaded all its forms (Main menu has loaded???)
@@ -139,9 +141,27 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 InitializeMorphChangeHooking();        // Setup player morph change event monitoring
                 InitializeMenuOpenCloseHooking();      // Setup menu open/close event monitoring
                 InitializeLocationDiscoveryHooking();  // Setup location discovery event monitoring
-                if (REL::Module::IsVR())
-                    thread([]() { DetectVrInput(); }).detach();
-                else
+                
+                if (REL::Module::IsVR()) {
+                    if (g_papyrusvr) {
+                        OpenVRHookManagerAPI* hookMgrAPI = RequestOpenVRHookManagerObject();
+                        if (hookMgrAPI) {
+                            logger::debug("Using RAW OpenVR Hook API.");
+                            g_VRSystem = hookMgrAPI->GetVRSystem();  // setup VR system before callbacks
+                            hookMgrAPI->RegisterControllerStateCB(OnControllerStateChanged);
+                            // hookMgrAPI->RegisterGetPosesCB(OnGetPosesUpdate);
+
+                        } else {
+                            logger::debug("Using legacy PapyrusVR API.");
+
+                            // Registers for PoseUpdates
+                            g_papyrusvr->GetVRManager()->RegisterVRButtonListener(OnVRButtonEvent);
+                            // g_papyrusvr->GetVRManager()->RegisterVRUpdateListener(OnVRUpdateEvent);
+                        }
+                    } else {
+                        logger::debug("PapyrusVR was not initialized!");
+                    }
+                } else
                     InitializeFlatrimDeviceInputHooking();  // Setup "flatrim" device input event monitoring
                 
                 while (connected == false)                                        // Loop while websocket connection has not been made
@@ -978,15 +998,6 @@ void TestMethod() {
 
 }
 
-#pragma region VR Input Processing
-
-void DetectVrInput() {
-    if (InitializeOpenVR() == false)
-        RE::DebugNotification("DetectVrInput not initialized");
-}
-
-#pragma endregion
-
 #pragma region Event triggers for CheckUpdate()
 
 #pragma region Animation Events
@@ -1385,5 +1396,8 @@ void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevi
 
 // Hash parttern for switch statements modified from TrueDirectionalMovement by Ersh ==> https://github.com/ersh1/TrueDirectionalMovement
 // string to enum ==> https://stackoverflow.com/questions/7163069/c-string-to-enum/7163130#7163130
+
+// Leverages SkyrimVRTools plugin (required mod) https://www.nexusmods.com/skyrimspecialedition/mods/27782
+// Leverages code from VRCustomQuickslots https://github.com/lfrazer/VRCustomQuickslots
 
 #pragma endregion
