@@ -3,7 +3,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 # Set your project name. This will be the name of your SKSE .dll file. Version Notation = major.minor.patch.tweak
-project(Voxima VERSION 0.0.0.2 LANGUAGES CXX)
+project(Voxima-SkyrimVoiceControl VERSION 0.0.0.2 LANGUAGES CXX)
 
 # Set name of project folder
 set(FOLDER_NAME "Voxima - Skyrim Voice Control")

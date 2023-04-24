@@ -116,6 +116,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
             case SKSE::MessagingInterface::kPostLoad:
                 ConfigureWebsocketPort();  // Write target websocket port to file, which will be read by speech recognition application
                 LaunchSpeechRecoApp();     // Launch the companion speech recognition application
+                MessageBoxA(NULL, "Attach Voxima plugin debugger to Skyrim game process now. Press OK when you're ready!", "Skyrim Voxima (C++)", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
                 break;
 
             // Data handler has loaded all its forms (Main menu has loaded???)
@@ -127,7 +128,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 InitializeMorphChangeHooking();        // Setup player morph change event monitoring
                 InitializeMenuOpenCloseHooking();      // Setup menu open/close event monitoring
                 InitializeLocationDiscoveryHooking();  // Setup location discovery event monitoring
-                InitializeDeviceInputHooking();        // Setup device input event monitoring
+                ///InitializeDeviceInputHooking();        // Setup device input event monitoring
                 
                 while (connected == false)                                        // Loop while websocket connection has not been made
                     std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to allow for websocket connection to be made
@@ -1217,6 +1218,13 @@ void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* but
 }
 
 #pragma endregion Device input triggers for speech recognition listening
+
+//#pragma region VR Input Processing
+//
+//
+//
+//#pragma endregion
+
 
 //Initializes Plugin, Speech Recognition, Websocket, and data tracker
 SKSEPluginLoad(const SKSE::LoadInterface* skse) {
