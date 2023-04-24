@@ -108,22 +108,22 @@ namespace Voxima
         //.ini Lists in Files
         static readonly int MaxNumFiles = 50;
 
-        static string[] SpellList;
-        static string[] ShoutList;
-        static string[] PowerList;
-        static string[] KeybindList;
-        static string[] ProgressionList;
-        static string[] VSettingList;
-        static string[] ConsoleCommandList;
+        static List<string> SpellList = new List<string>();
+        static List<string> ShoutList = new List<string>();
+        static List<string> PowerList = new List<string>();
+        static List<string> KeybindList = new List<string>();
+        static List<string> ProgressionList = new List<string>();
+        static List<string> VSettingList = new List<string>();
+        static List<string> ConsoleCommandList = new List<string>();
 
-        static string[] WerewolfKeybindList;
-        static string[] VampireLordSpellList;
-        static string[] VampireLordPowerList;
-        static string[] VampireLordKeybindList;
-        static string[] VampireLordProgressionList;
+        static List<string> WerewolfKeybindList = new List<string>();
+        static List<string> VampireLordSpellList = new List<string>();
+        static List<string> VampireLordPowerList = new List<string>();
+        static List<string> VampireLordKeybindList = new List<string>();
+        static List<string> VampireLordProgressionList = new List<string>();
 
-        static string[] DragonKeybindList;
-        static string[] HorseKeybindList;
+        static List<string> DragonKeybindList = new List<string>();
+        static List<string> HorseKeybindList = new List<string>();
 
         //Settings
         static string DefaultHand = "";
@@ -136,10 +136,9 @@ namespace Voxima
         static bool VocalPushToSpeak = false;     //Adjusted in-game through the MCM
         static bool VocalPushToSpeak_Val = true;     //Stored Value
 
-        static Grammar[] ProgressionGrammars;   //Temporary until I can find a way to activate them on a case-by-case basis
-        static Grammar[] SettingGrammars;
-        static Grammar[] KeybindGrammars;
-        static Grammar[] ConsoleGrammars;
+        static List<Grammar> SettingGrammars = new List<Grammar>();
+        static List<Grammar> KeybindGrammars = new List<Grammar>();
+        static List<Grammar> ConsoleGrammars = new List<Grammar>();
         static Hashtable LocationsGrammars = new Hashtable();
         static Hashtable AllItems = new Hashtable();
         static Hashtable AllConflicts = new Hashtable();
@@ -159,13 +158,13 @@ namespace Voxima
         static string CurrentMorph = "";
         static DictationGrammar FullDictation = new DictationGrammar();
 
-        static string[] handLeft = new string[10];
-        static string[] handRight = new string[10];
-        static string[] handBoth = new string[10];
-        static string[] handCast = new string[10];
-        static string[] powerCast = new string[10];
-        static string[] locationCommands = new string[10];
-        static string[] currentLocationCommands = new string[10];
+        static List<string> handLeft = new List<string>();
+        static List<string> handRight = new List<string>();
+        static List<string> handBoth = new List<string>();
+        static List<string> handCast = new List<string>();
+        static List<string> powerCast = new List<string>();
+        static List<string> locationCommands = new List<string>();
+        static List<string> currentLocationCommands = new List<string>();
 
         static string Morph = "none";
         static DateTime Time = DateTime.Now;
@@ -186,7 +185,6 @@ namespace Voxima
             //Initialize the Global Variables\\
             //Addresses
 
-
             if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX"))
                 System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX");
 
@@ -195,6 +193,9 @@ namespace Voxima
 
             if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Commands\Special"))
                 System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Commands\Special");
+
+            if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Logs"))
+                System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Logs");
 
             if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Logs\VoximaApp.log"))
                 System.IO.File.WriteAllText(@"Data\SKSE\Plugins\VOX\Logs\VoximaApp.log", "");
@@ -679,48 +680,24 @@ namespace Voxima
                     Log.Activity("There is an error in the settings file causing \"RequireHandSelector\" to have no result", Log.LogType.Error);
                 }
 
-
-                SpellList = new string[MaxNumFiles];
-                ShoutList = new string[MaxNumFiles];
-                PowerList = new string[MaxNumFiles];
-                KeybindList = new string[MaxNumFiles];
-                ProgressionList = new string[MaxNumFiles];
-                VSettingList = new string[MaxNumFiles];
-                ConsoleCommandList = new string[MaxNumFiles];
-
-                WerewolfKeybindList = new string[MaxNumFiles];
-                VampireLordSpellList = new string[MaxNumFiles];
-                VampireLordPowerList = new string[MaxNumFiles];
-                VampireLordKeybindList = new string[MaxNumFiles];
-                VampireLordProgressionList = new string[MaxNumFiles];
-
-                DragonKeybindList = new string[20];
-                HorseKeybindList = new string[20];
-
-                KeybindGrammars = new Grammar[100];
-                SettingGrammars = new Grammar[50];
-                ConsoleGrammars = new Grammar[2000];
-                ProgressionGrammars = new Grammar[500];
-
-
                 //Get Items
 
-                FindCommands(VSettingFiles, VSettingList, "setting", "setting");                                //Get Command Settings and Start/Stop commands
-                FindCommands(ConsoleCommandFiles, ConsoleCommandList, "console", "None");                       //Get Console commands
+                FindCommands(VSettingFiles, "setting", "setting");                                //Get Command Settings and Start/Stop commands
+                FindCommands(ConsoleCommandFiles, "console", "None");                       //Get Console commands
 
-                FindCommands(VampireLordPowerFiles, VampireLordPowerList, "Power", "VampireLord");              //Get Vampire Lord Powers
-                FindCommands(VampireLordSpellFiles, VampireLordSpellList, "Spell", "VampireLord");              //Get Vampire Lord Spells
+                FindCommands(VampireLordPowerFiles, "Power", "VampireLord");              //Get Vampire Lord Powers
+                FindCommands(VampireLordSpellFiles, "Spell", "VampireLord");              //Get Vampire Lord Spells
 
-                FindCommands(PowerFiles, PowerList, "Power", "None");                                           //Get Powers
-                FindCommands(SpellFiles, SpellList, "Spell", "None");                                           //Get Spells
+                FindCommands(PowerFiles, "Power", "None");                                           //Get Powers
+                FindCommands(SpellFiles, "Spell", "None");                                           //Get Spells
 
-                FindCommands(ShoutFiles, ShoutList, "Shout", "None");                                           //Get Shouts
+                FindCommands(ShoutFiles, "Shout", "None");                                           //Get Shouts
 
-                FindCommands(DragonKeybindFiles, DragonKeybindList, "Keybind", "DragonRiding",                 //Get Dragon Riding Keybinds
-                FindCommands(KeybindFiles, KeybindList, "Keybind", "None",                                     //Get None Keybinds
-                FindCommands(WerewolfKeybindFiles, WerewolfKeybindList, "Keybind", "Werewolf",                 //Get Werewolf Keybinds
-                FindCommands(VampireLordKeybindFiles, VampireLordKeybindList, "Keybind", "VampireLord",        //Get Vampire Lord Keybinds
-                FindCommands(HorseKeybindFiles, HorseKeybindList, "Keybind", "HorseRiding", 0)))));            //Get Horse Riding Commands
+                FindCommands(DragonKeybindFiles, "Keybind", "DragonRiding",                 //Get Dragon Riding Keybinds
+                FindCommands(KeybindFiles, "Keybind", "None",                                     //Get None Keybinds
+                FindCommands(WerewolfKeybindFiles, "Keybind", "Werewolf",                 //Get Werewolf Keybinds
+                FindCommands(VampireLordKeybindFiles, "Keybind", "VampireLord",        //Get Vampire Lord Keybinds
+                FindCommands(HorseKeybindFiles, "Keybind", "HorseRiding", 0)))));            //Get Horse Riding Commands
 
                 j = FindProgression(ProgressionFiles, "None",                                  //Get Progressions
                 FindProgression(VampireLordProgressionFiles, "VampireLord", 0));    //Get Vampire Lord Progressions
@@ -792,6 +769,7 @@ namespace Voxima
                 #region Main Processing
 
                 Log.Activity("Program Running");
+            ChangeCommands(Morph);
                 waitHandle.WaitOne(); // Wait main thread at this line until wait restriction is removed (set)
 
                 //bool found = false;
@@ -845,33 +823,24 @@ namespace Voxima
         /// <summary>
         /// Gets and Creates individual item grammars from text files
         /// </summary>
-        static int FindCommands(string[] Location, string[] List, string Type, string Morph, int k = 0)
+        static int FindCommands(string[] Location, string Type, string Morph, int k = 0)
         {
             /*//debug1//*/
             try
             {
                 /*//debug2//*/
-                int i = 0,
-                        j = 0,
-                        handLeftNum = 0,
-                        handRightNum = 0,
-                        handBothNum = 0,
-                        handCastNum = 0,
-                        powerCastNum = 0,
-                        currentLocationNum = 0,
-                        locationNum = 0;
+                int i = 0;
                 string CurrentID = "";
-                string CurrentName = "";
                 string[] nameInfo;
                 string ItemName = "";
                 string From = "";
                 string CurrentCommand = "";
-                string[] CommandList;
+            List<string> CommandList = new List<string>();
                 Morph = Morph.ToLower();
                 Type = Type.ToLower();
                 Choices Commands = new Choices();
                 Grammar grammar = new Grammar(new Choices("NA"));
-                bool isCommand = true;
+                bool isCommand = false;
                 Hashtable table;
 
                 switch (Morph)
@@ -889,171 +858,85 @@ namespace Voxima
                         break;
                 }
 
-                for (j = 0; j < Location.Length; j++)
+            foreach (string currentLocation in Location)
+            {
+
+                if (Type != "console")
                 {
-                    if (Type != "console")
+                    foreach (string commandBlock in File.ReadAllText(currentLocation).ToString().Replace("\r", "").ToLower().Split('['))
                     {
-                        List[j] = System.IO.File.ReadAllText(Location[j]).ToString().Replace("\r", "").ToLower();
+                        CurrentCommand = commandBlock.Split(']')[0];
 
-                        for (i = 1; i < List[j].Length; i++)
+                        if (CurrentCommand == "" || CurrentCommand == "\n" || CurrentCommand == "\n\n")
+                            continue;
+
+                        CommandList = new List<string>();
+                        Commands = new Choices();
+                        isCommand = false;
+
+                        if (Type == "power") { };
+
+                        foreach (string command in commandBlock.Split(']')[1].Split('\n'))
                         {
-                            CurrentCommand = "";
-
-                            //Find item
-                            for (; i < List[j].Length && List[j][i - 1] != '['; i++) ;  //Find begining of item
-
-                            for (CurrentName = ""; i < List[j].Length && List[j][i] != ']'; i++)
-                            { //Find end of item
-                                CurrentName += List[j][i];
-                            }
-
-                            for (i += 2; i < List[j].Length && List[j][i] != '['; i++)
-                            {  //Get commands
-                                CurrentCommand += List[j][i];
-                            }
-
-                            CommandList = CurrentCommand.Trim('\n').ToLower().Split('\n');
-
-
-
-                            if (CurrentCommand == "" || CurrentCommand == "\n" || CurrentCommand == "\n\n")
+                            if (command == "")
                                 continue;
 
-
-                            Commands = new Choices();
-
-                            foreach (string command in CommandList)
+                            //Detects if the item is meant to be a command or a general setting for commands 
+                            switch (CurrentCommand)
                             {
-                                if (command == "")
-                                    continue;
-
-                                //Detects if the item is meant to be a command or a general setting for commands 
-                                switch (CurrentName)
-                                {
-                                    case "hand - left": handLeft[handLeftNum] = command; handLeftNum++; isCommand = false; break;
-                                    case "hand - right": handRight[handRightNum] = command; handRightNum++; isCommand = false; break;
-                                    case "hand - both": handBoth[handBothNum] = command; handBothNum++; isCommand = false; break;
-                                    case "hand - cast": handCast[handCastNum] = command; handCastNum++; isCommand = false; break;
-                                    case "power - cast": powerCast[powerCastNum] = command; powerCastNum++; isCommand = false; break;
-                                    case "location prefixes": locationCommands[locationNum] = command; locationNum++; isCommand = false; break;
-                                    case "current location commands": currentLocationCommands[currentLocationNum] = command; currentLocationNum++; isCommand = false; break;
-                                    default: isCommand = true; break;
-                                }
-
-                                if (isCommand)
-                                {
-
-                                    if (!bool.Parse(RequireHandSelector) && Type == "spell" || Type != "spell")
-                                        Commands.Add(command);
-                                }//End if
-                            }//End Foreach
-
-
-                            if (!isCommand)
-                                continue;
-
-                            grammar = CreateGrammar(Type + "\t" + CurrentName, Morph, table, CommandList);
-
-
-
-                            if (Type != "keybind")
-                            {
-
-                                foreach (string command in CommandList)
-                                {
-                                    if (command != "")
-                                    {
-                                        try
-                                        {
-                                            AllItems.Add(Morph + " - " + command, grammar);
-
-                                        }
-                                        catch (Exception)
-                                        {
-                                            //If the item is from the same mod (has the same "from" value), output an error instead of adding it to the progression
-                                            if (((Grammar)AllItems[Morph + " - " + command]).Name.StartsWith(ItemName) &&
-                                                ((Grammar)AllItems[Morph + " - " + command]).Name.EndsWith(From))
-                                            {
-
-                                                DuplicatesText += '\"' + Location[j].Split('\\')[Location[j].Split('\\').Length - 1] + "\"\t[" + CurrentName + "]\tCommand: \"" + command + "\"\n";
-
-
-                                            }
-                                            else if (AllConflicts.Contains(command))
-                                            {
-                                                AllConflicts[command] = AllConflicts[command].ToString() + '\n' + CurrentName;
-
-                                            }
-                                            else if (System.IO.File.ReadAllText(SavedConflictsAddress).Contains("[" + command + "]"))
-                                            {
-                                                //Skip
-
-                                            }
-                                            else
-                                            {
-                                                AllConflicts.Add(command, "\n\n[" + command + "]\n" + ((Grammar)AllItems[Morph + " - " + command]).Name + '\n' + CurrentName);
-                                            }//End if
-                                        }//End Try/Catch
-                                    }
-                                }//End Foreach
-
+                                case "hand - left": handLeft.Add(command); isCommand = false; break;
+                                case "hand - right": handRight.Add(command); isCommand = false; break;
+                                case "hand - both": handBoth.Add(command); isCommand = false; break;
+                                case "hand - cast": handCast.Add(command); isCommand = false; break;
+                                case "power - cast": powerCast.Add(command); isCommand = false; break;
+                                case "location prefixes": locationCommands.Add(command); isCommand = false; break;
+                                case "current location commands": currentLocationCommands.Add(command); isCommand = false; break;
+                                default: isCommand = true; CommandList.Add(command); break;
                             }
-                            else
-                                foreach (string command in CommandList)
-                                {
-                                    if (command != "")
-                                    {
-                                        AllItems.Add(Morph + " - keybind - " + command, grammar);
-                                    }
-                                }//End Foreach
+                        }//End Foreach
 
+                        //See why all of the commands for the "hand - left" and similar command types are getting added to AllItems. They should NOT be getting added to that
+                        if (!isCommand)
+                            continue;
 
-                            switch (Type)
-                            {
-                                case "keybind": KeybindGrammars[k] = grammar; k++; break;
-                                case "setting": SettingGrammars[k] = grammar; k++; break;
-                            }
-
-                        }//End for
-                    }
-                    else
+                        grammar = CreateGrammar(Type + "\t" + CurrentCommand, Morph, table, CommandList);
+                    }//End for
+                }
+                else
+                {
+                    foreach (string line in System.IO.File.ReadAllLines(currentLocation))
                     {
-                        foreach (string line in System.IO.File.ReadAllLines(Location[j]))
-                        {
-                            //Clean the line
-                            string text = line.ToString().Replace("\r", "").Replace("\t", " ").TrimStart(' ').ToLower();
+                        //Clean the line
+                        string text = line.ToString().Replace("\r", "").Replace("\t", " ").TrimStart(' ').ToLower();
 
-                            //Remove comments
-                            if (text.Contains("#"))
-                                text = text.Remove(text.IndexOf('#'), text.Length);
+                        //Remove comments
+                        if (text.Contains("#"))
+                            text = text.Remove(text.IndexOf('#'), text.Length);
 
-                            if (text.Contains("["))
-                                text = text.Remove(text.IndexOf('['), text.Length);
+                        if (text.Contains("["))
+                            text = text.Remove(text.IndexOf('['), text.Length);
 
-                            //If the line is empty, go to the next line
-                            if (text == "")
-                                continue;
+                        //If the line is empty, go to the next line
+                        if (text == "")
+                            continue;
 
-                            //[0] = Voice Commands.   [1] = console commands
-                            string[] command = text.Split('=');
+                        //[0] = Voice Commands.   [1] = console commands
+                        string[] command = text.Split('=');
 
 
-                            Commands = new Choices(command[0].Replace("(", "").Trim(')', ' ').Split(')'));
+                        Commands = new Choices(command[0].Replace("(", "").Trim(')', ' ').Split(')'));
 
-                            grammar = new Grammar(Commands);
-                            grammar.Name = command[1] + "\tconsole";
+                        CommandList = command[0].Replace("(", "").Trim(')', ' ').Split(')').ToList<string>();
+                        grammar = CreateGrammar("console\t" + command[1], Morph, table, CommandList);
 
-                            ConsoleGrammars[k] = grammar;
-                            k++;
-
-                        }
                     }
-                }//End for
+                }
+            }//End for
 
-                /*//debug1//*/
-            }
-            catch (Exception EX) { Log.Activity("Error in \"FindCommands\":\n" + EX.ToString() + "\n", Log.LogType.Error); }
-            /*//debug2//*/
+            /*//debug1//*/
+        }
+        catch (Exception EX) { Log.Activity("Error in \"FindCommands\":\n" + EX.ToString() + "\n", Log.LogType.Error); }
+        /*//debug2//*/
             return k;
         }//End FindCommands
 
@@ -1064,10 +947,14 @@ namespace Voxima
         {
             try
             {
+                //Check what all "AllItems" is supposed to contain. See if changing the name of it would be a good option. Something more descriptive
+                //Check in-game to see if progressions works
+                //If it does work, and no AllItems changes need to be made, push the changes to Github and look at the to-do list to see what's next. I may need to test Exergist's stuff
+
                 int i = 0,
                     j = 0;
                 string CurrentCommand = "";
-                string[] LocalProgressionList = new string[1];
+                List<string> progressionList = new List<string>();
                 Choices Commands;
                 Grammar grammar;
                 Hashtable table = new Hashtable();
@@ -1104,7 +991,7 @@ namespace Voxima
                             continue;
 
                         //This is used to store the final progression of items
-                        LocalProgressionList = new string[1];
+                        progressionList = new List<string>();
 
                         //Cycle Through the items in the current progression
                         foreach (string item in itemBlock.Split('\n'))
@@ -1124,45 +1011,32 @@ namespace Voxima
                             }
 
                             //Create Grammar for the item (this fails if the grammar already exists)
-                            grammar = CreateGrammar(item.Split('\t')[2] + '\t' + item, morph, table, item.Split('\t')[0]);
+                            grammar = CreateGrammar(item.Split('\t')[2] + '\t' + item, morph, table, new List<string>() { item.Split('\t')[0] });
 
                             //Add item to the current progression
-                            if (LocalProgressionList[0] != null)
-                                LocalProgressionList[0] += '\n' + grammar.Name;
-                            else
-                                LocalProgressionList[0] = grammar.Name;
+                            progressionList.Add(grammar.Name);
 
                         }//Individual Item under a command
 
                         Commands = new Choices();
 
                         //If there were no items in the progression, move on to the next file
-                        if (LocalProgressionList[0] == null)
+                        if (progressionList.Count == 0)
                             continue;
 
                         //Invert the progression to be Worst --> Best
-                        LocalProgressionList = LocalProgressionList[0].Split('\n');
+                        progressionList.Reverse();
 
-                        //Invert the array
-                        string[] newArray = new string[LocalProgressionList.Length];
-
-                        for (i = 0, j = LocalProgressionList.Length - 1; j >= 0; j--, i++)
-                        {
-                            newArray[i] = LocalProgressionList[j];
-                        }
-
-                        LocalProgressionList = newArray;
-
-                        grammar = new Grammar(CreateCommands(LocalProgressionList[0], CurrentCommand));
+                        grammar = new Grammar(CreateCommands(progressionList[0], new List<string>() { CurrentCommand }));
                         grammar.Name = CurrentCommand;
                         commands[0] = CurrentCommand;
 
                         //Add grammar to hashtable
                         if (!AllProgressions.Contains(CurrentCommand))
-                            AllProgressions.Add(CurrentCommand, LocalProgressionList);
+                            AllProgressions.Add(CurrentCommand, progressionList);
 
                         //Add each item in the progression to a separate hashtable
-                        foreach (string item in LocalProgressionList)
+                        foreach (string item in progressionList)
                         {
 
                             if (!AllProgressionItems.Contains(item))
@@ -1170,7 +1044,6 @@ namespace Voxima
                             else
                                 Log.Activity("A duplicate progression item was found: \"" + item + "\"");
                         }
-
 
                     }//End Groups of items under a command
                 }//End for
@@ -1187,12 +1060,15 @@ namespace Voxima
         {
             try
             {
+                //Test this to see if it works
+                //It looks like this function is looking for items in "AllIDs". Is this meant to look for items in a given morph's table?
+                //If so, you need to change that. I think this is the case, so get on that
+
                 Morph = Morph.ToLower();
-                string[] progression = (string[])AllProgressions[Phrase.ToLower()];
+                List<string> progression = (List<string>)AllProgressions[Phrase.ToLower()];
 
                 if (progression != null)
                 {
-
                     foreach (string item in progression)
                     {
                         if (item == null)
@@ -1666,8 +1542,11 @@ namespace Voxima
                     if (grammar == null)
                         break;
 
-                    if ((VocalPushToSpeak || !VocalPushToSpeak && grammar.Name.ToLower() != "vocal command toggle - enable\tsetting" && grammar.Name.ToLower() != "vocal command toggle - disable\tsetting") &&
-                        (Morph != "werewolf" || grammar.Name != "clear shout\tsetting") && (Morph != "vampirelord" || grammar.Name != "clear hands\tsetting"))
+                    if ((VocalPushToSpeak || !VocalPushToSpeak &&
+                        grammar.Name.ToLower() != "vocal command toggle - enable\tsetting" &&
+                        grammar.Name.ToLower() != "vocal command toggle - disable\tsetting") &&
+                        (Morph != "werewolf" || grammar.Name != "clear shout\tsetting") &&
+                        (Morph != "vampirelord" || grammar.Name != "clear hands\tsetting"))
                     {
                         recognizer.LoadGrammar(grammar);
                     }
@@ -1782,21 +1661,22 @@ namespace Voxima
                 {
                     if (Morph != "vampirelord")
                     {
-                        string[] commandList;
+                        List<string> commandList = new List<string>();
 
-                        switch (type)
-                        {
-                            case "shout":
+                    switch (type)
+                    {
+                        case "shout":
+                            commandList.Add(info[4]);
+                            commandList.Add($"{info[4]} {info[5]}");
+                            commandList.Add($"{info[4]} {info[5]} {info[6]}");
+                            break;
 
-                                commandList = new string[3] { info[4], info[4] + " " + info[5], info[4] + " " + info[5] + " " + info[6] };
-                                break;
+                        default:
+                            commandList.Add(name);
+                            break;
+                    }
 
-                            default:
-                                commandList = new string[1] { name };
-                                break;
-                        }
-
-                        recognizer.LoadGrammar(CreateGrammar(type + '\t' + current, "none", table, commandList));
+                    recognizer.LoadGrammar(CreateGrammar(type + '\t' + current, "none", table, commandList));
                         //Log.EnabledCommands(current);
 
                         return 1;
@@ -1833,101 +1713,152 @@ namespace Voxima
         /// <summary>
         /// Creates a grammar for a given item with the given array of commands
         /// </summary>
-        static Grammar CreateGrammar(string item, string morph, Hashtable table, params string[] commandList)
+        static Grammar CreateGrammar(string item, string morph, Hashtable table, List<string> commandList)
         {
             /*//debug1//*/
             try
             {
                 /*//debug2//*/
-                Choices Commands = new Choices();
-                Grammar grammar = new Grammar(new Choices("NA"));
+            Choices Commands = new Choices();
+            Grammar grammar = new Grammar(new Choices("NA"));
 
-                string[] info = item.Split('\t');   //[0] == name   [1] == ID   [2] == from
-                string name = info[1];
-                string id = "";
-                string type = info[0];
-                string from = "";
-                string mod = "";
+            string[] info = item.Split('\t');   //[0] == name   [1] == ID   [2] == from
+            string name = info[1];
+            string id = "";
+            string type = info[0];
+            string from = "";
+            string mod = "";
 
-                item = name;
+            item = name;
 
-                switch (info[0])
-                {
-                    case "keybind":
-                        id = info[2];
-                        item += '\t' + id;
-                        break;
+            switch (type)
+            {
+                case "keybind":
+                    id = info[2];
+                    item += '\t' + id;
+                    break;
 
-                    case "setting": break;
+                case "setting": break;
 
-                    default:
-                        id = '\t' + info[2].TrimStart('0', '0', '0', '0', '0', '0'); ;
-                        from = '\t' + info[4];
+                case "console": break;
+                    
 
-                        if (info.Length >= 6)
-                            mod = '\t' + info[5];  //Moddifications suchs as specified hand and autocast
+                default:
+                    id = '\t' + info[2].TrimStart('0', '0', '0', '0', '0', '0'); ;
+                    from = '\t' + info[4];
 
-                        item += id + '\t' + type + from + mod;
-                        break;
+                    if (info.Length >= 6)
+                        mod = '\t' + info[5];  //Moddifications suchs as specified hand and autocast
 
-                }
+                    item += id + '\t' + type + from + mod;
+                    break;
+
+            }
 
 
-                //Typo Checker for files
+            //Typo Checker for files
+            switch (type)
+            {
+                case "spells": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Spell\". not \"Spells\""); break;
+                case "powers": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Shout\". not \"Shouts\""); break;
+                case "shouts": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Power\". not \"Powers\""); break;
+            }
+
+
+            grammar = new Grammar(CreateCommands(item, commandList));
+
+            switch (type)
+            {
+                case "keybind":
+                    grammar.Name = morph + "\t" + name + '\t' + id + '\t' + type;
+
+                    break;
+
+                case "console":
+                case "setting":
+                    grammar.Name = name + '\t' + type;
+                    break;
+
+                default:
+                    grammar.Name = item;
+                    break;
+            }
+
+
+            if (!table.Contains(grammar.Name) && !table.Contains(name + '\t' + id + '\t' + type + '\t' + from))
+            {
                 switch (type)
                 {
-                    case "spells": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Spell\". not \"Spells\""); break;
-                    case "powers": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Shout\". not \"Shouts\""); break;
-                    case "shouts": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Power\". not \"Powers\""); break;
-                }
-
-
-                grammar = new Grammar(CreateCommands(item, commandList));
-
-                switch (type)
-                {
                     case "keybind":
-                        grammar.Name = morph + "\t" + name + '\t' + id + '\t' + type;
+                        KeybindGrammars.Add(grammar);
+                        break;
+
+                    case "console":
+                        ConsoleGrammars.Add(grammar);
                         break;
 
                     case "setting":
-                        grammar.Name = name + '\t' + type;
+                        SettingGrammars.Add(grammar);
                         break;
 
                     default:
-                        grammar.Name = item;
+                        table.Add(grammar.Name, grammar);
                         break;
                 }
 
-
-                if (!table.Contains(grammar.Name) && !table.Contains(name + '\t' + id + '\t' + type + '\t' + from))
+                foreach (string command in commandList)
                 {
-                    table.Add(grammar.Name, grammar);
+                    Log.AllCommands(command + " - " + grammar.Name);
 
-                    foreach (string command in commandList)
+                    if (!AllItems.Contains(morph + " - " + command))
                     {
-                        Log.AllCommands(command + " - " + grammar.Name);
+                        AllItems.Add(morph + " - " + command, grammar);
                     }
-                }
-                else
-                    grammar = (Grammar)table[grammar.Name];
+                    else
+                    {
+                        //If the item is from the same mod (has the same "from" value), output an error instead of adding it to the progression
+                        if (((Grammar)AllItems[Morph + " - " + command]).Name == grammar.Name)
+                        {
+                            Log.Activity($"Two or more identical items exist from the same mod. You must change the commands for one of them: \"{name}\t{id}\t{type}\t{from}\"", Log.LogType.Error);
 
-                return grammar;
-                /*//debug1//*/
+                        }
+                        else if (AllProgressions.Contains(command))
+                        {
+                            List<string> newOptions = new List<string>();
+                            newOptions =  (List<string>)AllProgressions[command];
+                            newOptions.Add(grammar.Name);
+                            AllProgressions[command] = newOptions;
+                        }
+                        else
+                        {
+                            AllProgressions.Add(command, new List<string>() { ((Grammar)AllItems[Morph + " - " + command]).Name, grammar.Name});
+                            Log.Activity($"Two or more identical items have the same command for the same morph ({morph}): \"{command}\". Item 1: \"{((Grammar)AllItems[Morph + " - " + command]).Name}\". Item 2: \"{grammar.Name}\"", Log.LogType.Error);
+                        }//End if
+                    }//End Try/Catch
+
+
+                    //AllItems here
+                }
             }
-            catch (Exception EX)
-            {
-                Log.Activity("Error in \"CreateGrammar\":\n" + EX.ToString() + "\n", Log.LogType.Error);
-                return new Grammar(new Choices("NA"));
-            }
-            /*//debug2//*/
+            else
+                grammar = (Grammar)table[grammar.Name];
+
+            return grammar;
+            /*//debug1//*/
+        }
+        catch (Exception EX)
+        {
+            Log.Activity("Error in \"CreateGrammar\":\n" + EX.ToString() + "\n", Log.LogType.Error);
+            return new Grammar(new Choices("NA"));
+        }
+        /*//debug2//*/
 
         }//End CreateGrammar
 
         /// <summary>
         /// Returns the modified commands associated with a given item and given list of initial commands
         /// </summary>
-        static Choices CreateCommands(string title, params string[] items)
+        static Choices CreateCommands(string title, List<string> items)
         {
             Choices commands = new Choices();
             string command;
@@ -1978,74 +1909,59 @@ namespace Voxima
                             //Left Hand ("Left Conjure Familiar")
                             foreach (string a in handLeft)
                             {
-                                if (a != null)
-                                {
-                                    commands.Add(command + "\t" + a);
-                                    commands.Add(a + "\t" + command);
+                                commands.Add(command + "\t" + a);
+                                commands.Add(a + "\t" + command);
 
-                                    //Hand Cast
-                                    foreach (string b in handCast)
-                                    {
-                                        if (b != null)
-                                        {
-                                            commands.Add(b + "\t" + a + "\t" + command);
-                                            commands.Add(b + "\t" + command + "\t" + a);
-                                            commands.Add(a + "\t" + b + "\t" + command);
-                                        }
-                                    }
+                                //Hand Cast
+                                foreach (string b in handCast)
+                                {
+                                    commands.Add(b + "\t" + a + "\t" + command);
+                                    commands.Add(b + "\t" + command + "\t" + a);
+                                    commands.Add(a + "\t" + b + "\t" + command);
                                 }
+
+
                             }
 
                             //Hand Right ("Right Conjure Familiar")
                             foreach (string a in handRight)
                             {
-                                if (a != null)
-                                {
-                                    commands.Add(command + "\t" + a);
-                                    commands.Add(a + "\t" + command);
+                                commands.Add(command + "\t" + a);
+                                commands.Add(a + "\t" + command);
 
-                                    //Hand Cast
-                                    foreach (string b in handCast)
-                                    {
-                                        if (b != null)
-                                        {
-                                            commands.Add(b + "\t" + a + "\t" + command);
-                                            commands.Add(b + "\t" + command + "\t" + a);
-                                            commands.Add(a + "\t" + b + "\t" + command);
-                                        }
-                                    }
+                                //Hand Cast
+                                foreach (string b in handCast)
+                                {
+                                    commands.Add(b + "\t" + a + "\t" + command);
+                                    commands.Add(b + "\t" + command + "\t" + a);
+                                    commands.Add(a + "\t" + b + "\t" + command);
+
                                 }
+
                             }
 
 
                             //Hand Both ("Both Conjure Familiar")
                             foreach (string a in handBoth)
                             {
-                                if (a != null)
-                                {
-                                    commands.Add(command + "\t" + a);
-                                    commands.Add(a + "\t" + command);
+                                commands.Add(command + "\t" + a);
+                                commands.Add(a + "\t" + command);
 
-                                    //Hand Cast
-                                    foreach (string b in handCast)
-                                    {
-                                        if (b != null)
-                                        {
-                                            commands.Add(b + "\t" + a + "\t" + command);
-                                            commands.Add(b + "\t" + command + "\t" + a);
-                                            commands.Add(a + "\t" + b + "\t" + command);
-                                        }
-                                    }
+                                //Hand Cast
+                                foreach (string b in handCast)
+                                {
+                                    commands.Add(b + "\t" + a + "\t" + command);
+                                    commands.Add(b + "\t" + command + "\t" + a);
+                                    commands.Add(a + "\t" + b + "\t" + command);
                                 }
+
                             }
 
                             //Hand Cast ("Cast Conjure Familiar")
                             foreach (string a in handCast)
                             {
-                                if (a != null)
-                                {
-                                    commands.Add(a + "\t" + command);
-                                }
+                                commands.Add(a + "\t" + command);
+
                             }
 
                             //Additional commands with removed prefixes for more fluid commands ("Conjure Familiar" --> "Familiar" for all above command variations)
@@ -2075,10 +1991,7 @@ namespace Voxima
                     case "power":
                         foreach (string a in powerCast)
                         {
-                            if (a != null)
-                            {
-                                commands.Add(a + "\t" + command);
-                            }
+                            commands.Add(a + "\t" + command);
                         }
 
                         break;
@@ -2600,13 +2513,9 @@ namespace Voxima
                 //Hand Left
                 foreach (string a in handLeft)
                 {
-                    if (a == null)
-                        break;
 
                     foreach (string b in handCast)
                     {
-                        if (b == null)
-                            break;
 
                         if (e.Result.Text.StartsWith(a + '\t' + b + '\t') || e.Result.Text.StartsWith(b + '\t' + a + '\t'))
                         {
@@ -2649,13 +2558,9 @@ namespace Voxima
                 if (Command == e.Result.Text)
                     foreach (string a in handRight)
                     {
-                        if (a == null)
-                            break;
 
                         foreach (string b in handCast)
                         {
-                            if (b == null)
-                                break;
 
                             if (e.Result.Text.StartsWith(a + '\t' + b + '\t') || e.Result.Text.StartsWith(b + '\t' + a + '\t'))
                             {
@@ -2698,13 +2603,9 @@ namespace Voxima
                 if (Command == e.Result.Text)
                     foreach (string a in handBoth)
                     {
-                        if (a == null)
-                            break;
 
                         foreach (string b in handCast)
                         {
-                            if (b == null)
-                                break;
 
                             if (e.Result.Text.StartsWith(a + '\t' + b + '\t') || e.Result.Text.StartsWith(b + '\t' + a + '\t'))
                             {
@@ -2747,9 +2648,7 @@ namespace Voxima
                 if (Command == e.Result.Text)
                     foreach (string a in handCast)
                     {
-                        if (a == null)
-                            break;
-                        else if (e.Result.Text.StartsWith(a + '\t'))
+                        if (e.Result.Text.StartsWith(a + '\t'))
                         {
                             Command = e.Result.Text.Remove(0, a.Length + 1);
                             autoCast = true;
@@ -2768,9 +2667,7 @@ namespace Voxima
                 if (Command == e.Result.Text)
                     foreach (string a in powerCast)
                     {
-                        if (a == null)
-                            break;
-                        else if (e.Result.Text.StartsWith(a + '\t'))
+                        if (e.Result.Text.StartsWith(a + '\t'))
                         {
                             Command = e.Result.Text.Remove(0, a.Length);
                             autoCast = true;
