@@ -74,32 +74,9 @@ bool OnControllerStateChanged(vr::TrackedDeviceIndex_t unControllerDeviceIndex, 
     //    return false;
     //}
 
-    logger::debug("VR controller state changed!!");
-
-    vr::TrackedDeviceIndex_t leftcontroller = g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::ETrackedControllerRole::TrackedControllerRole_LeftHand);
-    vr::TrackedDeviceIndex_t rightcontroller = g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::ETrackedControllerRole::TrackedControllerRole_RightHand);
-
-    // NOTE: DO NOT check the packetNum on ControllerState, it seems to cause problems (maybe it should only be checked per controllers?) - at any rate, it seems to change every
-    // frame anyway.
-
-    PapyrusVR::VRDevice deviceId = PapyrusVR::VRDevice_Unknown;
-
-    if (unControllerDeviceIndex == leftcontroller) {
-        deviceId = PapyrusVR::VRDevice_LeftController;
-    } else if (unControllerDeviceIndex == rightcontroller) {
-        deviceId = PapyrusVR::VRDevice_RightController;
-    }
-
-    if (deviceId != PapyrusVR::VRDevice_Unknown) {
-        
+    if (pControllerState->ulButtonPressed != 0) {
         RE::DebugNotification("VR button pressed!!");
-
-        //if (pControllerState->ulButtonPressed & PapyrusVR::EVRButtonId::k_EButton_SteamVR_Trigger) {
-
-
-
-        //}
-
+    
         for (vr::EVRButtonId button = vr::k_EButton_System; button <= vr::k_EButton_Max; button = (vr::EVRButtonId)(button + 1)) {
             if (pControllerState->ulButtonPressed & vr::ButtonMaskFromId(button)) {
                 // Button was pressed, do something
@@ -108,34 +85,72 @@ bool OnControllerStateChanged(vr::TrackedDeviceIndex_t unControllerDeviceIndex, 
                 RE::DebugNotification(GetButtonName(button).c_str());
             }
         }
-        
-        //// We get the activate button from config now so, getting it by function.
-        //const auto buttonId = g_quickslotMgr->GetActivateButton();
-        //const uint64_t buttonMask = vr::ButtonMaskFromId((vr::EVRButtonId)buttonId);  // annoying issue where PapyrusVR and openvr enums are not type-compatible..
-
-        //// right now only check for trigger press.  In future support input binding?
-        //if (pControllerState->ulButtonPressed & buttonMask && !(lastButtonPressedData[deviceId] & buttonMask)) {
-        //    //bool retVal = g_quickslotMgr->ButtonPress(buttonId, deviceId);
-
-        //    //if (retVal)  // mask out input if we touched a quickslot (block the game from receiving it)
-        //    //{
-        //    //    pOutputControllerState->ulButtonPressed &= ~buttonMask;
-        //    //}
-
-        //    logger::debug("Trigger pressed for deviceIndex: %d deviceId: %d", unControllerDeviceIndex, deviceId);
-        //} else if (!(pControllerState->ulButtonPressed & buttonMask) && (lastButtonPressedData[deviceId] & buttonMask)) {
-        //    ///g_quickslotMgr->ButtonRelease(buttonId, deviceId);
-
-        //    logger::debug("Trigger released for deviceIndex: %d deviceId: %d", unControllerDeviceIndex, deviceId);
-        //}
-
-        //// we need to block all inputs when button is held over top of a quickslot (check last button press and if controller is hovering over a quickslot)
-        //if (lastButtonPressedData[deviceId] & buttonMask && g_quickslotMgr->FindQuickslotByDeviceId(deviceId)) {
-        //    pOutputControllerState->ulButtonPressed &= ~buttonMask;
-        //}
-
-        //lastButtonPressedData[deviceId] = pControllerState->ulButtonPressed;
     }
+
+
+
+    //logger::debug("VR controller state changed!!");
+
+    //vr::TrackedDeviceIndex_t leftcontroller = g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::ETrackedControllerRole::TrackedControllerRole_LeftHand);
+    //vr::TrackedDeviceIndex_t rightcontroller = g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::ETrackedControllerRole::TrackedControllerRole_RightHand);
+
+    //// NOTE: DO NOT check the packetNum on ControllerState, it seems to cause problems (maybe it should only be checked per controllers?) - at any rate, it seems to change every
+    //// frame anyway.
+
+    //PapyrusVR::VRDevice deviceId = PapyrusVR::VRDevice_Unknown;
+
+    //if (unControllerDeviceIndex == leftcontroller) {
+    //    deviceId = PapyrusVR::VRDevice_LeftController;
+    //} else if (unControllerDeviceIndex == rightcontroller) {
+    //    deviceId = PapyrusVR::VRDevice_RightController;
+    //}
+
+    //if (deviceId != PapyrusVR::VRDevice_Unknown) {
+    //    
+    //    RE::DebugNotification("VR button pressed!!");
+
+    //    //if (pControllerState->ulButtonPressed & PapyrusVR::EVRButtonId::k_EButton_SteamVR_Trigger) {
+
+
+
+    //    //}
+
+    //    for (vr::EVRButtonId button = vr::k_EButton_System; button <= vr::k_EButton_Max; button = (vr::EVRButtonId)(button + 1)) {
+    //        if (pControllerState->ulButtonPressed & vr::ButtonMaskFromId(button)) {
+    //            // Button was pressed, do something
+    //            // ...
+
+    //            RE::DebugNotification(GetButtonName(button).c_str());
+    //        }
+    //    }
+    //    
+    //    //// We get the activate button from config now so, getting it by function.
+    //    //const auto buttonId = g_quickslotMgr->GetActivateButton();
+    //    //const uint64_t buttonMask = vr::ButtonMaskFromId((vr::EVRButtonId)buttonId);  // annoying issue where PapyrusVR and openvr enums are not type-compatible..
+
+    //    //// right now only check for trigger press.  In future support input binding?
+    //    //if (pControllerState->ulButtonPressed & buttonMask && !(lastButtonPressedData[deviceId] & buttonMask)) {
+    //    //    //bool retVal = g_quickslotMgr->ButtonPress(buttonId, deviceId);
+
+    //    //    //if (retVal)  // mask out input if we touched a quickslot (block the game from receiving it)
+    //    //    //{
+    //    //    //    pOutputControllerState->ulButtonPressed &= ~buttonMask;
+    //    //    //}
+
+    //    //    logger::debug("Trigger pressed for deviceIndex: %d deviceId: %d", unControllerDeviceIndex, deviceId);
+    //    //} else if (!(pControllerState->ulButtonPressed & buttonMask) && (lastButtonPressedData[deviceId] & buttonMask)) {
+    //    //    ///g_quickslotMgr->ButtonRelease(buttonId, deviceId);
+
+    //    //    logger::debug("Trigger released for deviceIndex: %d deviceId: %d", unControllerDeviceIndex, deviceId);
+    //    //}
+
+    //    //// we need to block all inputs when button is held over top of a quickslot (check last button press and if controller is hovering over a quickslot)
+    //    //if (lastButtonPressedData[deviceId] & buttonMask && g_quickslotMgr->FindQuickslotByDeviceId(deviceId)) {
+    //    //    pOutputControllerState->ulButtonPressed &= ~buttonMask;
+    //    //}
+
+    //    //lastButtonPressedData[deviceId] = pControllerState->ulButtonPressed;
+    //}
 
     return true;
 }
