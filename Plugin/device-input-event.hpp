@@ -60,7 +60,7 @@ namespace DeviceInputEvent {
                                 continue;
                         }
                         /*string result = deviceType + " " + std::to_string(key) + " pressed";
-                        RE::DebugNotification(result.c_str());*/
+                        SendNotification(result.c_str());*/
                         InputDeviceEvent(button, key);
                     }
                 }

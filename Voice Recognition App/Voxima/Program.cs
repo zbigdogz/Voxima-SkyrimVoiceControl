@@ -183,7 +183,7 @@ namespace Voxima
 
             #region Debugger Attachment
 
-            MessageBox.Show("Attach debugger to Voxima C# application now. Press OK when you're ready!", "Skyrim Voxima (C#)", MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+            //MessageBox.Show("Attach debugger to Voxima C# application now. Press OK when you're ready!", "Skyrim Voxima (C#)", MessageBoxButtons.OK, MessageBoxIcon.None, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
 
             #endregion
 
@@ -779,7 +779,7 @@ namespace Voxima
                 #region Main Processing
 
                 Log.Activity("Program Running");
-            ChangeCommands(Morph);
+            //ChangeCommands(Morph);
                 waitHandle.WaitOne(); // Wait main thread at this line until wait restriction is removed (set)
 
                 //bool found = false;
@@ -2428,6 +2428,20 @@ namespace Voxima
                             recognizer.UnloadGrammar((Grammar)LocationsGrammars[location.ToLower()]);
                     }
                 }
+
+            }
+            else if (message.StartsWith("enable recognition"))
+            {
+                Log.Debug($"Received from client: Enable Recognition", Log.LogType.Info);
+
+                recognizer.RecognizeAsync(RecognizeMode.Multiple);
+
+            }
+            else if (message.StartsWith("disable recognition"))
+            {
+                Log.Debug($"Received from client: Disable Recognition", Log.LogType.Info);
+
+                recognizer.RecognizeAsyncStop();
 
             }
             else if (message.StartsWith("initialize update"))

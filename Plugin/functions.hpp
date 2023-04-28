@@ -8,8 +8,10 @@ RE::PlayerCharacter* player;
 RE::TESGlobal* VOX_Enabled;
 RE::TESGlobal* VOX_UpdateInterval;
 RE::TESGlobal* VOX_CheckForUpdate;
-RE::TESGlobal* VOX_VocalPushToSpeak;
-RE::TESGlobal* VOX_PushToSpeak;
+//RE::TESGlobal* VOX_VocalPushToSpeak;
+// RE::TESGlobal* VOX_PushToSpeak;
+RE::TESGlobal* VOX_PushToSpeakType;
+RE::TESGlobal* VOX_PushToSpeakKeyCode;
 RE::TESGlobal* VOX_AutoCastPowers;
 RE::TESGlobal* VOX_AutoCastShouts;
 RE::TESGlobal* VOX_ShowLog;
@@ -24,6 +26,11 @@ enum MenuType { Console, Favorites, Inventory, Journal, LevelUp, Magic, Map, Ski
 enum MenuAction { Open, Close };
 enum MoveType { MoveForward, MoveLeft, MoveRight, MoveBackward, TurnLeft, TurnRight, MoveJump, MoveSprint, StopSprint, StopMoving };
 
+struct WebSocketMessage {
+    static constexpr const char* EnableRecognition = "enable recognition";
+    static constexpr const char* DisableRecognition = "disable recognition";
+};
+
 bool isPlayerWerewolf();
 bool isPlayerVampireLord();
 static void SendKeyDown(int keycode);
@@ -36,6 +43,7 @@ static std::string* GetActorMagic(RE::Actor* player, MagicType type1, MagicType 
 std::string TranslateL33t(std::string string);
 void ExecuteConsoleCommand(std::vector<std::string> command);
 void SendJoystickInput();
+void SendNotification(std::string message);
 
 // Value of a given actor slot (for equipping)
 struct ActorSlotValue {
@@ -281,7 +289,7 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             logger::info("Casting Voice");
             auto spellName = item->As<RE::TESShout>()->variations[shoutLevel].spell->fullName.c_str();
             std::string s = "casting now";
-            RE::DebugNotification((s + spellName).c_str());
+            SendNotification((s + spellName).c_str());
 
             currentVoice = actor->GetActorRuntimeData().selectedPower;
 
@@ -295,8 +303,9 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
         if (item->As<RE::TESShout>()) {
             logger::info("Casting Voice");
             auto shoutName = item->As<RE::TESShout>()->variations[shoutLevel].spell->fullName.c_str();
-            std::string s = "Casting Shout: ";
-            RE::DebugNotification((s + shoutName).c_str());
+
+            SendNotification("Casting Shout: " + (std::string)shoutName + " " + std::to_string(shoutLevel + 1));
+
 
             currentVoice = actor->GetActorRuntimeData().selectedPower; ///*** is this still needed?
 
@@ -305,6 +314,8 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             std::thread castShout(CastVoice, actor, item, shoutLevel);
             castShout.detach();
 
+            //Future Possible Alternatives for shouting
+            /*
             //// This directly casts the shout, but it doesn't trigger the dovazul voice or thunderclap sound
             //actor->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)
             //    ->CastSpellImmediate(item->As<RE::TESShout>()->variations[shoutLevel].spell, false, nullptr, 1.0f, false, 0.0f, actor);
@@ -312,16 +323,16 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             //// Need to enable and fix this up once CharmedBaryon merges recent po3 CommonLib changes. Objective here is to "spoof" input to trigger a shout "natively"
             //// Spoof button input
             //// See UserEvents.h for more types of events to spoof
-            /*if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+            if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
                 RE::ConsoleLog::GetSingleton()->Print("*screams*");
 
                 static auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", 0, 1.0f, 3.0f);
                 bsInputEventQueue->PushOntoInputQueue(kEvent);
-            }*/
+            }
             
             
             //// Spoof button input
-            //static auto event = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", -1, 1 /* Might need tweaking */, 0 /* Might need tweaking */);
+            //static auto event = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", -1, 1 /* Might need tweaking, 0  Might need tweaking );
             //RE::BSInputEventQueue::GetSingleton()->PushOntoInputQueue(event);
 
             //// Kinect native input
@@ -329,14 +340,14 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             ///*auto event = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", -1, 1.0f, 0.1f);
             //RE::BSInputEventQueue::GetSingleton()->PushOntoInputQueue(event);
 
-            //free(event);*/
-
+            //free(event);
+            */
 
         } else if (item->As<RE::SpellItem>() && hand == ActorSlot::Voice) {
             logger::info("Casting Power");
             auto spellName = item->As<RE::MagicItem>()->fullName.c_str();
             std::string s = "Casting Power: ";
-            RE::DebugNotification((s + spellName).c_str());
+            SendNotification(s + spellName);
 
             currentVoice = actor->GetActorRuntimeData().selectedPower; ///*** is this still needed?
 
@@ -384,12 +395,24 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
                     if (actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kMagicka) >=
                         item->As<RE::MagicItem>()->CalculateMagickaCost(actor) * 2) {
                         logger::info("Casting Both hands");
+
+                        //Duel Casting Perks
+                        //RE::BGSPerk* dualAlterationPerk  = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CD);
+                        //RE::BGSPerk* dualConjurationPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CE);
+                        //RE::BGSPerk* dualDestructionPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CF);
+                        //RE::BGSPerk* dualIllusionnPerk   = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153D0);
+                        //RE::BGSPerk* dualRestorationPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153D1);
+
+
+                        // Cast From Left Hand
                         actor->GetMagicCaster(RE::MagicSystem::CastingSource::kLeftHand)
                             ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
 
+                        // Cast From Right Hand
                         actor->GetMagicCaster(RE::MagicSystem::CastingSource::kRightHand)
                             ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
 
+                        // Remove Magicka
                         actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, RE::ActorValue::kMagicka,
                                                                       -item->As<RE::MagicItem>()->CalculateMagickaCost(actor) * 2);
 
@@ -804,8 +827,8 @@ static bool IsKeyDown(int keyCode) {
     int gamepadOffset = null;
 
     //Mouse and keyboard input check
-    bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed(VOX_PushToSpeak->value);
-    bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed(VOX_PushToSpeak->value - mouseOffset);
+    bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed(VOX_PushToSpeakKeyCode->value);
+    bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed(VOX_PushToSpeakKeyCode->value - mouseOffset);
 
     //// VR controller input check
     //bool isLeftVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(VOX->value - vrLeftOffset);
@@ -1092,7 +1115,7 @@ void MenuInteraction(MenuType type, MenuAction action) {
                 menuName = RE::StatsMenu::MENU_NAME;  // This will open the Skills menu, which will trigger the level up UI
                 /// menuName = RE::LevelUpMenu::MENU_NAME; // This will directly call the level up UI
             } else {
-                RE::DebugNotification("Not enough experience to level up");
+                SendNotification("Not enough experience to level up");
                 return;
             }
             break;
@@ -1105,6 +1128,12 @@ void MenuInteraction(MenuType type, MenuAction action) {
         OpenJournal(); // Use relocation method to trigger opening of the JournalMenu to the Quests tab
     else
         RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);
+}
+
+void SendNotification(std::string message) {
+    if (VOX_ShowLog->value == 1) {
+        RE::DebugNotification(message.c_str());
+    }
 }
 
 #pragma region Map Info & Manipulation
@@ -1200,12 +1229,12 @@ void NavigateToLocation(std::string targetLocation) {
     RE::TESObjectREFR* mapMarkerRef = IsLocationKnown(targetLocation);
     if (mapMarkerRef != NULL) {
         std::string result = "Navigating to " + targetLocation;
-        RE::DebugNotification(result.c_str());
+        SendNotification(result);
         logger::info("{}", result);
         FocusOnMapMarker(mapMarkerRef);
     } else {
         std::string result = targetLocation + " location is not known";
-        RE::DebugNotification(result.c_str());
+        SendNotification(result);
         logger::info("{}", result);
     }
 }
@@ -1222,7 +1251,7 @@ void NavigateToPlayer() {
 //
 //    //https://discord.com/channels/535508975626747927/535530099475480596/1096307972902244423
 //
-//    /*RE::DebugNotification("place marker");
+//    /*SendNotification("place marker");
 //
 //    auto PlayerCharacter = RE::PlayerCharacter::GetSingleton();
 //    if (!PlayerCharacter) {
@@ -1367,7 +1396,7 @@ void NavigateToPlayer() {
 //             auto playerYPosition = (int)floor(player->GetPosition().y);
 //             auto playerZPosition = (int)floor(player->GetPosition().z);
 //             std::string playerLocation = "Player = " + std::to_string(playerXPosition) + "," + std::to_string(playerYPosition) + "," + std::to_string(playerZPosition);
-//             RE::DebugNotification(playerLocation.c_str());
+//             SendNotification(playerLocation.c_str());
 //             logger::debug("{}", playerLocation);
 //
 //             // Get worldspace coordinates for location of interest
@@ -1375,14 +1404,14 @@ void NavigateToPlayer() {
 //             auto locationYPosition = (int)floor(markerRef->GetPositionY());
 //             auto locationZPosition = (int)floor(markerRef->GetPositionZ());
 //             std::string locationCoordinates = "Marker = " + std::to_string(locationXPosition) + "," + std::to_string(locationYPosition) + "," +
-//             std::to_string(locationZPosition); RE::DebugNotification(locationCoordinates.c_str()); logger::debug("{}", locationCoordinates);
+//             std::to_string(locationZPosition); SendNotification(locationCoordinates.c_str()); logger::debug("{}", locationCoordinates);
 //
 //
 //             int xOffset = (locationXPosition - playerXPosition);
 //             int yOffset = (locationYPosition - playerYPosition);
 //             int zOffset = (locationZPosition - playerZPosition);
 //             std::string translateValues = "Translate = " + std::to_string(xOffset) + "," + std::to_string(yOffset) + "," + std::to_string(zOffset);
-//             RE::DebugNotification(translateValues.c_str());
+//             SendNotification(translateValues.c_str());
 //             logger::debug("{}", translateValues);
 //
 //             // Move map camera by inputted amount relative to player position
@@ -1394,7 +1423,7 @@ void NavigateToPlayer() {
 //             mapMenu->GetRuntimeData2().camera.translationInput.x = cameraXOffset;
 //             mapMenu->GetRuntimeData2().camera.translationInput.y = cameraYOffset;
 //             std::string cameraAdjust = "Camera = " + std::to_string(cameraXOffset) + "," + std::to_string(cameraYOffset) + "," + std::to_string(cameraZOffset);
-//             RE::DebugNotification(cameraAdjust.c_str());
+//             SendNotification(cameraAdjust.c_str());
 //             logger::debug("{}", cameraAdjust);
 //
 //
@@ -1411,7 +1440,7 @@ void NavigateToPlayer() {
 //
 //             auto test2 = mapMenu->GetRuntimeData2().camera.;
 //             std::string mapCenter = "Map = " + std::to_string(test2.x) + "," + std::to_string(test2.y);
-//             RE::DebugNotification(mapCenter.c_str());
+//             SendNotification(mapCenter.c_str());
 //             logger::debug("{}", mapCenter);*/
 //
 //             //auto mapRT1 = mapMenu->GetRuntimeData();
@@ -1440,7 +1469,7 @@ void NavigateToPlayer() {
 //
 //              ///auto test = mapRT1.mapMarker.get().get();
 //              /*auto test = mapRT2.worldSpace->fullName.c_str();
-//              RE::DebugNotification(test);*/
+//              SendNotification(test);*/
 //
 //              ///auto test2 = mapRT2.worldSpace->worldMapData.cameraData.maxHeight;
 //

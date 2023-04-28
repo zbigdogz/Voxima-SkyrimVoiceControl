@@ -178,7 +178,7 @@ void InitializeWebSocketClient() {
                 Sleep(2000);  // Pause to allow websocket connection to be made
                 if (connected == false) {
                     logger::error("Websocket connection not established!");
-                    /// RE::DebugNotification("Websocket connection not established!");
+                    /// SendNotification("Websocket connection not established!");
                 }
             }).detach();  // Run checking of _webSocketClient connection status in separate thread
         }

@@ -42,7 +42,7 @@ void CheckUpdate(bool loop = false, bool isAsync = false);
 void Update(std::string update = "");
 void ExecuteCommand(Command command);
 
-float currentVocalPTS;
+bool currentVocalPTS;
 float currentSensitivity;
 float currentAutoCastShouts;
 float currentAutoCastPowers;
@@ -61,6 +61,7 @@ int currentMorph = Morph::Player;
 
 bool saveTriggered = false;
 bool readyForUpdate = true;
+bool isRecognitionEnabled = true;
 
 // Method executed when SKSE messages are received
 void OnMessage(SKSE::MessagingInterface::Message* message) {
@@ -116,7 +117,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
             case SKSE::MessagingInterface::kPostLoad:
                 ConfigureWebsocketPort();  // Write target websocket port to file, which will be read by speech recognition application
                 LaunchSpeechRecoApp();     // Launch the companion speech recognition application
-                MessageBoxA(NULL, "Attach Voxima plugin debugger to Skyrim game process now. Press OK when you're ready!", "Skyrim Voxima (C++)", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
+                //MessageBoxA(NULL, "Attach Voxima plugin debugger to Skyrim game process now. Press OK when you're ready!", "Skyrim Voxima (C++)", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
                 break;
 
             // Data handler has loaded all its forms (Main menu has loaded???)
@@ -170,7 +171,9 @@ void InitialUpdate() {
         VOX_Enabled = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_Enabled");
         VOX_UpdateInterval = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_UpdateInterval");
         VOX_CheckForUpdate = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_CheckForUpdate");
-        VOX_PushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_PushToSpeak");
+        // VOX_PushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_PushToSpeak");
+        VOX_PushToSpeakType = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_PushToSpeakType");
+        VOX_PushToSpeakKeyCode = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_PushToSpeakKeyCode");
         VOX_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_ShoutKey");
         VOX_ShowLog = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_ShowLog");
         VOX_LongAutoCast = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_LongAutoCast");
@@ -178,9 +181,9 @@ void InitialUpdate() {
         VOX_AutoCastShouts = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_AutoCastShouts");
 
         // C++ --> C# Variables
-        VOX_VocalPushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_VocalPushToSpeak");
+        //VOX_VocalPushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_VocalPushToSpeak");
         VOX_Sensitivity = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_Sensitivity");
-        currentVocalPTS = VOX_VocalPushToSpeak->value;
+        //currentVocalPTS = VOX_VocalPushToSpeak->value;
         currentSensitivity = VOX_Sensitivity->value;
         currentAutoCastShouts = VOX_AutoCastShouts->value;
         currentAutoCastPowers = VOX_AutoCastPowers->value;
@@ -211,14 +214,6 @@ void CheckUpdate(bool loop, bool isAsync) {
 
         updateQueue++;
 
-        ///*** this is for later to make sure everything is ready to go once game loads and looping is replaced by events
-        /* while (true) { // Loop ~indefinitely
-                if (!player->Is3DLoaded()) // Check if game 3D content is loaded (player character shown)
-                    std::this_thread::sleep_for(std::chrono::seconds(1));  // 1 second pause
-                else
-                    break; // Break out of parent "while" loop
-        } */
-
         if (loop) logger::debug("CheckUpdate loop start");
 
         do {
@@ -229,8 +224,17 @@ void CheckUpdate(bool loop, bool isAsync) {
             } else if (VOX_Enabled->value == 0) {
                 if (loop)
                     std::this_thread::sleep_for(std::chrono::seconds(5));  // 5 second delay to not loop unnecessarily. See Bottom of page Note (1)
+                else {
+                    SendMessage("disable recognition");
+                    isRecognitionEnabled = false;
+                }
+
                 continue;
+            } else if (VOX_Enabled->value == 1 && !isRecognitionEnabled) {
+                SendMessage("enable recognition");
+                isRecognitionEnabled = true;
             }
+            //Have the C# program recieve the above messages and enable/disable recognition accordingly*****
 
             // VOX_PushToSpeak
 
@@ -325,9 +329,9 @@ void CheckUpdate(bool loop, bool isAsync) {
             }
 
             //-----MCM-----//
-            if (currentVocalPTS != VOX_VocalPushToSpeak->value) {
-                currentVocalPTS = VOX_VocalPushToSpeak->value;
-                logger::info("Sending \"VOX_VocalPushToSpeak = {}\" to C#", VOX_VocalPushToSpeak->value);
+            if (currentVocalPTS && VOX_PushToSpeakType->value != 3 || !currentVocalPTS && VOX_PushToSpeakType->value == 3) {
+                currentVocalPTS = !currentVocalPTS;
+                logger::info("Sending \"VOX_VocalPushToSpeak = {}\" to C#", currentVocalPTS);
                 fileUpdate = true;
             }
 
@@ -439,10 +443,8 @@ void Update(std::string update) {
                 break;
         }
 
-        if (VOX_VocalPushToSpeak->value == 1)
-            updateFile += "VOX_VocalPushToSpeak\ttrue\n";
-        else
-            updateFile += "VOX_VocalPushToSpeak\tfalse\n";
+        if (currentVocalPTS)
+            updateFile += "VOX_VocalPushToSpeak\t" + std::to_string(currentVocalPTS) + "\n ";
 
         if (VOX_AutoCastShouts->value == 1)
             updateFile += "VOX_AutoCastShouts\ttrue\n";
@@ -582,7 +584,7 @@ void ProcessReceivedMessage(const string& command) {
         // std::jthread update(ExecuteCommand, currentCommand, true);
         // update.detach();
         ExecuteCommand(currentCommand);
-        if (currentCommand.Type != "keybind") RE::DebugNotification(currentCommand.Name.c_str());
+        if (currentCommand.Type != "keybind") SendNotification(currentCommand.Name.c_str());
     } catch (exception ex) {
         logger::error("ERROR while preprocessing\n\"{}\"\nmessage from server: \"{}\"", command, ex.what());
     }
@@ -603,10 +605,10 @@ void ProcessReceivedMessage(const string& command) {
             pos += newSubstr.length();
         }
 
-        if (VOX_PushToSpeak->value != -1 && !IsKeyDown(VOX_PushToSpeak->value)) {
-            logger::info("Received message but rejected due to Push-To-Speak button not being held: \"{}\"", messagePrint);
-            return;
-        }
+        //if (VOX_PushToSpeakKeyCode->value != -1 && !IsKeyDown(VOX_PushToSpeakKeyCode->value)) {
+        //    logger::info("Received message but rejected due to Push-To-Speak button not being held: \"{}\"", messagePrint);
+        //    return;
+        //}
 
         logger::info("Received message: \"{}\"", messagePrint);
 
@@ -703,7 +705,7 @@ void ProcessReceivedMessage(const string& command) {
         // std::jthread update(ExecuteCommand, currentCommand, true);
         // update.detach();
         ExecuteCommand(currentCommand);
-        if (currentCommand.Type != "keybind") RE::DebugNotification(currentCommand.Name.c_str());
+        if (currentCommand.Type != "keybind") SendNotification(currentCommand.Name);
     } catch (exception ex) {
         logger::error("ERROR while preprocessing\n\"{}\"\nmessage from server: \"{}\"", command, ex.what());
     }
@@ -1170,44 +1172,54 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
 
 #pragma region Device Input Processing
 
-bool pushToTalk = true;
-bool isListening = false;
+bool pushToSpeakListening = false;
 
 // Executes when input device events are received
 void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode) {
-    /*
+    /* 
         EXAMPLE "KEY" TRIGGERS
         Keyboard backslash (\) = 43
         Mouse middle button = 258
         Gamepad right shoulder button = 275
     */
 
-    if (keyCode != VOX_PushToSpeak->value) return;  // Check if triggering keyCode does NOT match target input value from VOX MCM, and if so exit this method
+    /*
+    VOX_PushToSpeakType:
+        [0] = Disabled
+        [1] = Hold
+        [2] = Toggle
+        [3] = Vocal
+      */
 
-    if (pushToTalk) {        // Check if push-to-talk mode is enabled (true)
+
+    if (VOX_PushToSpeakType->value == 0 || keyCode != VOX_PushToSpeakKeyCode->value)
+        return;  // Check if triggering keyCode does NOT match target input value from VOX MCM, and if so exit this method
+
+    
+    if (VOX_PushToSpeakType->value == 1) {  // Button must be Held
         thread([button]() {  // Create new thread for execution (passing in button)
-            RE::DebugNotification("Input Triggered - Start listening!");
+            SendNotification("Input Triggered - Start listening!");
+            SendMessage(WebSocketMessage::EnableRecognition);
 
-            /// *** do stuff to activate listening of C# app
 
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
-            RE::DebugNotification("Input released - Stop Listening!");
+            SendNotification("Input released - Stop Listening!");
+            SendMessage(WebSocketMessage::DisableRecognition);
 
-            /// *** do stuff to deactivate listening of C# app
         })
             .detach();
-    } else {
+    } else if (VOX_PushToSpeakType->value == 2) { // Button toggles
         thread([button]() {              // Create new thread for execution (passing in button)
-            if (isListening == false) {  // Check if recognition app is NOT listening
-                isListening = true;      // Set isListening flag
+            if (!pushToSpeakListening) {          // Check if recognition app is NOT listening
+                pushToSpeakListening = true;      // Set isRecognitionEnabled flag
 
-                RE::DebugNotification("Input Triggered - Start listening!");
-
-                /// *** do stuff to activate listening of C# app
+                SendNotification("Input Triggered - Start listening!");
+                SendMessage(WebSocketMessage::EnableRecognition);
 
             } else {
-                isListening = false;  // Reset isListening flag
-                RE::DebugNotification("Input released - Stop Listening!");
+                pushToSpeakListening = false;  // Reset isRecognitionEnabled flag
+                SendNotification("Input released - Stop Listening!");
+                SendMessage(WebSocketMessage::DisableRecognition);
 
                 /// *** do stuff to deactivate listening of C# app
             }
@@ -1331,12 +1343,12 @@ void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevi
         allowTriggerProcessing = false;                             // Flag that gamepad trigger processing is NOT allowed
         if (pushToTalk) {
             thread([gamepad, rShoulder]() {                         // Create new thread for execution
-                RE::DebugNotification("Start listening!");
+                SendNotification("Start listening!");
 
                 /// *** do stuff to activate listening of C# app
 
                 while (gamepad->IsPressed(rShoulder)) Sleep(250);   // Pause while gamepad trigger is still being pressed
-                RE::DebugNotification("Stop listening!");
+                SendNotification("Stop listening!");
                 allowTriggerProcessing = true;                      // Flag that gamepad trigger processing is allowed
 
                 /// *** do stuff to deactivate listening of C# app
@@ -1346,13 +1358,13 @@ void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevi
             thread([gamepad, rShoulder]() {                         // Create new thread for execution
                 if (isListening == false) {                         // Check if recognition app is NOT listening
                     isListening = true;                             // Set isListening flag
-                    RE::DebugNotification("Start listening!");
+                    SendNotification("Start listening!");
 
                     /// *** do stuff to activate listening of C# app
 
                 } else {
                     isListening = false;                            // Reset isListening flag
-                    RE::DebugNotification("Stop listening!");
+                    SendNotification("Stop listening!");
 
                     /// *** do stuff to deactivate listening of C# app
                 }
