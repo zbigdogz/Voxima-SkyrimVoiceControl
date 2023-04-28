@@ -127,9 +127,10 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 ConfigureWebsocketPort();  // Write target websocket port to file, which will be read by speech recognition application
                 LaunchSpeechRecoApp();     // Launch the companion speech recognition application
                 ///MessageBoxA(NULL, "Attach Voxima plugin debugger to Skyrim game process now. Press OK when you're ready!", "Skyrim Voxima (C++)", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
-                
-                logger::debug("SKSE PostLoad message received, registering for PapyrusVR messages from SkyrimVRTools");
-                SKSE::GetMessagingInterface()->RegisterListener("SkyrimVRTools", OnPapyrusVRMessage);                
+                if (REL::Module::IsVR()) {
+                    logger::debug("SKSE PostLoad message received, registering for PapyrusVR messages from SkyrimVRTools");
+                    SKSE::GetMessagingInterface()->RegisterListener("SkyrimVRTools", OnPapyrusVRMessage);   
+                }       
                 break;
 
             // Data handler has loaded all its forms (Main menu has loaded???)
