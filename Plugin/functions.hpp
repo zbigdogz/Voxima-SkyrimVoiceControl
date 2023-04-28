@@ -483,28 +483,26 @@ void CastVoice(RE::Actor* actor, RE::TESForm* item, int level) {
 // Retrieves known Shout and Word of Power data
 std::vector<std::string> GetShoutList() {
     std::vector<std::string> shoutList;
-    auto playerSpells = player->GetActorBase()->GetSpellList();         // Obtain player spell data
-    RE::TESShout** playerShouts = playerSpells->shouts;                 // Obtain all of player's known shouts
-    auto numberOfShouts = playerSpells->numShouts;                      // Obtain number of player's known shouts
+    auto playerSpells = player->GetActorBase()->GetSpellList();  // Obtain player spell data
+    RE::TESShout** playerShouts = playerSpells->shouts;          // Obtain all of player's known shouts
+    auto numberOfShouts = playerSpells->numShouts;               // Obtain number of player's known shouts
     /// logger::debug("Number of Known Shouts = {}", numberOfShouts);
     try {
         for (int i = 0; i < numberOfShouts; i++) {     // Loop through each of the player's known shouts
             auto shout = playerShouts[i];              // Capture the current shout at index i
             auto shoutName = shout->fullName.c_str();  // Capture the name of the shout
-            shoutList.push_back(shoutName);       // Add the shoutName to the shoutList (thereby growing the list size)
-            shoutList[i] += "\t" + std::format("{:X}", shout->GetLocalFormID()) + '\t' + "shout" + '\t' + shout->GetFile(0)->GetFilename().data(); //Add shout information
-
+            shoutList.push_back(shoutName);            // Add the shoutName to the shoutList (thereby growing the list size)
+            shoutList[i] += "\t" + std::format("{:X}", shout->GetLocalFormID()) + '\t' + "shout" + '\t' + shout->GetFile(0)->GetFilename().data();  // Add shout information
             /// logger::debug("Shout {} Name = {}", i + 1, shoutList[i]);
             for (int j = 0; j <= 2; j++) {                                    // Loop through all three shout words of power
                 RE::TESWordOfPower* wordOfPower = shout->variations[j].word;  // Capture shout's word of power at j index
-                if (wordOfPower) {         // Check if current word of power is known by player     NOTE: I removed "wordOfPower->GetKnown() == true" because the implementation is difficult for C#, at this moment.
-                    const char* wopName = wordOfPower->fullName.c_str();         // Capture name of known word of power (often contains L33T text)
+                if (wordOfPower) {  // Check if current word of power is known by player     ***NOTE: I removed "wordOfPower->GetKnown() == true" because the implementation is difficult for C#, at this moment.             
+                    const char* wopName = wordOfPower->fullName.c_str();            // Capture name of known word of power (often contains L33T text)                   
                     std::string wopTranslation = wordOfPower->translation.c_str();  // Capture translation of known word of power
                     /// logger::debug("Shout \"{}\" Word {} = {} ({})", shoutName, j + 1, wopName, wopTranslation);
 
-                    //shoutList[i] += "__" + wopTranslation;  // Append known word of power translation to current shout in shoutList
-
-                    shoutList[i] += "\t" + TranslateL33t((std::string)wopName); //Append translated words of power
+                    // shoutList[i] += "__" + wopTranslation;  // Append known word of power translation to current shout in shoutList
+                    shoutList[i] += "\t" + TranslateL33t((std::string)wopName);  // Append translated words of power
                 } else
                     break;  // Break out of parent "for" loop
             }
@@ -513,7 +511,6 @@ std::vector<std::string> GetShoutList() {
         for (auto& shoutData : shoutList)                // Loop through all contents of shoutList
             logger::debug("ShoutList = {}", shoutData);  // Output contents of shoutData
         */
-
     } catch (const std::exception& ex) {
         logger::error("ERROR during GetShoutList: {}", ex.what());
     }
