@@ -1101,7 +1101,8 @@ namespace Voxima
 
             int i, j, k = 0;
             int[] returnVal = { 0, 0 }; //[0] = # items added.  [1] = # items removed
-            string[] info;
+            string[] newInfo;
+            string[] oldInfo;
             string[] newList;
             string[] oldList;
             string newItem = "";
@@ -1185,14 +1186,14 @@ namespace Voxima
                         case "shout":
                             if (i < newList.Length && newList[0] != "")
                             {
-                                info = newList[i].Split('\t');
-                                newItem = info[0] + '\t' + info[1] + '\t' + info[2] + '\t' + info[3];
+                                newInfo = newList[i].Split('\t');
+                                newItem = newInfo[0] + '\t' + newInfo[1] + '\t' + newInfo[2] + '\t' + newInfo[3];
                             }
 
                             if (j < oldList.Length && oldList[0] != null && oldList[0] != "")
                             {
-                                info = oldList[j].Split('\t');
-                                oldItem = info[0] + '\t' + info[1] + '\t' + info[2] + '\t' + info[3];
+                                oldInfo = oldList[j].Split('\t');
+                                oldItem = oldInfo[0] + '\t' + oldInfo[1] + '\t' + oldInfo[2] + '\t' + oldInfo[3];
                             }
                             break;
 
@@ -1206,7 +1207,7 @@ namespace Voxima
                     }
 
 
-                    if (i < newList.Length && j < oldList.Length && newItem == oldItem && recognizer.Grammars.Contains((Grammar)table[newItem]))
+                    if (i < newList.Length && j < oldList.Length && newList[i] == oldList[j] && recognizer.Grammars.Contains((Grammar)table[newItem]))
                     {
                         //If they are the same and the new item is already enabled, do nothing.     (the same item from different tables are technically different grammars)
 
@@ -1218,11 +1219,21 @@ namespace Voxima
                         }
 
                     }
-                    else if (i < newList.Length && !recognizer.Grammars.Contains((Grammar)table[newItem]))
+                    else if (i < newList.Length && (!recognizer.Grammars.Contains((Grammar)table[newItem]) || (type == "shout" && newList[i] != oldList[j])))
                     {
-                        //Spell Added
-                        //if they are not the same, it's not a loaded grammar, and it sucessfully created a grammar, then mark it as loaded.
+                        //Item Added
 
+                        //If a shout's information has changed, the old version must be deleted
+                        if (type == "shout")
+                        {
+                            if (recognizer.Grammars.Contains((Grammar)table[newItem]))
+                                recognizer.UnloadGrammar((Grammar)table[newItem]);
+
+                            if (table.Contains(newItem))
+                                table.Remove(newItem);
+                        }
+
+                        //If they are not the same, it's not a loaded grammar, and it sucessfully created a grammar, then mark it as loaded.
                         if (LoadCommand(newList[i], table) > 0)
                             returnVal[0]++;
                         else
@@ -1253,7 +1264,6 @@ namespace Voxima
                             recognizer.UnloadGrammar((Grammar)AllProgressionItems[oldItem]);
                         }
                         i--;
-
                     }//End if/else
 
                     //end = DateTime.Now;
@@ -1361,41 +1371,6 @@ namespace Voxima
                         items = DecideGrammar("spell");
                         ItemsAdded += items[0];
                         ItemsRemoved += items[1];
-
-                        /*
-                            foreach (string item in KnownSpells)
-                            {
-                                if (item == null || item == "" || currentUpdateNum != updateNum)
-                                    break;
-
-                                for (i = 0; i < KnownSpells.Length; i++)
-                                {
-                                    if (!recognizer.Grammars.Contains((Grammar)table[item]))
-                                    {
-
-                                        returned = LoadCommand(item, table);
-
-                                        switch (returned)
-                                        {
-                                            case 1:
-                                                ItemsAdded++;
-                                                break;
-
-                                            case -1:
-                                                ItemsNotAdded++;
-                                                break;
-                                        }
-                                    }
-
-
-                                }
-
-
-
-                                i++;
-                            }//End Spells
-
-                        */
                     }
 
                     duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
@@ -1414,29 +1389,6 @@ namespace Voxima
                         items = DecideGrammar("shout");
                         ItemsAdded += items[0];
                         ItemsRemoved += items[1];
-
-
-
-                        /*    foreach (string item in KnownShouts)
-                            {
-                                if (item == null || item == "" || currentUpdateNum != updateNum)
-                                    break;
-
-
-                                returned = LoadCommand(item, table);
-
-                                switch (returned)
-                                {
-                                    case 1:
-                                        ItemsAdded++;
-                                        break;
-
-                                    case -1:
-                                        ItemsNotAdded++;
-                                        break;
-                                }
-
-                           }//End Shouts*/
                     }
 
                     duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
@@ -1450,29 +1402,6 @@ namespace Voxima
                         items = DecideGrammar("power");
                         ItemsAdded += items[0];
                         ItemsRemoved += items[1];
-
-                        /*
-                                foreach (string item in KnownPowers)
-                                {
-                                    if (item == null || item == "" || currentUpdateNum != updateNum)
-                                        break;
-
-                                    returned = LoadCommand(item, table);
-
-                                    switch (returned)
-                                    {
-                                        case 1:
-                                            ItemsAdded++;
-                                            break;
-
-                                        case -1:
-                                            ItemsNotAdded++;
-                                            break;
-                                    }
-
-                                }//End Powers
-                                */
-
                     }
 
                     duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
@@ -1667,7 +1596,7 @@ namespace Voxima
 
                     //Spell is NOT an existing garmmar
                 }
-                else if (!table.Contains(current))
+                else if (!table.Contains(current) || type == "shout")
                 {
                     if (Morph != "vampirelord")
                     {
@@ -1677,8 +1606,12 @@ namespace Voxima
                     {
                         case "shout":
                             commandList.Add(info[4]);
-                            commandList.Add($"{info[4]} {info[5]}");
-                            commandList.Add($"{info[4]} {info[5]} {info[6]}");
+
+                            if (info.Length >= 6)
+                                commandList.Add($"{info[4]} {info[5]}");
+
+                            if (info.Length >= 7)
+                                commandList.Add($"{info[4]} {info[5]} {info[6]}");
                             break;
 
                         default:
@@ -1687,7 +1620,6 @@ namespace Voxima
                     }
 
                     recognizer.LoadGrammar(CreateGrammar(type + '\t' + current, "none", table, commandList));
-                        //Log.EnabledCommands(current);
 
                         return 1;
                     }
@@ -1880,6 +1812,8 @@ namespace Voxima
             if (info.Length >= 3)
                 type = info[2];
 
+            if (type == "shout") { };
+
             // Create new List of tasks for populating speech dictionary
             var modifyDictionaryTaskList = new List<Task<(string message, string color)>>();
 
@@ -1917,7 +1851,6 @@ namespace Voxima
                 }
                 command = item;
 
-                //Add the raw command ("Conjure Familiar")
                 commands.Add(command);
 
                 //Command specifications
@@ -1947,8 +1880,6 @@ namespace Voxima
                                     commands.Add(b + "\t" + command + "\t" + a);
                                     commands.Add(a + "\t" + b + "\t" + command);
                                 }
-
-
                             }
 
                             //Hand Right ("Right Conjure Familiar")
@@ -1965,9 +1896,7 @@ namespace Voxima
                                     commands.Add(a + "\t" + b + "\t" + command);
 
                                 }
-
                             }
-
 
                             //Hand Both ("Both Conjure Familiar")
                             foreach (string a in handBoth)
@@ -1982,7 +1911,6 @@ namespace Voxima
                                     commands.Add(b + "\t" + command + "\t" + a);
                                     commands.Add(a + "\t" + b + "\t" + command);
                                 }
-
                             }
 
                             //Hand Cast ("Cast Conjure Familiar")
@@ -1998,7 +1926,6 @@ namespace Voxima
                                 command = originalName.Remove(0, 8);
                                 isConjure = true;
                                 repeat = true;
-
                             }
                             else if (!isSummon && originalName.StartsWith("summon"))
                             {
@@ -2013,7 +1940,6 @@ namespace Voxima
 
                         } while (repeat);
 
-
                         break;
 
                     case "power":
@@ -2025,6 +1951,7 @@ namespace Voxima
                         break;
                 }//End switch
             }//End Cycle Items
+
             if (modifyDictionaryTaskList.Count > 0)
                 Task.WhenAll(modifyDictionaryTaskList).Wait(); // Execute all the dictionary data modification tasks concurrently
             foreach (var task in modifyDictionaryTaskList) // Loop through each task in modifyDictionaryTaskList
@@ -2452,9 +2379,7 @@ namespace Voxima
                 int currentUpdateNum = updateNum;
 
                 while (isUpdating && currentUpdateNum == updateNum)
-                {
                     Task.Delay(10);
-                }
 
                 if (!isUpdating)
                 {

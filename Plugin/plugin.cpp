@@ -179,6 +179,7 @@ void InitialUpdate() {
         VOX_LongAutoCast = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_LongAutoCast");
         VOX_AutoCastPowers = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_AutoCastPowers");
         VOX_AutoCastShouts = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_AutoCastShouts");
+        VOX_KnownShoutWordsOnly = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_KnownShoutWordsOnly");
 
         // C++ --> C# Variables
         //VOX_VocalPushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_VocalPushToSpeak");
@@ -1221,7 +1222,6 @@ void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* but
                 SendNotification("Input released - Stop Listening!");
                 SendMessage(WebSocketMessage::DisableRecognition);
 
-                /// *** do stuff to deactivate listening of C# app
             }
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
         })

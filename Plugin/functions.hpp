@@ -18,6 +18,7 @@ RE::TESGlobal* VOX_ShowLog;
 RE::TESGlobal* VOX_ShoutKey;
 RE::TESGlobal* VOX_LongAutoCast;
 RE::TESGlobal* VOX_Sensitivity;
+RE::TESGlobal* VOX_KnownShoutWordsOnly;
 
 enum ActorSlot { Left, Right, Both, Voice, None };
 enum Morph { Player, Werewolf, VampireLord };
@@ -158,48 +159,19 @@ void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand) {
                 switch (hand) {
                     case ActorSlot::Left:
                         RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.leftHand());
-                         
-                        //currentCommand = "player.equipspell " + std::format("{:X}", item->As<RE::SpellItem>()->GetFormID()) + " left";
-                        
-                        //commands.push_back(currentCommand);
-                        //ExecuteConsoleCommand(commands);
                         break;
 
                     case ActorSlot::Right:
                         RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.rightHand());
-
-                        
-                       //currentCommand = "player.equipspell " + std::format("{:X}", item->As<RE::SpellItem>()->GetFormID()) + " right";
-                       //commands.push_back(currentCommand);
-
-                        //ExecuteConsoleCommand(commands);
                         break;
 
                     case ActorSlot::Both:
                         RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.leftHand());
                         RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.rightHand());
-
-                        
-                        //currentCommand = "player.equipspell " + std::format("{:X}", item->As<RE::SpellItem>()->GetFormID()) + " left";
-                        //commands.push_back(currentCommand);
-                        //
-                        //currentCommand = "player.equipspell " + std::format("{:X}", item->As<RE::SpellItem>()->GetFormID()) + " right";
-                        //commands.push_back(currentCommand);
-
-                        //ExecuteConsoleCommand(commands);
                         break;
 
                     case ActorSlot::Voice:
                         RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.voice());
-
-                        //if (!item->As<RE::SpellItem>())
-                        //    currentCommand = "player.equipshout " + std::to_string(item->As<RE::TESShout>()->GetFormID());
-                        //else
-                        //    currentCommand = "player.equipspell " + std::to_string(item->As<RE::SpellItem>()->GetFormID());
-
-                        //commands.push_back(currentCommand);
-
-                        //ExecuteConsoleCommand(commands);
                         break;
                 }
 
@@ -242,26 +214,11 @@ void UnEquipFromActor(RE::Actor* actor, ActorSlot hand) {
         case ActorSlot::Left:
         case ActorSlot::Right:
         case ActorSlot::Both:
-                if (left_hand) {
+                if (left_hand) 
                     un_equip_spell(nullptr, 0, actor, left_hand->As<RE::SpellItem>(), 0);
-
-                    //RE::ActorEquipManager::GetSingleton()->UnequipObject
-
-                    //SKSE::GetTaskInterface()->AddTask(reinterpret_cast<TaskDelegate*>(left_hand));
-
-                    //auto equipManager = RE::ActorEquipManager::GetSingleton();
-
-                    //currentCommand = "player.unequipitem 12fcd 0";
-                    //commands.push_back(currentCommand);
-                }
-                if (right_hand) {
+                
+                if (right_hand)
                     un_equip_spell(nullptr, 0, actor, right_hand->As<RE::SpellItem>(), 1);
-                    //currentCommand = "player.unequipitem 12fcd 1";
-                    //commands.push_back(currentCommand);
-                }
-
-                //ExecuteConsoleCommand(commands);
-
             break;
 
         case ActorSlot::Voice:
@@ -489,20 +446,20 @@ std::vector<std::string> GetShoutList() {
     /// logger::debug("Number of Known Shouts = {}", numberOfShouts);
     try {
         for (int i = 0; i < numberOfShouts; i++) {     // Loop through each of the player's known shouts
-            auto shout = playerShouts[i];              // Capture the current shout at index i
-            auto shoutName = shout->fullName.c_str();  // Capture the name of the shout
+            RE::TESShout* shout = playerShouts[i];              // Capture the current shout at index i
+            const char* shoutName = shout->fullName.c_str();  // Capture the name of the shout
             shoutList.push_back(shoutName);            // Add the shoutName to the shoutList (thereby growing the list size)
             shoutList[i] += "\t" + std::format("{:X}", shout->GetLocalFormID()) + '\t' + "shout" + '\t' + shout->GetFile(0)->GetFilename().data();  // Add shout information
             /// logger::debug("Shout {} Name = {}", i + 1, shoutList[i]);
             for (int j = 0; j <= 2; j++) {                                    // Loop through all three shout words of power
                 RE::TESWordOfPower* wordOfPower = shout->variations[j].word;  // Capture shout's word of power at j index
-                if (wordOfPower && (wordOfPower->formFlags & 0x10000)) {      // Check if current word of power is "shoutable" by player (both known AND unlocked)           
+                if (wordOfPower && (VOX_KnownShoutWordsOnly->value == 0 || wordOfPower->formFlags & 0x10000)) { // Check if current word of power is "shoutable" by player (both known AND unlocked)           
                     const char* wopName = wordOfPower->fullName.c_str();            // Capture name of known word of power (often contains L33T text)                   
                     std::string wopTranslation = wordOfPower->translation.c_str();  // Capture translation of known word of power
                     /// logger::debug("Shout \"{}\" Word {} = {} ({})", shoutName, j + 1, wopName, wopTranslation);
 
                     // shoutList[i] += "__" + wopTranslation;  // Append known word of power translation to current shout in shoutList
-                    shoutList[i] += "\t" + TranslateL33t((std::string)wopName);  // Append translated words of power
+                    shoutList[i] += "\t" + TranslateL33t(wopName);  // Append translated words of power
                 } else
                     break;  // Break out of parent "for" loop
             }
@@ -717,6 +674,7 @@ std::string TranslateL33t(std::string string)
         2 = ei
         3 = ii
         4 = ah
+        5 = ?   (There are no instances of this L33t character in Vanilla or DLC shouts)
         6 = ur
         7 = ir
         8 = oo
