@@ -496,7 +496,7 @@ std::vector<std::string> GetShoutList() {
             /// logger::debug("Shout {} Name = {}", i + 1, shoutList[i]);
             for (int j = 0; j <= 2; j++) {                                    // Loop through all three shout words of power
                 RE::TESWordOfPower* wordOfPower = shout->variations[j].word;  // Capture shout's word of power at j index
-                if (wordOfPower) {  // Check if current word of power is known by player     ***NOTE: I removed "wordOfPower->GetKnown() == true" because the implementation is difficult for C#, at this moment.             
+                if (wordOfPower && (wordOfPower->formFlags & 0x10000)) {      // Check if current word of power is "shoutable" by player (both known AND unlocked)           
                     const char* wopName = wordOfPower->fullName.c_str();            // Capture name of known word of power (often contains L33T text)                   
                     std::string wopTranslation = wordOfPower->translation.c_str();  // Capture translation of known word of power
                     /// logger::debug("Shout \"{}\" Word {} = {} ({})", shoutName, j + 1, wopName, wopTranslation);
