@@ -312,13 +312,12 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             //// Need to enable and fix this up once CharmedBaryon merges recent po3 CommonLib changes. Objective here is to "spoof" input to trigger a shout "natively"
             //// Spoof button input
             //// See UserEvents.h for more types of events to spoof
-            /*if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
-                RE::ConsoleLog::GetSingleton()->Print("*screams*");
+            //if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+            //    RE::ConsoleLog::GetSingleton()->Print("*screams*");
 
-                static auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", 0, 1.0f, 3.0f);
-                bsInputEventQueue->PushOntoInputQueue(kEvent);
-            }*/
-            
+            //    static auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", 0, 1.0f, 3.0f);
+            //    bsInputEventQueue->PushOntoInputQueue(kEvent);
+            //}
             
             //// Spoof button input
             //static auto event = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", -1, 1 /* Might need tweaking */, 0 /* Might need tweaking */);
@@ -470,27 +469,21 @@ std::vector<std::string> GetShoutList() {
             auto shoutName = shout->fullName.c_str();  // Capture the name of the shout
             shoutList.push_back(shoutName);       // Add the shoutName to the shoutList (thereby growing the list size)
             shoutList[i] += "\t" + std::format("{:X}", shout->GetLocalFormID()) + '\t' + "shout" + '\t' + shout->GetFile(0)->GetFilename().data(); //Add shout information
-
-            /// logger::debug("Shout {} Name = {}", i + 1, shoutList[i]);
-            for (int j = 0; j <= 2; j++) {                                    // Loop through all three shout words of power
-                RE::TESWordOfPower* wordOfPower = shout->variations[j].word;  // Capture shout's word of power at j index
-                if (wordOfPower) {         // Check if current word of power is known by player     NOTE: I removed "wordOfPower->GetKnown() == true" because the implementation is difficult for C#, at this moment.
-                    const char* wopName = wordOfPower->fullName.c_str();         // Capture name of known word of power (often contains L33T text)
+            /// logger::debug("Shout {} Name = {}", i + 1, shoutListz[i]);
+            for (int j = 0; j <= 2; j++) {                                      // Loop through all three shout words of power
+                RE::TESWordOfPower* wordOfPower = shout->variations[j].word;    // Capture shout's word of power at j index
+                if (wordOfPower && (wordOfPower->formFlags & 0x10000)) {        // Check if current word of power is "shoutable" by player (both known AND unlocked)
+                    const char* wopName = wordOfPower->fullName.c_str();        // Capture name of known word of power (often contains L33T text)
                     std::string wopTranslation = wordOfPower->translation.c_str();  // Capture translation of known word of power
                     /// logger::debug("Shout \"{}\" Word {} = {} ({})", shoutName, j + 1, wopName, wopTranslation);
-
-                    //shoutList[i] += "__" + wopTranslation;  // Append known word of power translation to current shout in shoutList
-
+                    //shoutList[i] += "__" + wopTranslation;  // Append known word of power translation to current shout in shoutList                    
                     shoutList[i] += "\t" + TranslateL33t((std::string)wopName); //Append translated words of power
                 } else
                     break;  // Break out of parent "for" loop
             }
         }
-        /*
-        for (auto& shoutData : shoutList)                // Loop through all contents of shoutList
-            logger::debug("ShoutList = {}", shoutData);  // Output contents of shoutData
-        */
-
+        ///for (auto& shoutData : shoutList)                // Loop through all contents of shoutList
+        //    logger::debug("ShoutList = {}", shoutData);  // Output contents of shoutData
     } catch (const std::exception& ex) {
         logger::error("ERROR during GetShoutList: {}", ex.what());
     }
