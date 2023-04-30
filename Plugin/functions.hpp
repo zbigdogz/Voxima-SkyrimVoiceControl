@@ -191,17 +191,21 @@ void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand) {
     }
 }
 
-// Unequip item from actor slot
+// Unequip item from actor slot (only works for the player at the moment)
 void UnEquipFromActor(RE::Actor* actor, ActorSlot hand) {
     // Unequipping functions
+    //Unequips a spell from the player's hand or power from their voice
     using spell = void(RE::BSScript::IVirtualMachine * a_vm, RE::VMStackID a_stack_id, RE::Actor * actor, RE::SpellItem * a_spell, uint32_t a_slot);
     const REL::Relocation<spell> un_equip_spell{REL::VariantID(227784, 54669, 0x984D00)};
 
+    //Unequips a shout from the player
     using shout = void(RE::BSScript::IVirtualMachine * a_vm, RE::VMStackID a_stack_id, RE::Actor * actor, RE::TESShout * a_shout);
     const REL::Relocation<shout> un_equip_shout{REL::VariantID(53863, 54664, 0x984C60)};
 
     // Get Actor Process to check for currently equipped items
     auto actorProcess = actor->GetActorRuntimeData().currentProcess;
+
+    bool unEquipSound = true;   //This only applies to items, not spells
 
     std::vector<std::string> commands;
     std::string currentCommand;
@@ -214,11 +218,19 @@ void UnEquipFromActor(RE::Actor* actor, ActorSlot hand) {
         case ActorSlot::Left:
         case ActorSlot::Right:
         case ActorSlot::Both:
-                if (left_hand) 
+            if (left_hand)
+                if (left_hand->Is(RE::FormType::Spell))
                     un_equip_spell(nullptr, 0, actor, left_hand->As<RE::SpellItem>(), 0);
-                
-                if (right_hand)
+                else
+                    RE::ActorEquipManager::GetSingleton()->UnequipObject(actor, left_hand->As<RE::TESBoundObject>(), 
+                                                                         nullptr, 1U, actorSlot.leftHand(), false, false, unEquipSound);
+
+            if (right_hand)
+                if (right_hand->Is(RE::FormType::Spell))
                     un_equip_spell(nullptr, 0, actor, right_hand->As<RE::SpellItem>(), 1);
+                else
+                    RE::ActorEquipManager::GetSingleton()->UnequipObject(actor, right_hand->As<RE::TESBoundObject>(), 
+                                                                         nullptr, 1U, actorSlot.rightHand(), false, false, unEquipSound);
             break;
 
         case ActorSlot::Voice:
@@ -227,7 +239,7 @@ void UnEquipFromActor(RE::Actor* actor, ActorSlot hand) {
                 if (voice->Is(RE::FormType::Shout)) {
                     un_equip_shout(nullptr, 0, actor, voice->As<RE::TESShout>());
 
-                // Power
+                    // Power
                 } else if (voice->Is(RE::FormType::Spell)) {
                     un_equip_spell(nullptr, 0, actor, voice->As<RE::SpellItem>(), 2);
                 }
@@ -1085,6 +1097,7 @@ void MenuInteraction(MenuType type, MenuAction action) {
         RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);
 }
 
+//Sends a notification to the top left in Skyrim, if the player has logs enabled
 void SendNotification(std::string message) {
     if (VOX_ShowLog->value == 1) {
         RE::DebugNotification(message.c_str());
