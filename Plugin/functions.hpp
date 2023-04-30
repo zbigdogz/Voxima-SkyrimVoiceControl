@@ -30,6 +30,13 @@ enum MoveType { MoveForward, MoveLeft, MoveRight, MoveBackward, TurnLeft, TurnRi
 struct WebSocketMessage {
     static constexpr const char* EnableRecognition = "enable recognition";
     static constexpr const char* DisableRecognition = "disable recognition";
+    static constexpr const char* CheckForMicChange = "check for mic change";
+    static constexpr const char* InitializeUpdate = "initialize update";
+    static constexpr const char* UpdateSpells = "update spells\n";
+    static constexpr const char* UpdatePowers = "update powers\n";
+    static constexpr const char* UpdateShouts = "update shouts\n";
+    static constexpr const char* UpdateConfiguration = "update configuration\n";
+    static constexpr const char* UpdateLocations = "update locations\n";
 };
 
 bool isPlayerWerewolf();
@@ -45,6 +52,7 @@ std::string TranslateL33t(std::string string);
 void ExecuteConsoleCommand(std::vector<std::string> command);
 void SendJoystickInput();
 void SendNotification(std::string message);
+void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, bool notification = true);
 
 // Value of a given actor slot (for equipping)
 struct ActorSlotValue {
@@ -129,7 +137,7 @@ int playerMount() {
 }
 
 // Equip an item to an actor
-void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand) {
+void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, bool notification) {
     try {
         /*
          *
@@ -156,28 +164,39 @@ void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand) {
         if (item->GetKnown() || actor->HasSpell(item->As<RE::SpellItem>())) {
             //  Spell/Power
             if (item->As<RE::SpellItem>()) {
+                RE::SpellItem* spell = item->As<RE::SpellItem>();
+                std::string spellName = spell->GetFullName();
+
                 switch (hand) {
                     case ActorSlot::Left:
-                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.leftHand());
+                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, spell, actorSlot.leftHand());
+                        if (notification) SendNotification("Equipping: " + spellName + " Left");
                         break;
 
                     case ActorSlot::Right:
-                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.rightHand());
+                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, spell, actorSlot.rightHand());
+                        if (notification) SendNotification("Equipping: " + spellName + " Right");
                         break;
 
                     case ActorSlot::Both:
-                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.leftHand());
-                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.rightHand());
+                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, spell, actorSlot.leftHand());
+                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, spell, actorSlot.rightHand());
+                        if (notification) SendNotification("Equipping: " + spellName + " Both");
                         break;
 
                     case ActorSlot::Voice:
-                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, item->As<RE::SpellItem>(), actorSlot.voice());
+                        RE::ActorEquipManager::GetSingleton()->EquipSpell(actor, spell, actorSlot.voice());
+                        if (notification) SendNotification("Equipping Power: " + spellName);
                         break;
                 }
 
                 // Shout
             } else if (item->As<RE::TESShout>()) {
-                RE::ActorEquipManager::GetSingleton()->EquipShout(actor, item->As<RE::TESShout>());
+                RE::TESShout* shout = item->As<RE::TESShout>();
+                std::string shoutName = shout->GetFullName();
+
+                RE::ActorEquipManager::GetSingleton()->EquipShout(actor, shout);
+                if (notification) SendNotification("Equipping Shout: " + shoutName);
             }
 
         } else {
@@ -271,15 +290,15 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
         */
         if (item->As<RE::TESShout>()) {
             logger::info("Casting Voice");
-            auto shoutName = item->As<RE::TESShout>()->variations[shoutLevel].spell->fullName.c_str();
+            std::string shoutWordName = item->As<RE::TESShout>()->variations[shoutLevel].spell->fullName.c_str();
 
-            SendNotification("Casting Shout: " + (std::string)shoutName + " " + std::to_string(shoutLevel + 1));
+            SendNotification("Casting Shout: " + shoutWordName);
 
 
             currentVoice = actor->GetActorRuntimeData().selectedPower; ///*** is this still needed?
 
             // This is the "old way" involving triggering a virtual keypress. Dovazul and thunderclap expected to work.
-            EquipToActor(actor, item, ActorSlot::Voice);
+            EquipToActor(actor, item, ActorSlot::Voice, false);
             std::thread castShout(CastVoice, actor, item, shoutLevel);
             castShout.detach();
 
@@ -314,9 +333,8 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
 
         } else if (item->As<RE::SpellItem>() && hand == ActorSlot::Voice) {
             logger::info("Casting Power");
-            auto spellName = item->As<RE::MagicItem>()->fullName.c_str();
-            std::string s = "Casting Power: ";
-            SendNotification(s + spellName);
+            std::string spellName = item->As<RE::MagicItem>()->fullName.c_str();
+            SendNotification("Casting Power: " + spellName);
 
             currentVoice = actor->GetActorRuntimeData().selectedPower; ///*** is this still needed?
 
@@ -330,64 +348,64 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             //    ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
 
         } else if (item->As<RE::SpellItem>()) {
-            switch (hand) {
-                case ActorSlot::Left:
-                    if (actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kMagicka) >=
-                        item->As<RE::MagicItem>()->CalculateMagickaCost(actor)) {
+            RE::MagicItem* spell = item->As<RE::MagicItem>();
+            int singleMagickaCost = spell->CalculateMagickaCost(actor);
+            int duelMagickaCost = singleMagickaCost * 2;
+            int actorMagicka = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kMagicka);
+            std::string spellName = spell->fullName.c_str();
+
+            if (actorMagicka >= singleMagickaCost || actor->AsMagicTarget()->IsInvulnerable()) {
+                switch (hand) {
+                    case ActorSlot::Left: {
                         logger::info("Casting Left hand");
+                        SendNotification("Casting: " + spellName + " Left");
+
                         // Cast Spell
-                        actor->GetMagicCaster(RE::MagicSystem::CastingSource::kLeftHand)
-                            ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
+                        actor->GetMagicCaster(RE::MagicSystem::CastingSource::kLeftHand)->CastSpellImmediate(spell, false, nullptr, 1.0f, false, 0.0f, actor);
 
                         // Damage Magicka
-                        actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, RE::ActorValue::kMagicka,
-                                                                      -item->As<RE::MagicItem>()->CalculateMagickaCost(actor));
+                        actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, RE::ActorValue::kMagicka, -singleMagickaCost);
                         return true;
                     }
 
                     break;
 
-                case ActorSlot::Right:
-                    if (actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kMagicka) >=
-                        item->As<RE::MagicItem>()->CalculateMagickaCost(actor)) {
+                    case ActorSlot::Right:
                         logger::info("Casting Right hand");
-                        actor->GetMagicCaster(RE::MagicSystem::CastingSource::kRightHand)
-                            ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
+                        SendNotification("Casting: " + spellName + " Right");
 
-                        actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, RE::ActorValue::kMagicka,
-                                                                      -item->As<RE::MagicItem>()->CalculateMagickaCost(actor));
+                        actor->GetMagicCaster(RE::MagicSystem::CastingSource::kRightHand)->CastSpellImmediate(spell, false, nullptr, 1.0f, false, 0.0f, actor);
+
+                        actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, RE::ActorValue::kMagicka, -singleMagickaCost);
                         return true;
-                    }
-                    break;
 
-                case ActorSlot::Both:
-                    if (actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kMagicka) >=
-                        item->As<RE::MagicItem>()->CalculateMagickaCost(actor) * 2) {
-                        logger::info("Casting Both hands");
+                        break;
 
-                        //Duel Casting Perks
-                        //RE::BGSPerk* dualAlterationPerk  = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CD);
-                        //RE::BGSPerk* dualConjurationPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CE);
-                        //RE::BGSPerk* dualDestructionPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CF);
-                        //RE::BGSPerk* dualIllusionnPerk   = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153D0);
-                        //RE::BGSPerk* dualRestorationPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153D1);
+                    case ActorSlot::Both:
+                        if (actorMagicka >= duelMagickaCost || actor->AsMagicTarget()->IsInvulnerable()) {
+                            logger::info("Casting Both hands");
+                            SendNotification("Casting: " + spellName + " Both");
 
+                            // Duel Casting Perks
+                            // RE::BGSPerk* dualAlterationPerk  = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CD);
+                            // RE::BGSPerk* dualConjurationPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CE);
+                            // RE::BGSPerk* dualDestructionPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CF);
+                            // RE::BGSPerk* dualIllusionnPerk   = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153D0);
+                            // RE::BGSPerk* dualRestorationPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153D1);
 
-                        // Cast From Left Hand
-                        actor->GetMagicCaster(RE::MagicSystem::CastingSource::kLeftHand)
-                            ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
+                            // Cast From Left Hand
+                            actor->GetMagicCaster(RE::MagicSystem::CastingSource::kLeftHand)->CastSpellImmediate(spell, false, nullptr, 1.0f, false, 0.0f, actor);
 
-                        // Cast From Right Hand
-                        actor->GetMagicCaster(RE::MagicSystem::CastingSource::kRightHand)
-                            ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
+                            // Cast From Right Hand
+                            actor->GetMagicCaster(RE::MagicSystem::CastingSource::kRightHand)->CastSpellImmediate(spell, false, nullptr, 1.0f, false, 0.0f, actor);
 
-                        // Remove Magicka
-                        actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, RE::ActorValue::kMagicka,
-                                                                      -item->As<RE::MagicItem>()->CalculateMagickaCost(actor) * 2);
+                            // Remove Magicka
+                            actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, RE::ActorValue::kMagicka, -duelMagickaCost);
 
-                        return true;
-                    }
-                    break;
+                            return true;
+                        }
+                        break;
+                }
             }
         }
     } else {
@@ -880,6 +898,8 @@ static void MoveHorse(MoveType moveType) {
                 SendKeyUp(32);  // Direction (E)
                 SendKeyUp(31);  // Direction (S)
                 SendKeyUp(30);  // Direction (W)
+                SendKeyUp(30);  // Direction (W)
+                SendKeyUp(42);  // Sprint    (Shift)
                 break;
 
             case MoveType::MoveSprint:
@@ -1197,7 +1217,7 @@ void NavigateToLocation(std::string targetLocation) {
     RE::TESObjectREFR* mapMarkerRef = IsLocationKnown(targetLocation);
     if (mapMarkerRef != NULL) {
         std::string result = "Navigating to " + targetLocation;
-        SendNotification(result);
+        SendNotification("Location: " + targetLocation);
         logger::info("{}", result);
         FocusOnMapMarker(mapMarkerRef);
     } else {
@@ -1211,6 +1231,7 @@ void NavigateToLocation(std::string targetLocation) {
 void NavigateToPlayer() {
     auto playerRef = static_cast<RE::TESObjectREFR*>(player);
     FocusOnMapMarker(playerRef);
+    SendNotification("Location: Player");
 }
 
 /// *** Work in progress
@@ -1252,6 +1273,15 @@ void NavigateToPlayer() {
 
 #pragma endregion
 
+#pragma region Potential Future Fuctions
+/*
+RE::PlayerCharacter::GetSingleton()->DrinkPotion
+
+
+
+
+*/
+#pragma endregion
 
 #pragma region Archive
 

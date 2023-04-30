@@ -2371,6 +2371,15 @@ namespace Voxima
                 recognizer.RecognizeAsyncStop();
 
             }
+            else if (message.StartsWith("check for mic change"))
+            {
+                Log.Debug($"Received from client: Check for Mic Change", Log.LogType.Info);
+
+                recognizer.RecognizeAsyncStop();
+                recognizer.SetInputToDefaultAudioDevice();
+                recognizer.RecognizeAsync(RecognizeMode.Multiple);
+
+            }
             else if (message.StartsWith("initialize update"))
             {
                 Log.Debug($"Received from client: Initialize Update", Log.LogType.Info);

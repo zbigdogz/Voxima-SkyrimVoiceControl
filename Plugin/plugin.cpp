@@ -355,8 +355,9 @@ void CheckUpdate(bool loop, bool isAsync) {
             }
 
             if (VOX_CheckForUpdate->value == 1) {
+                SendMessage(WebSocketMessage::CheckForMicChange);
                 VOX_CheckForUpdate->value = 0;
-                logger::info("Forcing a Full Update");
+                logger::info("Forcing an Update Check");
                 currentShouts = "";
                 fullUpdate = true;
             }
@@ -381,7 +382,7 @@ void CheckUpdate(bool loop, bool isAsync) {
                 }
                 logger::info("{}", locationsMessage);
 
-                SendMessage("update locations\n" + locationsMessage + "playerlocation");
+                SendMessage(WebSocketMessage::UpdateLocations + locationsMessage + "playerlocation");
             }
 
             if (fullUpdate)
@@ -459,17 +460,17 @@ void Update(std::string update) {
 
         updateFile += "VOX_Sensitivity\t" + std::to_string((int)VOX_Sensitivity->value);
 
-        SendMessage("update configuration\n" + updateFile);
+        SendMessage(WebSocketMessage::UpdateConfiguration + updateFile);
 
         if (!finished) {
             auto magic = GetActorMagic(player, MagicType::Spell, MagicType::Power);
 
-            SendMessage("update spells\n" + magic[0]);
-            SendMessage("update powers\n" + magic[1]);
+            SendMessage(WebSocketMessage::UpdateSpells + magic[0]);
+            SendMessage(WebSocketMessage::UpdatePowers + magic[1]);
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(200)); // Brief pause to ensure the following message is sent and processed after the previous messages
-        SendMessage("initialize update");
+        SendMessage(WebSocketMessage::InitializeUpdate);
 
     } catch (const std::exception& ex) {
         logger::error("ERROR during Update:\n{}\n", ex.what());
@@ -706,7 +707,6 @@ void ProcessReceivedMessage(const string& command) {
         // std::jthread update(ExecuteCommand, currentCommand, true);
         // update.detach();
         ExecuteCommand(currentCommand);
-        if (currentCommand.Type != "keybind") SendNotification(currentCommand.Name);
     } catch (exception ex) {
         logger::error("ERROR while preprocessing\n\"{}\"\nmessage from server: \"{}\"", command, ex.what());
     }
@@ -736,26 +736,30 @@ void ExecuteCommand(Command command) {
                     return;
                 }
 
+                RE::SpellItem* spell = item->As<RE::SpellItem>();
+                bool allowedChargeTime = spell->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1;
+                bool allowedCastingType = item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget;;
+
+                bool validItem = !(allowedCastingType && allowedChargeTime);
+                
+
                 logger::info("Spell Command Identified: Name: \"{}\"     Hand: \"{}\"", item->GetName(), currentCommand.Hand);
 
                 switch (currentCommand.Hand) {
                     case 0:
-                        if (!(currentCommand.AutoCast && item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget &&
-                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Left))) {
+                        if (validItem && !(currentCommand.AutoCast && CastMagic(player, item, ActorSlot::Left))) {
                             EquipToActor(player, item, ActorSlot::Left);
                         }
                         break;
 
                     case 1:
-                        if (!(currentCommand.AutoCast && item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget &&
-                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Right))) {
+                        if (validItem && !(currentCommand.AutoCast && CastMagic(player, item, ActorSlot::Left))) {
                             EquipToActor(player, item, ActorSlot::Right);
                         }
                         break;
 
                     case 2:
-                        if (!(currentCommand.AutoCast && item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget &&
-                              (item->As<RE::SpellItem>()->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1) && CastMagic(player, item, ActorSlot::Both))) {
+                        if (validItem && !(currentCommand.AutoCast && CastMagic(player, item, ActorSlot::Both))) {
                             EquipToActor(player, item, ActorSlot::Both);
                         }
                         break;
@@ -765,11 +769,13 @@ void ExecuteCommand(Command command) {
             } else if (currentCommand.Type == "clear hands") {
                 logger::info("Clear Hands");
                 UnEquipFromActor(player, ActorSlot::Both);
+                SendNotification("Cleared Hands");
 
                 // Clear Voice
             } else if (currentCommand.Type == "clear shout") {
                 logger::info("Clear Voice");
                 UnEquipFromActor(player, ActorSlot::Voice);
+                SendNotification("Cleared Voice");
 
                 // Power
             } else if (currentCommand.Type == "power") {
@@ -821,68 +827,86 @@ void ExecuteCommand(Command command) {
                 // Keybind
             } else if (currentCommand.Type == "keybind") {
                 if (currentCommand.Morph != "horseriding") {
-                    if (currentCommand.KeybindDuration >= 0)
+                    if (currentCommand.KeybindDuration >= 0) {
                         PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                    else
+                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
+
+                    } else
                         switch (currentCommand.KeybindDuration) {
                             case -1:
                                 SendKeyDown(currentCommand.ID);
+                                SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
                                 break;
                             case -2:
                                 SendKeyUp(currentCommand.ID);
+                                SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
                                 break;
                             default:
-                                PressKey(currentCommand.ID, currentCommand.KeybindDuration);
+                                SendNotification("ERROR: Invalid key duration: " + std::to_string(currentCommand.ID));
+                                logger::error("Invalid key duration: {}", currentCommand.ID);
                                 break;
                         }
                 } else {
                     // Command is likely meant for a horse
-                    RE::BSInputDeviceManager* gamepad = RE::BSInputDeviceManager::GetSingleton();
-                    gamepad->GetGamepadHandler()->Initialize();
+                    
+                    //RE::BSInputDeviceManager* gamepad = RE::BSInputDeviceManager::GetSingleton();
+                    //gamepad->GetGamepadHandler()->Initialize();
 
                     switch (currentCommand.ID) {
                         // W
                         case 17:
-                            if (currentCommand.KeybindDuration == -1)
+                            if (currentCommand.KeybindDuration == -1) {
                                 MoveHorse(MoveType::MoveForward);
-                            else
+                                SendNotification("Horse: Move Forward");
+                            } else {
                                 MoveHorse(MoveType::StopMoving);
+                                SendNotification("Horse: Stop Moving");
+                            }
                             break;
 
                             // A
                         case 30:
-                            if (currentCommand.KeybindDuration == 0)
+                            if (currentCommand.KeybindDuration == 0) {
                                 MoveHorse(MoveType::MoveLeft);
-                            else
+                                SendNotification("Horse: Move Left");
+                            } else {
                                 MoveHorse(MoveType::TurnLeft);
-
+                                SendNotification("Horse: Turn Left");
+                            }
                             break;
 
                             // S
                         case 31:
                             MoveHorse(MoveType::MoveBackward);
+                            SendNotification("Horse: Turn Around");
                             break;
 
                             // D
                         case 32:
-                            if (currentCommand.KeybindDuration == 0)
+                            if (currentCommand.KeybindDuration == 0) {
                                 MoveHorse(MoveType::MoveRight);
-                            else
+                                SendNotification("Horse: Move Right");
+                            } else
                                 MoveHorse(MoveType::TurnRight);
-
+                            SendNotification("Horse: Turn Right");
+                            {}
                             break;
 
                             // Space
                         case 57:
                             MoveHorse(MoveType::MoveJump);
+                            SendNotification("Horse: Jump");
                             break;
 
                             // Shift
                         case 42:
-                            if (currentCommand.KeybindDuration == 0)
+                            if (currentCommand.KeybindDuration == 0) {
                                 MoveHorse(MoveType::MoveSprint);
-                            else
+                                SendNotification("Horse: Sprint");
+                            } else {
                                 MoveHorse(MoveType::StopSprint);
+                                SendNotification("Horse: Stop Sprinting");
+                            }
                             break;
 
                         default:  // Not a command for controlling the horse
@@ -892,12 +916,15 @@ void ExecuteCommand(Command command) {
                                 switch (currentCommand.KeybindDuration) {
                                     case -1:
                                         SendKeyDown(currentCommand.ID);
+                                        SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
                                         break;
                                     case -2:
                                         SendKeyUp(currentCommand.ID);
+                                        SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
                                         break;
                                     default:
                                         PressKey(currentCommand.ID, currentCommand.KeybindDuration);
+                                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
                                         break;
                                 }
                     }
@@ -905,12 +932,7 @@ void ExecuteCommand(Command command) {
 
             } else if (currentCommand.Type == "console") {
                 try {
-                    ///*** development only
-                    if (currentCommand.Name == "this is test one") {
-                        thread([]() { TestMethod(); }).detach();
-                        return;
-                    }
-
+                    SendNotification("Console: " + currentCommand.Name);
                     std::string command = currentCommand.Name;
                     std::string line = "";
                     std::string count = "";
@@ -939,6 +961,7 @@ void ExecuteCommand(Command command) {
                     console.detach();
 
                 } catch (exception ex) {
+                    SendNotification("ERROR: Invalid Command: " + currentCommand.Name);
                     logger::error("Invalid Console Command: {}\n{}", currentCommand.Name, ex.what());
                 }
 
@@ -951,20 +974,6 @@ void ExecuteCommand(Command command) {
             }  // End type check
         });    // End Task
     }
-}
-
-void TestMethod() { 
-
-    // Test auto-navigation to a known location on the map
-    string targetLocation = "Winterhold";
-    NavigateToLocation(targetLocation);
-
-    //// Test auto-navigation to the player's current position on the map
-    //NavigateToPlayer();
-
-    //// Test auto-navigation to player's custom map marker
-    //NavigateToCustomMarker();
-
 }
 
 #pragma region Event triggers for CheckUpdate()
@@ -1009,6 +1018,13 @@ void Anim::Events::AnimationEvent(const char* holder, const char* name) {
             break;
     case "StopHorseCamera"_h:
             logger::debug("Player is now dismounted!!");
+            // Stop all residual movement from horse controls
+            SendKeyUp(17);  // Direction (N)
+            SendKeyUp(32);  // Direction (E)
+            SendKeyUp(31);  // Direction (S)
+            SendKeyUp(30);  // Direction (W)
+            SendKeyUp(30);  // Direction (W)
+            SendKeyUp(42);  // Sprint    (Shift)
             break;
     default:
             return;
