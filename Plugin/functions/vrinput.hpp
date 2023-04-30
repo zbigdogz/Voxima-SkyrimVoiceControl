@@ -74,18 +74,20 @@ bool OnControllerStateChanged(vr::TrackedDeviceIndex_t unControllerDeviceIndex, 
     //    return false;
     //}
 
-    if (pControllerState->ulButtonPressed != 0) {
-        RE::DebugNotification("VR button pressed!!");
-    
-        for (vr::EVRButtonId button = vr::k_EButton_System; button <= vr::k_EButton_Max; button = (vr::EVRButtonId)(button + 1)) {
-            if (pControllerState->ulButtonPressed & vr::ButtonMaskFromId(button)) {
-                // Button was pressed, do something
-                // ...
+    logger::debug("VR Controller state changed!!");
 
-                RE::DebugNotification(GetButtonName(button).c_str());
-            }
-        }
-    }
+    //if (pControllerState->ulButtonPressed != 0) {
+    //    RE::DebugNotification("VR button pressed!!");
+    //
+    //    for (vr::EVRButtonId button = vr::k_EButton_System; button <= vr::k_EButton_Max; button = (vr::EVRButtonId)(button + 1)) {
+    //        if (pControllerState->ulButtonPressed & vr::ButtonMaskFromId(button)) {
+    //            // Button was pressed, do something
+    //            // ...
+
+    //            RE::DebugNotification(GetButtonName(button).c_str());
+    //        }
+    //    }
+    //}
 
 
 

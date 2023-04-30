@@ -146,6 +146,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 if (REL::Module::IsVR()) {
                     if (g_papyrusvr) {
                         OpenVRHookManagerAPI* hookMgrAPI = RequestOpenVRHookManagerObject();
+                        hookMgrAPI = NULL;
                         if (hookMgrAPI) {
                             logger::debug("Using RAW OpenVR Hook API.");
                             g_VRSystem = hookMgrAPI->GetVRSystem();  // setup VR system before callbacks
