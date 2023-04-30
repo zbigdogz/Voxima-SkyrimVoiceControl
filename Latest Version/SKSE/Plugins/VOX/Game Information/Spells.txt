@@ -1,0 +1,107 @@
+Flames	12FCD	spell	Skyrim.esm
+Healing	12FCC	spell	Skyrim.esm
+Conjure Familiar	640B6	spell	Skyrim.esm
+Lesser Ward	13018	spell	Skyrim.esm
+Raise Zombie	7E8E1	spell	Skyrim.esm
+Arniel's Convection	6A104	spell	Skyrim.esm
+Bane of the Undead	8C1AB	spell	Skyrim.esm
+Banish Daedra	6D22C	spell	Skyrim.esm
+Blizzard	7E8E4	spell	Skyrim.esm
+Bound Bow	211ED	spell	Skyrim.esm
+Bound Sword	211EB	spell	Skyrim.esm
+Bound Battleaxe	211EC	spell	Skyrim.esm
+Call to Arms	7E8DD	spell	Skyrim.esm
+Calm	4DEE9	spell	Skyrim.esm
+Candlelight	43324	spell	Skyrim.esm
+Chain Lightning	45F9D	spell	Skyrim.esm
+Circle of Protection	5312D	spell	Skyrim.esm
+Clairvoyance	21143	spell	Skyrim.esm
+Close Wounds	B62EF	spell	Skyrim.esm
+Command Daedra	6F953	spell	Skyrim.esm
+Conjure Dragon Priest	10FC16	spell	Skyrim.esm
+Conjure Dremora Lord	10DDEC	spell	Skyrim.esm
+Conjure Flame Atronach	204C3	spell	Skyrim.esm
+Conjure Frost Atronach	204C4	spell	Skyrim.esm
+Conjure Storm Atronach	204C5	spell	Skyrim.esm
+Courage	4DEE8	spell	Skyrim.esm
+Dead Thrall	7E8DF	spell	Skyrim.esm
+Detect Dead	211EF	spell	Skyrim.esm
+Detect Life	211EE	spell	Skyrim.esm
+Dragonhide	CDB70	spell	Skyrim.esm
+Dread Zombie	96D95	spell	Skyrim.esm
+Ebonyflesh	5AD5E	spell	Skyrim.esm
+Equilibrium	DA746	spell	Skyrim.esm
+Expel Daedra	6F952	spell	Skyrim.esm
+Fast Healing	2F3B8	spell	Skyrim.esm
+Fear	4DEEA	spell	Skyrim.esm
+Fire Rune	5DB90	spell	Skyrim.esm
+Fire Storm	7A82B	spell	Skyrim.esm
+Fireball	1C789	spell	Skyrim.esm
+Firebolt	12FD0	spell	Skyrim.esm
+Flame Cloak	3AE9F	spell	Skyrim.esm
+Flame Thrall	7E5D5	spell	Skyrim.esm
+Flaming Familiar	9CE26	spell	Skyrim.esm
+Frenzy	4DEEE	spell	Skyrim.esm
+Frost Cloak	3AEA2	spell	Skyrim.esm
+Frost Rune	6796F	spell	Skyrim.esm
+Frost Thrall	7E5D6	spell	Skyrim.esm
+Frostbite	2B96B	spell	Skyrim.esm
+Fury	4DEEB	spell	Skyrim.esm
+Grand Healing	B62EE	spell	Skyrim.esm
+Greater Ward	211F0	spell	Skyrim.esm
+Guardian Circle	E0CCF	spell	Skyrim.esm
+Harmony	7E8DB	spell	Skyrim.esm
+Heal Other	12FD2	spell	Skyrim.esm
+Healing Hands	4D3F2	spell	Skyrim.esm
+Hysteria	7E8DE	spell	Skyrim.esm
+Ice Spike	2B96C	spell	Skyrim.esm
+Ice Storm	45F9C	spell	Skyrim.esm
+Icy Spear	10F7EC	spell	Skyrim.esm
+Incinerate	10F7ED	spell	Skyrim.esm
+Invisibility	27EB6	spell	Skyrim.esm
+Ironflesh	51B16	spell	Skyrim.esm
+Lightning Bolt	2DD29	spell	Skyrim.esm
+Lightning Cloak	3AEA3	spell	Skyrim.esm
+Lightning Rune	67970	spell	Skyrim.esm
+Lightning Storm	7E8E5	spell	Skyrim.esm
+Magelight	43323	spell	Skyrim.esm
+Mass Paralysis	B62E6	spell	Skyrim.esm
+Mayhem	7E8DA	spell	Skyrim.esm
+Muffle	8F3EB	spell	Skyrim.esm
+Oakflesh	5AD5C	spell	Skyrim.esm
+Pacify	4DEED	spell	Skyrim.esm
+Paralyze	5AD5F	spell	Skyrim.esm
+Rally	4DEEC	spell	Skyrim.esm
+Reanimate Corpse	65BD7	spell	Skyrim.esm
+Repel Lesser Undead	4D3F8	spell	Skyrim.esm
+Repel Undead	5DD60	spell	Skyrim.esm
+Revenant	96D94	spell	Skyrim.esm
+Rout	4DEEF	spell	Skyrim.esm
+Soul Trap	4DBA4	spell	Skyrim.esm
+Sparks	2DD2A	spell	Skyrim.esm
+Spectral Arrow	AB23D	spell	Skyrim.esm
+Steadfast Ward	211F1	spell	Skyrim.esm
+Stoneflesh	5AD5D	spell	Skyrim.esm
+Storm Thrall	7E5D7	spell	Skyrim.esm
+Summon Arniel's Shade	6A153	spell	Skyrim.esm
+Summon Unbound Dremora	99F39	spell	Skyrim.esm
+Telekinesis	1A4CC	spell	Skyrim.esm
+Thunderbolt	10F7EE	spell	Skyrim.esm
+Transmute	109111	spell	Skyrim.esm
+Turn Greater Undead	5DD5E	spell	Skyrim.esm
+Turn Lesser Undead	4B146	spell	Skyrim.esm
+Turn Undead	5DD5D	spell	Skyrim.esm
+Vision of the Tenth Eye	B323E	spell	Skyrim.esm
+Wall of Flames	35D7F	spell	Skyrim.esm
+Wall of Frost	35D80	spell	Skyrim.esm
+Wall of Storms	35D81	spell	Skyrim.esm
+Waterbreathing	5D175	spell	Skyrim.esm
+Conjure Boneman	45BA	spell	Dawnguard.esm
+Conjure Mistman	45B8	spell	Dawnguard.esm
+Conjure Wrathman	45B3	spell	Dawnguard.esm
+Heal Undead	E8D4	spell	Dawnguard.esm
+Necromantic Healing	E8D2	spell	Dawnguard.esm
+Stendarr's Aura	38B5	spell	Dawnguard.esm
+Summon Arvak	C600	spell	Dawnguard.esm
+Sun Fire	3F52	spell	Dawnguard.esm
+Vampire's Bane	38B6	spell	Dawnguard.esm

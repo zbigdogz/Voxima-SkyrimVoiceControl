@@ -1,9 +1,0 @@
-whirlwind sprint
-194490
-0
-shout
-skyrim.esm
-0
-1
-none
-65

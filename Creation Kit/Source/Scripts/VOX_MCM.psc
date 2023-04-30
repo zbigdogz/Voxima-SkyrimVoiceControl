@@ -1,54 +1,48 @@
 Scriptname VOX_MCM extends SKI_ConfigBase
 
 ;Global Variables
-GlobalVariable Property VOX_Enabled auto
-GlobalVariable Property VOX_UpdateInterval auto
-GlobalVariable Property VOX_PushToSpeak auto
-GlobalVariable Property VOX_VocalPushToSpeak auto
-GlobalVariable Property VOX_AutoCastPowers auto
-GlobalVariable Property VOX_AutoCastShouts auto
-GlobalVariable Property VOX_ShoutKey auto
-GlobalVariable Property VOX_ShowLog auto
-GlobalVariable Property VOX_LongAutoCast auto
-GlobalVariable Property VOX_Sensitivity auto
-GlobalVariable Property VOX_CheckForUpdate auto
+GlobalVariable Property VOX_Enabled 				auto
+GlobalVariable Property VOX_UpdateInterval 			auto
+GlobalVariable Property VOX_PushToSpeakType 		auto
+GlobalVariable Property VOX_PushToSpeakKeyCode 		auto
+GlobalVariable Property VOX_AutoCastPowers 			auto
+GlobalVariable Property VOX_AutoCastShouts 			auto
+GlobalVariable Property VOX_ShoutKey 				auto
+GlobalVariable Property VOX_ShowLog 				auto
+GlobalVariable Property VOX_LongAutoCast 			auto
+GlobalVariable Property VOX_Sensitivity 			auto
+GlobalVariable Property VOX_CheckForUpdate 			auto
+GlobalVariable Property VOX_KnownShoutWordsOnly 	auto
 
 
-;Enable/Disable Recognition
-bool aVal = true
-int aOID
+;Enable/Disable Mod
+bool ToggleMod_Val = true
+int ToggleMod_OID
 
-;Enable/Disable Push-To-Speak (PTS)
-bool bVal = false
-int bOID
-
-;Keypress Push-To-Speak Key
-int cVal = -1
-int cOID
-
-;PTS Value (Manual)
-int PTS_KeyCode
-
-;Enable/Disable Vocal Push-To-Speak (PTS)
-bool VPTS_Val = false
-int VPTS_OID
+;Push-To-Speak Menu
+int pushToSpeakMenu_OID
+int pushToSpeakKeyCode_OID
+int pushToSpeakInput_OID
+string[] pushToSpeakOptions
+int PushToSpeakKeyCode_Default = -1
 
 ;Enable/Disable Auto-Cast Powers
-bool dVal = true
-int dOID
+bool ToggleAutoPowers_Val = true
+int ToggleAutoPowers_OID
 
 ;Enable/Disable Auto-Cast Shouts
-bool eVal = true
-int eOID
+bool ToggleAutoShouts_Val = true
+int ToggleAutoShouts_OID
 
 ;Auto-Cast Shout Key
 int ShoutKey = 44
 int SKey_OID
 
-
+;Update Interval
 float Default_UpdateInterval = 0.1
 int Local_UpdateInterval
 
+;Show Log
 bool fVal = true
 int fOID
 
@@ -61,18 +55,30 @@ int CheckUpdate
 
 int longAutoCastOID
 
+;Known Shout Words Only
+int knownShoutWords_OID
+
+event OnInit()
+	parent.OnInit()
+
+	;Fill in Push-To-Speak Options
+	pushToSpeakOptions = new string[4]
+	pushToSpeakOptions[0] = "Disabled"
+	pushToSpeakOptions[1] = "Hold"
+	pushToSpeakOptions[2] = "Toggle"
+	pushToSpeakOptions[3] = "Vocal"
+endEvent
 
 Event OnPageReset(string page) 
 	;Display:
 	;
 	;	"General"									|	"Other"
-	;		(Toggle) Voice Recognition				|		(Slider) Update Interval
+	;		(Toggle) Enable Voxima					|		(Slider) Update Interval
 	;												|		(Slider) Sensitivity
-	;		(Toggle) Push-to-Speak (Non-VR)			|		(Toggle) Show Log
+	;		(Menu) Push-to-Speak (Non-VR)			|		(Toggle) Show Log
 	;		(Keybind) Push-to-Speak Key (Non-VR)	|		("Button") Check for Update
-	;		(Toggle) Vocal Speech Toggle			|		
-	;												|		
-	;	"Auto Cast"									|		
+	;												|		(Toggle) Auto-Cast Long Spells
+	;	"Auto Cast"									|		(Toggle) Known Shout Words Only
 	;		(Toggle ) Auto Cast Powers				|		
 	;		(Toggle ) Auto Cast Shouts				|		
 	;		(Keybind) Shout Key						|		
@@ -87,31 +93,32 @@ Event OnPageReset(string page)
 	SetCursorFillMode(TOP_TO_BOTTOM)
 
 	AddHeaderOption("General")
-	aOID = AddToggleOption("Voice Recognition", aVal)
+	ToggleMod_OID = AddToggleOption("Enable Voxima", ToggleMod_Val)
 
 	AddEmptyOption()
 
 	;Push-to-Speak
 	AddHeaderOption("Push-to-Speak (Non-VR)")
-	bOID = AddToggleOption("Enabled", bVal)
-	if (!bVal)
-		cOID = AddKeyMapOption("Key", cVal, OPTION_FLAG_DISABLED)
-		PTS_KeyCode = AddInputOption("Key", cVal, OPTION_FLAG_DISABLED)
-	else
-		cOID = AddKeyMapOption("Key", cVal, OPTION_FLAG_NONE)
-		PTS_KeyCode = AddInputOption("Key", cVal, OPTION_FLAG_NONE)
-	endif
+	pushToSpeakMenu_OID = AddMenuOption("Push To Speak Options", pushToSpeakOptions[VOX_PushToSpeakType.Value as int])
 	
-	AddHeaderOption("Vocal Speech Toggle")
-	VPTS_OID = AddToggleOption("Enabled", VPTS_Val)
+	if (VOX_PushToSpeakType.Value as int == 0)
+		;Enable Additional Options
+		pushToSpeakKeyCode_OID = AddKeyMapOption("Key", VOX_PushToSpeakKeyCode.Value as int, OPTION_FLAG_DISABLED)
+		pushToSpeakInput_OID = AddInputOption("Key", VOX_PushToSpeakKeyCode.Value as int, OPTION_FLAG_DISABLED)
+	else
+		;Disable Additional Options (Grey them out)
+		pushToSpeakKeyCode_OID = AddKeyMapOption("Key", VOX_PushToSpeakKeyCode.Value as int, OPTION_FLAG_NONE)
+		pushToSpeakInput_OID = AddInputOption("Key", VOX_PushToSpeakKeyCode.Value as int, OPTION_FLAG_NONE)
+	endif
 	
 	AddEmptyOption()
 	
+	;Auto-Cast Shouts and Powers
 	AddHeaderOption("Auto Cast")
-	dOID = AddToggleOption("Auto Cast Powers", dVal)
-	eOID = AddToggleOption("Auto Cast Shouts", eVal)
+	ToggleAutoPowers_OID = AddToggleOption("Auto Cast Powers", ToggleAutoPowers_Val)
+	ToggleAutoShouts_OID = AddToggleOption("Auto Cast Shouts", ToggleAutoShouts_Val)
 	
-	if (!dVal && !eVal)
+	if (!ToggleAutoPowers_Val && !ToggleAutoShouts_Val)
 		SKey_OID = AddKeyMapOption("Shout Key", VOX_ShoutKey.Value as int, OPTION_FLAG_DISABLED)
 		ShoutKey = AddInputOption("Shout Key", VOX_ShoutKey.Value as int, OPTION_FLAG_DISABLED)
 	else
@@ -125,6 +132,7 @@ Event OnPageReset(string page)
 	AddHeaderOption("Other")
 	Local_UpdateInterval = AddSliderOption("Update Interval", VOX_UpdateInterval.Value, "Every {2} Seconds")
 
+	;Sensitivity Slider
 	sensitivity_OID = AddSliderOption("Voice Recognition", sensitivityValue, "{2}% Sensitivity")	;The value is saved locally because otherwise, it may not save instantly
 	
 	;Show Log
@@ -136,46 +144,53 @@ Event OnPageReset(string page)
 	;Long Auto-Cast Spells
 	longAutoCastOID = AddToggleOption("Auto-Cast Long Spells", VOX_LongAutoCast.Value as bool)
 	
+	;Known Shout Words Only
+	KnownShoutWords_OID = AddToggleOption("Known Shout Words Only", VOX_KnownShoutWordsOnly.Value as bool)
+	
 EndEvent
+
+;Event Triggered when a "menu" is opened
+event OnOptionMenuOpen(int option)
+	if (option == pushToSpeakMenu_OID)
+		SetMenuDialogOptions(pushToSpeakOptions)
+		SetMenuDialogStartIndex(VOX_PushToSpeakType.Value as int)
+		SetMenuDialogDefaultIndex(0)
+	endIf
+endEvent
+
+;Event Triggered when a menu item is chosen
+event OnOptionMenuAccept(int option, int index)
+	if (option == pushToSpeakMenu_OID)
+		VOX_PushToSpeakType.SetValue(index)
+		
+		if (index == 0)
+			SetOptionFlags(pushToSpeakKeyCode_OID, OPTION_FLAG_DISABLED)
+			SetOptionFlags(pushToSpeakInput_OID, OPTION_FLAG_DISABLED)
+		else
+			SetOptionFlags(pushToSpeakKeyCode_OID, OPTION_FLAG_NONE)
+			SetOptionFlags(pushToSpeakInput_OID, OPTION_FLAG_NONE)
+		endif
+		
+		SetMenuOptionValue(pushToSpeakMenu_OID, pushToSpeakOptions[VOX_PushToSpeakType.Value as int])
+	endIf
+endEvent
 
 Event OnOptionSelect(int option)
 
-	if (option == aOID)
-		aVal = !aVal
-		VOX_Enabled.SetValue(aVal as Int)
-		SetToggleOptionValue(aOID, aVal)
-		
-	;Push-To-Speak Toggle
-	elseif (option == bOID)
-		bVal = !bVal 
-		SetToggleOptionValue(bOID, bVal)
-		
-		if (!bVal)
-			VOX_PushToSpeak.SetValue(-1)
-			SetOptionFlags(cOID, OPTION_FLAG_DISABLED)
-			SetOptionFlags(PTS_KeyCode, OPTION_FLAG_DISABLED)
-		else
-			VOX_PushToSpeak.SetValue(cVal)
-			SetOptionFlags(cOID, OPTION_FLAG_NONE)
-			SetOptionFlags(PTS_KeyCode, OPTION_FLAG_NONE)
-		endif
-	
-	;Vocal Push-to-Speak
-	elseif (option == VPTS_OID)
-		VPTS_Val = !VPTS_Val
-		VOX_CheckForUpdate.SetValue(1)
-		VOX_VocalPushToSpeak.SetValue(VPTS_Val as int)
-		SetToggleOptionValue(VPTS_OID, VPTS_Val)
+	if (option == ToggleMod_OID)
+		ToggleMod_Val = !ToggleMod_Val
+		VOX_Enabled.SetValue(ToggleMod_Val as Int)
+		SetToggleOptionValue(ToggleMod_OID, ToggleMod_Val)
 			
 	;Auto-Cast Powers
-	elseif (option == dOID)
-		dVal = !dVal
-		VOX_AutoCastPowers.SetValue(dVal as int)
+	elseif (option == ToggleAutoPowers_OID)
+		ToggleAutoPowers_Val = !ToggleAutoPowers_Val
+		VOX_AutoCastPowers.SetValue(ToggleAutoPowers_Val as int)
 		
 		
-		SetToggleOptionValue(dOID, dVal)
+		SetToggleOptionValue(ToggleAutoPowers_OID, ToggleAutoPowers_Val)
 		
-		if (!dVal && !eVal)
+		if (!ToggleAutoPowers_Val && !ToggleAutoShouts_Val)
 			SetOptionFlags(ShoutKey, OPTION_FLAG_DISABLED)
 			SetOptionFlags(SKey_OID, OPTION_FLAG_DISABLED)
 		else
@@ -184,12 +199,12 @@ Event OnOptionSelect(int option)
 		endif
 		
 	;Auto-Cast Shouts
-	elseif (option == eOID)
-		eVal = !eVal
-		VOX_AutoCastShouts.SetValue(eVal as int)
-		SetToggleOptionValue(eOID, eVal)
+	elseif (option == ToggleAutoShouts_OID)
+		ToggleAutoShouts_Val = !ToggleAutoShouts_Val
+		VOX_AutoCastShouts.SetValue(ToggleAutoShouts_Val as int)
+		SetToggleOptionValue(ToggleAutoShouts_OID, ToggleAutoShouts_Val)
 		
-		if (!dVal && !eVal)
+		if (!ToggleAutoPowers_Val && !ToggleAutoShouts_Val)
 			SetOptionFlags(ShoutKey, OPTION_FLAG_DISABLED)
 			SetOptionFlags(SKey_OID, OPTION_FLAG_DISABLED)
 		else
@@ -209,15 +224,19 @@ Event OnOptionSelect(int option)
 	elseif (option == longAutoCastOID)
 		VOX_LongAutoCast.SetValue((!(VOX_LongAutoCast.Value as bool)) as int)
 		SetToggleOptionValue(longAutoCastOID, VOX_LongAutoCast.Value as bool)
+		
+	elseif (option == knownShoutWords_OID)
+		VOX_KnownShoutWordsOnly.SetValue((!(VOX_KnownShoutWordsOnly.Value as bool)) as int)
+		SetToggleOptionValue(knownShoutWords_OID, VOX_KnownShoutWordsOnly.Value as bool)
 	endif
 EndEvent
 
 Event OnOptionKeyMapChange(int option, int keyCode, string conflictControl, string conflictName)
-	if (option == cOID)
-		cVal = keyCode
-		SetKeyMapOptionValue(cOID, cVal)
-		SetInputOptionValue(PTS_KeyCode, cVal)
-		VOX_PushToSpeak.SetValue(keyCode)
+	if (option == pushToSpeakKeyCode_OID)
+		VOX_PushToSpeakKeyCode.SetValue(keyCode)
+		SetKeyMapOptionValue(pushToSpeakKeyCode_OID, VOX_PushToSpeakKeyCode.Value as int)
+		SetInputOptionValue(pushToSpeakInput_OID, VOX_PushToSpeakKeyCode.Value as int)
+		VOX_PushToSpeakKeycode.SetValue(keyCode)
 	
 	elseif (option == SKey_OID)
 		VOX_ShoutKey.SetValue(keyCode)
@@ -269,8 +288,8 @@ EndEvent
 
 Event OnOptionInputOpen(int option)
 	;Fill input box with current value
-	if (option == PTS_KeyCode)
-		SetInputDialogStartText(cVal)
+	if (option == pushToSpeakInput_OID)
+		SetInputDialogStartText(VOX_PushToSpeakKeyCode.Value as int)
 		
 	elseif (option == ShoutKey)
 		SetInputDialogStartText(VOX_ShoutKey.Value as int)
@@ -280,13 +299,11 @@ Event OnOptionInputOpen(int option)
 EndEvent
 
 Event OnOptionInputAccept(int option, string value)
-	;Fill input box with current value
-	if (option == PTS_KeyCode)
-		cVal = value as Int
-		VOX_PushToSpeak.SetValue(value as int)
+	if (option == pushToSpeakInput_OID)
+		VOX_PushToSpeakKeyCode.SetValue(value as int)
 	
-		SetInputOptionValue(PTS_KeyCode, cVal)
-		SetKeyMapOptionValue(cOID, cVal)
+		SetInputOptionValue(pushToSpeakInput_OID, VOX_PushToSpeakKeyCode.Value as int)
+		SetKeyMapOptionValue(pushToSpeakKeyCode_OID, VOX_PushToSpeakKeyCode.Value as int)
 		
 	elseif (option == ShoutKey)
 		VOX_ShoutKey.SetValue(value as int)
@@ -299,12 +316,11 @@ EndEvent
 
 Event OnOptionDefault(int option)
 	;Fill input box with current value
-	if (option == PTS_KeyCode || option == cOid)
-		cVal = 44
-		VOX_PushToSpeak.SetValue(cVal)
+	if (option == pushToSpeakInput_OID || option == pushToSpeakKeyCode_OID)
+		VOX_PushToSpeakKeyCode.SetValue(PushToSpeakKeyCode_Default)
 	
-		SetInputOptionValue(PTS_KeyCode, cVal)
-		SetKeyMapOptionValue(cOID, cVal)
+		SetInputOptionValue(pushToSpeakInput_OID, VOX_PushToSpeakKeyCode.Value as int)
+		SetKeyMapOptionValue(pushToSpeakKeyCode_OID, VOX_PushToSpeakKeyCode.Value as int)
 		
 	elseif (option == ShoutKey || option == SKey_OID)
 		VOX_ShoutKey.SetValue(44)	;Input.GetMappedKey("Shout") gives the default key but this doesn't work on VR. value 44 is Z, which is the most common
@@ -313,7 +329,6 @@ Event OnOptionDefault(int option)
 		SetKeyMapOptionValue(SKey_OID, VOX_ShoutKey.Value as int)
 	
 	elseif (option == sensitivity_OID)
-		
 		sensitivityValue = sensitivityDefaultValue
 		VOX_Sensitivity.SetValue(sensitivityValue)
 		
@@ -322,28 +337,30 @@ Event OnOptionDefault(int option)
 	elseif (option == longAutoCastOID)
 		VOX_LongAutoCast.SetValue(0)
 		SetToggleOptionValue(longAutoCastOID, VOX_LongAutoCast.Value as bool)
+	
+	elseif (option == knownShoutWords_OID)
+		VOX_KnownShoutWordsOnly.SetValue(1)
+		SetToggleOptionValue(knownShoutWords_OID, VOX_KnownShoutWordsOnly.Value as bool)
 		
 	endif
 
 EndEvent
 
 Event OnOptionHighlight(int option)
-	if (option == aOID)
+	if (option == ToggleMod_OID)
 		SetInfoText("Enable/Disable Voice Recognition")
 		
-	elseif (option == bOID)
-		SetInfoText("Enable/Disable Push-to-Speak\nYou must specify the key in the space below (DOES NOT WORK FOR VR)")
-		
-	elseif (option == cOID)
-		SetInfoText("The key you press to temporarilly enable Voice Recognition")
+	elseif (option == pushToSpeakKeyCode_OID)
+		SetInfoText("The key you press to enable Voice Recognition")
 	
-	elseif (option == VPTS_OID)
-		SetInfoText("Say designated start listening and stop listening commands to enable/disable recognition. Default is \"Stat/Stop Listening\"")
+	elseif (option == pushToSpeakMenu_OID)
+		SetInfoText("Select Push-To-Speak Type.\nVocal: Say designated start listening and stop listening commands to enable/disable recognition. Default is \"Stat/Stop Listening\"\nHold: Hold the designated key to enable recognition\nToggle: Press the designated key to toggle recognition")
+		;SetInfoText("Say designated start listening and stop listening commands to enable/disable recognition. Default is \"Stat/Stop Listening\"")
 		
-	elseif (option == dOID)
+	elseif (option == ToggleAutoPowers_OID)
 		SetInfoText("Enable/Disable auto-casting powers after they are equipped by voice recognition")
 		
-	elseif (option == eOID)
+	elseif (option == ToggleAutoShouts_OID)
 		SetInfoText("Enable/Disable auto-casting shouts after they are equipped by voice recognition")
 		
 	elseif (option == SKey_OID)
@@ -357,6 +374,9 @@ Event OnOptionHighlight(int option)
 		
 	elseif (option == longAutoCastOID)
 		SetInfoText("This enables auto-casting of spells with long cast times, such as \"Frost Thrall\" and \"Mass Paralysis\".\nThis is disabled by default for balancing purposes")
+		
+	elseif (option == knownShoutWords_OID)
+		SetInfoText("Disabling this allows you do say higher shout leves to cast the most powerful version you have\nExample: If you own \"Fus Ro\", but not \"Dah\", you can say \"Fus Ro Dah\" and \"Fus Ro\" will be cast")
 		
 	elseif (option == sensitivity_OID)
 		SetInfoText("Adjusts how sensitive the Voice Recognition is. (1-100 from least to most sensitive)\nThis can help if commands aren't recognized easily or if breathing/talking activates commands")

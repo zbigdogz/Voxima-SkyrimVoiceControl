@@ -1,0 +1,4 @@
+DBU_VocalPushToSpeak	false
+DBU_AutoCastShouts	true
+DBU_AutoCastPowers	true
+DBU_Sensitivity	90
