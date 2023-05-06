@@ -1,4 +1,4 @@
-#include "logger.hpp"
+#include "../functions/logger.hpp" // SKSE log functions
 
 RE::TESForm* currentVoice;
 HWND windowHandle = GetActiveWindow();
@@ -71,6 +71,13 @@ struct ActorSlotValue {
         return func();
     }
 };
+
+bool IsGodMode()
+{
+    REL::Relocation<bool*> singleton{REL::VariantID(517711, 404238, 0x2FFFDEA)};
+    return *singleton;
+}
+
 
 ActorSlotValue actorSlot;
 
@@ -267,8 +274,10 @@ void UnEquipFromActor(RE::Actor* actor, ActorSlot hand) {
     }
 }
 
+
 // Cast Magic from actor slot
 bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLevel = 0) {
+
     if (item->GetKnown() || actor->HasSpell(item->As<RE::SpellItem>())) {
 
         /*
@@ -311,12 +320,12 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             //// Need to enable and fix this up once CharmedBaryon merges recent po3 CommonLib changes. Objective here is to "spoof" input to trigger a shout "natively"
             //// Spoof button input
             //// See UserEvents.h for more types of events to spoof
-            if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
-                RE::ConsoleLog::GetSingleton()->Print("*screams*");
+            //if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+            //    RE::ConsoleLog::GetSingleton()->Print("*screams*");
 
-                static auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", 0, 1.0f, 3.0f);
-                bsInputEventQueue->PushOntoInputQueue(kEvent);
-            }
+            //    static auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", 0, 1.0f, 3.0f);
+            //    bsInputEventQueue->PushOntoInputQueue(kEvent);
+            //}
             
             
             //// Spoof button input
@@ -354,7 +363,9 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int shoutLev
             int actorMagicka = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kMagicka);
             std::string spellName = spell->fullName.c_str();
 
-            if (actorMagicka >= singleMagickaCost || actor->AsMagicTarget()->IsInvulnerable()) {
+            if (actorMagicka >= singleMagickaCost || IsGodMode())
+            {
+
                 switch (hand) {
                     case ActorSlot::Left: {
                         logger::info("Casting Left hand");
@@ -483,21 +494,18 @@ std::vector<std::string> GetShoutList() {
             /// logger::debug("Shout {} Name = {}", i + 1, shoutList[i]);
             for (int j = 0; j <= 2; j++) {                                    // Loop through all three shout words of power
                 RE::TESWordOfPower* wordOfPower = shout->variations[j].word;  // Capture shout's word of power at j index
-                if (wordOfPower && (VOX_KnownShoutWordsOnly->value == 0 || wordOfPower->formFlags & 0x10000)) { // Check if current word of power is "shoutable" by player (both known AND unlocked)           
+                if (wordOfPower && (VOX_KnownShoutWordsOnly->value == 0 || wordOfPower->formFlags & 0x10000)) { // Check if current word of power is "shoutable" by player (both known AND unlocked) and if player wants to shout only known words
                     const char* wopName = wordOfPower->fullName.c_str();            // Capture name of known word of power (often contains L33T text)                   
                     std::string wopTranslation = wordOfPower->translation.c_str();  // Capture translation of known word of power
                     /// logger::debug("Shout \"{}\" Word {} = {} ({})", shoutName, j + 1, wopName, wopTranslation);
-
                     // shoutList[i] += "__" + wopTranslation;  // Append known word of power translation to current shout in shoutList
                     shoutList[i] += "\t" + TranslateL33t(wopName);  // Append translated words of power
                 } else
                     break;  // Break out of parent "for" loop
             }
         }
-        /*
-        for (auto& shoutData : shoutList)                // Loop through all contents of shoutList
-            logger::debug("ShoutList = {}", shoutData);  // Output contents of shoutData
-        */
+        ///for (auto& shoutData : shoutList)                // Loop through all contents of shoutList
+        //    logger::debug("ShoutList = {}", shoutData);  // Output contents of shoutData
     } catch (const std::exception& ex) {
         logger::error("ERROR during GetShoutList: {}", ex.what());
     }

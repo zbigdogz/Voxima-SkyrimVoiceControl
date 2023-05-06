@@ -13,17 +13,20 @@
 #include <format>
 #include <string>
 
-#include "functions.hpp"  // Miscellaneous custom functions
-#include "websocket.hpp" // Websocket functionality
-#include "animation-events.hpp" // Animation event hooking and processing
-#include "spell-learned-event.hpp" // Spell learn event hooking and processing
-#include "morph-changed-event.hpp" // Player morph event hooking and processing
-#include "load-game-event.hpp" // Game load event hooking and processing
-#include "menu-close-event.hpp" // Menu close event hooking and processing
-#include "location-discovery-event.hpp" // Location discovery event hooking and processing
-#include "device-input-event.hpp"
+#include "../functions/functions.hpp"  // Miscellaneous custom functions
+///#include "../functions/logger.hpp" // SKSE log functions
+#include "../functions/vrinput.hpp" // VR controller input capture functionality
+#include "../functions/websocket.hpp" // Websocket functionality
+#include "../events/animation-events.hpp" // Animation event hooking and processing
+#include "../events/spell-learned-event.hpp" // Spell learn event hooking and processing
+#include "../events/morph-changed-event.hpp" // Player morph event hooking and processing
+#include "../events/load-game-event.hpp" // Game load event hooking and processing
+#include "../events/menu-close-event.hpp" // Menu close event hooking and processing
+#include "../events/location-discovery-event.hpp" // Location discovery event hooking and processing
+#include "../events/device-input-event.hpp" // Flatrim device input event hooking and processing
 
-struct Command {
+struct Command
+{
     std::string Name = "";
     RE::FormID ID = 0;
     int KeybindDuration = 0;
@@ -34,8 +37,6 @@ struct Command {
     std::string Morph = "";
     int CommandNum = 0;
 };
-
-void TestMethod();
 
 void InitialUpdate();
 void CheckUpdate(bool loop = false, bool isAsync = false);
@@ -64,8 +65,10 @@ bool readyForUpdate = true;
 bool isRecognitionEnabled = true;
 
 // Method executed when SKSE messages are received
-void OnMessage(SKSE::MessagingInterface::Message* message) {
-    try {
+void OnMessage(SKSE::MessagingInterface::Message* message)
+{
+    try
+    {
         /* // Debug
         switch (message->type) {
             // Descriptions are taken from the original skse64 library
@@ -111,13 +114,18 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 logger::info("Unknown system message of type: {}", message->type);
                 break;
         } */
-        
-        switch (message->type) {
+
+        switch (message->type)
+        {
             // All plugins have been loaded
             case SKSE::MessagingInterface::kPostLoad:
                 ConfigureWebsocketPort();  // Write target websocket port to file, which will be read by speech recognition application
                 LaunchSpeechRecoApp();     // Launch the companion speech recognition application
-                //MessageBoxA(NULL, "Attach Voxima plugin debugger to Skyrim game process now. Press OK when you're ready!", "Skyrim Voxima (C++)", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
+                ///MessageBoxA(NULL, "Attach Voxima plugin debugger to Skyrim game process now. Press OK when you're ready!", "Skyrim Voxima (C++)", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
+                if (REL::Module::IsVR()) {
+                    logger::debug("SKSE PostLoad message received, registering for PapyrusVR messages from SkyrimVRTools");
+                    SKSE::GetMessagingInterface()->RegisterListener("SkyrimVRTools", OnPapyrusVRMessage);
+                }   
                 break;
 
             // Data handler has loaded all its forms (Main menu has loaded???)
@@ -129,37 +137,61 @@ void OnMessage(SKSE::MessagingInterface::Message* message) {
                 InitializeMorphChangeHooking();        // Setup player morph change event monitoring
                 InitializeMenuOpenCloseHooking();      // Setup menu open/close event monitoring
                 InitializeLocationDiscoveryHooking();  // Setup location discovery event monitoring
-                ///InitializeDeviceInputHooking();        // Setup device input event monitoring
-                
+                if (REL::Module::IsVR()) {
+                    if (g_papyrusvr) {
+                        OpenVRHookManagerAPI* hookMgrAPI = RequestOpenVRHookManagerObject();
+                        hookMgrAPI = NULL;
+                        if (hookMgrAPI) {
+                            logger::debug("Using RAW OpenVR Hook API.");
+                            g_VRSystem = hookMgrAPI->GetVRSystem();  // setup VR system before callbacks
+                            hookMgrAPI->RegisterControllerStateCB(OnControllerStateChanged);
+                            // hookMgrAPI->RegisterGetPosesCB(OnGetPosesUpdate);
+
+                        } else {
+                            logger::debug("Using legacy PapyrusVR API.");
+
+                            // Registers for PoseUpdates
+                            g_papyrusvr->GetVRManager()->RegisterVRButtonListener(OnVRButtonEvent);
+                            // g_papyrusvr->GetVRManager()->RegisterVRUpdateListener(OnVRUpdateEvent);
+                        }
+                    } else {
+                        logger::debug("PapyrusVR was not initialized!");
+                    }
+                } else
+                    InitializeFlatrimDeviceInputHooking();                        // Setup "Flatrim" (non-VR Skyrim) device input event monitoring
                 while (connected == false)                                        // Loop while websocket connection has not been made
                     std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to allow for websocket connection to be made
                 InitialUpdate();                                                  // Run initial data update
                 break;
 
             //// Save game has been loaded
-            //case SKSE::MessagingInterface::kPostLoadGame:
-            //    logger::debug("Saved game loaded!!");
-            //    CheckUpdate();
-            //    break;
+            // case SKSE::MessagingInterface::kPostLoadGame:
+            //     logger::debug("Saved game loaded!!");
+            //     CheckUpdate();
+            //     break;
 
             // Save Game as been created (manual or autosave)
             case SKSE::MessagingInterface::kSaveGame:
-                if (saveTriggered == false) {
+                if (saveTriggered == false)
+                {
                     saveTriggered = true;
                     logger::debug("Save game created!!");
                     CheckUpdate();
                 }
                 break;
-        }//End switch
-
-    } catch (const std::exception& ex) {
+        }  // End switch
+    }
+    catch (const std::exception& ex)
+    {
         logger::error("ERROR during OnMessage: {}", ex.what());
     }
 }
 
 // Initial game data gathering
-void InitialUpdate() {
-    try {
+void InitialUpdate()
+{
+    try
+    {
         // logger::info("{}", "Path is " + SKSE::log::log_directory().value().string());
         // SendMessage("Path is " + SKSE::log::log_directory().value().string());
 
@@ -171,7 +203,6 @@ void InitialUpdate() {
         VOX_Enabled = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_Enabled");
         VOX_UpdateInterval = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_UpdateInterval");
         VOX_CheckForUpdate = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_CheckForUpdate");
-        // VOX_PushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_PushToSpeak");
         VOX_PushToSpeakType = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_PushToSpeakType");
         VOX_PushToSpeakKeyCode = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_PushToSpeakKeyCode");
         VOX_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_ShoutKey");
@@ -182,23 +213,26 @@ void InitialUpdate() {
         VOX_KnownShoutWordsOnly = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_KnownShoutWordsOnly");
 
         // C++ --> C# Variables
-        //VOX_VocalPushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_VocalPushToSpeak");
+        // VOX_VocalPushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_VocalPushToSpeak");
         VOX_Sensitivity = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_Sensitivity");
-        //currentVocalPTS = VOX_VocalPushToSpeak->value;
         currentSensitivity = VOX_Sensitivity->value;
         currentAutoCastShouts = VOX_AutoCastShouts->value;
         currentAutoCastPowers = VOX_AutoCastPowers->value;
-
-    } catch (const std::exception& ex) {
+    }
+    catch (const std::exception& ex)
+    {
         logger::error("ERROR during InitialUpdate: {}", ex.what());
     }
 }
 
 // Checks for changes in the tracked data
-void CheckUpdate(bool loop, bool isAsync) {
-    try {
+void CheckUpdate(bool loop, bool isAsync)
+{
+    try
+    {
         // If the function isn't async, run it in a different thread
-        if (isAsync == false) {
+        if (isAsync == false)
+        {
             std::jthread update(CheckUpdate, loop, true);
             update.detach();
             return;
@@ -217,25 +251,31 @@ void CheckUpdate(bool loop, bool isAsync) {
 
         if (loop) logger::debug("CheckUpdate loop start");
 
-        do {
-            if (!player->Is3DLoaded()) {
+        do
+        {
+            if (!player->Is3DLoaded())
+            {
                 if (loop) std::this_thread::sleep_for(std::chrono::seconds(1));  // 1 second delay to avoid looping unnecessarily
                 continue;
-
-            } else if (VOX_Enabled->value == 0) {
+            }
+            else if (VOX_Enabled->value == 0)
+            {
                 if (loop)
                     std::this_thread::sleep_for(std::chrono::seconds(5));  // 5 second delay to not loop unnecessarily. See Bottom of page Note (1)
-                else {
+                else
+                {
                     SendMessage("disable recognition");
                     isRecognitionEnabled = false;
                 }
 
                 continue;
-            } else if (VOX_Enabled->value == 1 && !isRecognitionEnabled) {
+            }
+            else if (VOX_Enabled->value == 1 && !isRecognitionEnabled)
+            {
                 SendMessage("enable recognition");
                 isRecognitionEnabled = true;
             }
-            //Have the C# program recieve the above messages and enable/disable recognition accordingly*****
+            // Have the C# program recieve the above messages and enable/disable recognition accordingly*****
 
             // VOX_PushToSpeak
 
@@ -245,13 +285,16 @@ void CheckUpdate(bool loop, bool isAsync) {
 #pragma region Check for Update
 
             // Checks for change in number of magic items (includes effects)
-            if (numMagic[0] != player->GetActorRuntimeData().addedSpells.size()) {
+            if (numMagic[0] != player->GetActorRuntimeData().addedSpells.size())
+            {
                 numMagic[0] = player->GetActorRuntimeData().addedSpells.size();
 
                 // Checks for a change in the number Spells or Powers
                 int currentSpells = 0;
-                for (RE::SpellItem* item : player->GetActorRuntimeData().addedSpells) {
-                    switch (item->GetSpellType()) {
+                for (RE::SpellItem* item : player->GetActorRuntimeData().addedSpells)
+                {
+                    switch (item->GetSpellType())
+                    {
                         case RE::MagicSystem::SpellType::kSpell:
                         case RE::MagicSystem::SpellType::kPower:
                         case RE::MagicSystem::SpellType::kLesserPower:
@@ -262,7 +305,8 @@ void CheckUpdate(bool loop, bool isAsync) {
                 }
 
                 // If there is a change, update the recorded total and mark for Update()
-                if (currentSpells != numMagic[1]) {
+                if (currentSpells != numMagic[1])
+                {
                     numMagic[1] = currentSpells;
                     fullUpdate = true;
                 }
@@ -271,40 +315,46 @@ void CheckUpdate(bool loop, bool isAsync) {
             //-----Current Morph-----//
 
             // Werewolf
-            if (isPlayerWerewolf()) {  // If Werewolf
-                if (currentMorph != Morph::Werewolf) {
+            if (isPlayerWerewolf())
+            {  // If Werewolf
+                if (currentMorph != Morph::Werewolf)
+                {
                     currentMorph = Morph::Werewolf;
                     logger::info("Sending \"Werewolf\" Morph to C#");
-                    std::this_thread::sleep_for(
-                        std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
+                    std::this_thread::sleep_for(std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
                     fileUpdate = true;
                 }
                 currentMorph = Morph::Werewolf;  ///*** is this needed?
 
                 // Vampire Lord
-            } else if (isPlayerVampireLord()) {  // If Vampire Lord
-                if (currentMorph != Morph::VampireLord) {
+            }
+            else if (isPlayerVampireLord())
+            {  // If Vampire Lord
+                if (currentMorph != Morph::VampireLord)
+                {
                     currentMorph = Morph::VampireLord;
                     logger::info("Sending \"Vampire Lord\" Morph to C#");
-                    std::this_thread::sleep_for(
-                        std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
+                    std::this_thread::sleep_for(std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
                     fullUpdate = true;
                 }
                 currentMorph = Morph::VampireLord;  ///*** is this needed?
 
                 // "Normal" player morph
-            } else if (currentMorph != Morph::Player) {  // If not a morph but marked as one
+            }
+            else if (currentMorph != Morph::Player)
+            {  // If not a morph but marked as one
                 currentMorph = Morph::Player;
                 logger::info("Sending \"Reverting Morph\" to C#");
-                std::this_thread::sleep_for(
-                    std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
+                std::this_thread::sleep_for(std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
                 fullUpdate = true;
             }
 
             //-----Current Mount-----//
-            switch (playerMount()) {
+            switch (playerMount())
+            {
                 case 0:  // None
-                    if (currentMount != Mount::None) {
+                    if (currentMount != Mount::None)
+                    {
                         currentMount = Mount::None;
                         logger::info("Sending \"None\" riding to C#");
                         fileUpdate = true;
@@ -312,7 +362,8 @@ void CheckUpdate(bool loop, bool isAsync) {
                     currentMount = Mount::None;  ///*** is this needed?
                     break;
                 case 1:  // Horse
-                    if (currentMount != Mount::Horse) {
+                    if (currentMount != Mount::Horse)
+                    {
                         currentMount = Mount::Horse;
                         logger::info("Sending \"Horse\" riding to C#");
                         fileUpdate = true;
@@ -320,7 +371,8 @@ void CheckUpdate(bool loop, bool isAsync) {
                     currentMount = Mount::Horse;  ///*** is this needed?
                     break;
                 case 2:  // Dragon
-                    if (currentMount != Mount::Dragon) {
+                    if (currentMount != Mount::Dragon)
+                    {
                         currentMount = Mount::Dragon;
                         logger::info("Sending \"Dragon\" riding to C#");
                         fileUpdate = true;
@@ -330,31 +382,36 @@ void CheckUpdate(bool loop, bool isAsync) {
             }
 
             //-----MCM-----//
-            if (currentVocalPTS && VOX_PushToSpeakType->value != 3 || !currentVocalPTS && VOX_PushToSpeakType->value == 3) {
+            if (currentVocalPTS && VOX_PushToSpeakType->value != 3 || !currentVocalPTS && VOX_PushToSpeakType->value == 3)
+            {
                 currentVocalPTS = !currentVocalPTS;
                 logger::info("Sending \"VOX_VocalPushToSpeak = {}\" to C#", currentVocalPTS);
                 fileUpdate = true;
             }
 
-            if (currentSensitivity != VOX_Sensitivity->value) {
+            if (currentSensitivity != VOX_Sensitivity->value)
+            {
                 currentSensitivity = VOX_Sensitivity->value;
                 logger::info("Sending \"VOX_Sensitivity = {}\" to C#", VOX_Sensitivity->value);
                 fileUpdate = true;
             }
 
-            if (currentAutoCastShouts != VOX_AutoCastShouts->value) {
+            if (currentAutoCastShouts != VOX_AutoCastShouts->value)
+            {
                 currentAutoCastShouts = VOX_AutoCastShouts->value;
                 logger::info("Sending \"VOX_AutoCastShouts = {}\" to C#", VOX_AutoCastShouts->value);
                 fileUpdate = true;
             }
 
-            if (currentAutoCastPowers != VOX_AutoCastPowers->value) {
+            if (currentAutoCastPowers != VOX_AutoCastPowers->value)
+            {
                 currentAutoCastPowers = VOX_AutoCastPowers->value;
                 logger::info("Sending \"VOX_AutoCastPowers = {}\" to C#", VOX_AutoCastPowers->value);
                 fileUpdate = true;
             }
 
-            if (VOX_CheckForUpdate->value == 1) {
+            if (VOX_CheckForUpdate->value == 1)
+            {
                 SendMessage(WebSocketMessage::CheckForMicChange);
                 VOX_CheckForUpdate->value = 0;
                 logger::info("Forcing an Update Check");
@@ -364,7 +421,8 @@ void CheckUpdate(bool loop, bool isAsync) {
 
             knownShouts = GetActorMagic(player, MagicType::Shout)[0];  // Obtain currently known shouts
 
-            if (knownShouts != currentShouts) {  // Check if there is an update to the shouts
+            if (knownShouts != currentShouts)
+            {  // Check if there is an update to the shouts
                 currentShouts = knownShouts;
                 logger::info("Updating Shouts");
                 SendMessage("update shouts\n" + knownShouts);
@@ -372,12 +430,14 @@ void CheckUpdate(bool loop, bool isAsync) {
             }  // End Shout Check
 
             knownLocations = GetKnownLocations();
-            if (currentLocations != knownLocations){
+            if (currentLocations != knownLocations)
+            {
                 currentLocations = knownLocations;
                 std::string locationsMessage = "";
                 std::string currentMarker;
 
-                for (auto playerMapMarker : currentLocations) {
+                for (auto playerMapMarker : currentLocations)
+                {
                     locationsMessage += playerMapMarker + "\n";
                 }
                 logger::info("{}", locationsMessage);
@@ -394,19 +454,22 @@ void CheckUpdate(bool loop, bool isAsync) {
 
             if (loop) std::this_thread::sleep_for(std::chrono::seconds((int)VOX_UpdateInterval->value));  // Pause based on VOX MCM settings
         } while (loop);                                                                                   // End While
-
-    } catch (const std::exception& ex) {
+    }
+    catch (const std::exception& ex)
+    {
         logger::error("ERROR during CheckUpdate: {}", ex.what());
         if (loop)
             CheckUpdate(true);  // Restart this method so that the mod can continue working
         else
             CheckUpdate();
-    }// End Try/Catch
+    }  // End Try/Catch
 }  // End CheckUpdate
 
 // Gets and sends game data to C#
-void Update(std::string update) {
-    try {
+void Update(std::string update)
+{
+    try
+    {
         logger::info("Updating Information");
         bool finished = false;
         std::string type = update;
@@ -415,16 +478,19 @@ void Update(std::string update) {
         std::string updatePowers = "";
         std::transform(type.begin(), type.end(), type.begin(), [](unsigned char c) { return std::tolower(c); });  // sets type.ToLower()
 
-        if (type == "werewolf") // Morph
+        if (type == "werewolf")  // Morph
             finished = true;
-        else if (type == "file") {
+        else if (type == "file")
+        {
             logger::info("Updating C++ -> C# File (PlayerInfo.txt)");
             finished = true;
-        } else if (type == "")
+        }
+        else if (type == "")
             logger::info("Updating Everything");
 
         // Update PlayerInfo File
-        switch (currentMorph) {
+        switch (currentMorph)
+        {
             case Morph::Werewolf:
                 updateFile = "werewolf\ttrue\n";
                 break;
@@ -436,7 +502,8 @@ void Update(std::string update) {
                 break;
         }
 
-        switch (currentMount) {
+        switch (currentMount)
+        {
             case Mount::Horse:
                 updateFile += "horseriding\ttrue\n";
                 break;
@@ -445,8 +512,7 @@ void Update(std::string update) {
                 break;
         }
 
-        if (currentVocalPTS)
-            updateFile += "VOX_VocalPushToSpeak\t" + std::to_string(currentVocalPTS) + "\n ";
+        if (currentVocalPTS) updateFile += "VOX_VocalPushToSpeak\t" + std::to_string(currentVocalPTS) + "\n ";
 
         if (VOX_AutoCastShouts->value == 1)
             updateFile += "VOX_AutoCastShouts\ttrue\n";
@@ -462,17 +528,19 @@ void Update(std::string update) {
 
         SendMessage(WebSocketMessage::UpdateConfiguration + updateFile);
 
-        if (!finished) {
+        if (!finished)
+        {
             auto magic = GetActorMagic(player, MagicType::Spell, MagicType::Power);
 
             SendMessage(WebSocketMessage::UpdateSpells + magic[0]);
             SendMessage(WebSocketMessage::UpdatePowers + magic[1]);
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(200)); // Brief pause to ensure the following message is sent and processed after the previous messages
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to ensure the following message is sent and processed after the previous messages
         SendMessage(WebSocketMessage::InitializeUpdate);
-
-    } catch (const std::exception& ex) {
+    }
+    catch (const std::exception& ex)
+    {
         logger::error("ERROR during Update:\n{}\n", ex.what());
     }
 }
@@ -593,8 +661,10 @@ void ProcessReceivedMessage(const string& command) {
 } */
 
 // Process messages received from websocket server
-void ProcessReceivedMessage(const string& command) {
-    try {
+void ProcessReceivedMessage(const string& command)
+{
+    try
+    {
         // Shorten display of message to fit on a single line, for display purposes
         std::string messagePrint = command;
         std::string oldSubstr = "\n";
@@ -602,15 +672,16 @@ void ProcessReceivedMessage(const string& command) {
 
         // Replace all occurrences of oldSubstr with newSubstr
         size_t pos = 0;
-        while ((pos = messagePrint.find(oldSubstr, pos)) != std::string::npos) {
+        while ((pos = messagePrint.find(oldSubstr, pos)) != std::string::npos)
+        {
             messagePrint.replace(pos, oldSubstr.length(), newSubstr);
             pos += newSubstr.length();
         }
 
-        //if (VOX_PushToSpeakKeyCode->value != -1 && !IsKeyDown(VOX_PushToSpeakKeyCode->value)) {
-        //    logger::info("Received message but rejected due to Push-To-Speak button not being held: \"{}\"", messagePrint);
-        //    return;
-        //}
+        // if (VOX_PushToSpeakKeyCode->value != -1 && !IsKeyDown(VOX_PushToSpeakKeyCode->value)) {
+        //     logger::info("Received message but rejected due to Push-To-Speak button not being held: \"{}\"", messagePrint);
+        //     return;
+        // }
 
         logger::info("Received message: \"{}\"", messagePrint);
 
@@ -619,17 +690,20 @@ void ProcessReceivedMessage(const string& command) {
         int i = 0, j = 0;
 
         // Get new command
-        for (line = "", j = 0; i < command.length(); j++) {
+        for (line = "", j = 0; i < command.length(); j++)
+        {
             for (; i < command.length() && (command[i] == '\r' || command[i] == '\n'); i++)
                 ;
 
-            for (line = ""; i < command.length() && command[i] != '\r' && command[i] != '\n'; i++) {
+            for (line = ""; i < command.length() && command[i] != '\r' && command[i] != '\n'; i++)
+            {
                 line += command[i];
             }
 
             /// logger::info("{}", line);
 
-            switch (j) {
+            switch (j)
+            {
                 case 0:
                     if (line == "") continue;
                     currentCommand.Name = line;
@@ -672,10 +746,13 @@ void ProcessReceivedMessage(const string& command) {
             }  // End switch
         }      // End for
 
-        switch (playerMorph()) {
+        switch (playerMorph())
+        {
             case 0:
-                if (currentCommand.Morph != "none") {
-                    switch (playerMount()) {
+                if (currentCommand.Morph != "none")
+                {
+                    switch (playerMount())
+                    {
                         case 0:  // No mount, meaning the player is either Werewolf or Vampire Lord
                             logger::info("Command Ignored. Mismatched Morph. (Current: none) (Command: {})", currentCommand.Morph);
                             return;
@@ -688,14 +765,16 @@ void ProcessReceivedMessage(const string& command) {
                 break;
 
             case 1:
-                if (currentCommand.Morph != "werewolf") {
+                if (currentCommand.Morph != "werewolf")
+                {
                     logger::info("Command Ignored. Mismatched Morph. (Current: werewolf) (Command: {})", currentCommand.Morph);
                     return;
                 }
                 break;
 
             case 2:
-                if (currentCommand.Morph != "vampirelord") {
+                if (currentCommand.Morph != "vampirelord")
+                {
                     logger::info("Command Ignored. Mismatched Morph. (Current: vampirelord) (Command: {})", currentCommand.Morph);
                     return;
                 }
@@ -707,272 +786,453 @@ void ProcessReceivedMessage(const string& command) {
         // std::jthread update(ExecuteCommand, currentCommand, true);
         // update.detach();
         ExecuteCommand(currentCommand);
-    } catch (exception ex) {
+    }
+    catch (exception ex)
+    {
         logger::error("ERROR while preprocessing\n\"{}\"\nmessage from server: \"{}\"", command, ex.what());
     }
 }
 
 // Executes a given command
-void ExecuteCommand(Command command) {
+void ExecuteCommand(Command command)
+{
     const auto task = SKSE::GetTaskInterface();
 
-    if (task != nullptr) {
-        task->AddTask([=]() {
-            Command currentCommand = command;  // Passed-in "command" argument cannot be modified, so transfer contents to modifiable currentCommand
+    if (task != nullptr)
+    {
+        task->AddTask(
+            [=]()
+            {
+                Command currentCommand = command;  // Passed-in "command" argument cannot be modified, so transfer contents to modifiable currentCommand
 
-            // Spell
-            if (currentCommand.Type == "spell") {
-                id = std::format("{:X}", currentCommand.ID, nullptr, 16);
+                // Spell
+                if (currentCommand.Type == "spell")
+                {
+                    id = std::format("{:X}", currentCommand.ID, nullptr, 16);
 
-                for (; id.length() < 6; id = '0' + id)
+                    for (; id.length() < 6; id = '0' + id)
+                        ;
+
+                    currentCommand.ID = std::stoi(std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id, nullptr, 16);
+
+                    RE::SpellItem* item = RE::TESForm::LookupByID<RE::SpellItem>(currentCommand.ID);
+
+                    if (item->GetName() == NULL || item->GetName() == "")
+                    {
+                        logger::info("Spell is NULL");
+                        return;
+                    }
+
+                    RE::SpellItem* spell = item->As<RE::SpellItem>();
+                    bool allowedChargeTime = spell->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1;
+                    bool allowedCastingType = item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget;
                     ;
 
-                currentCommand.ID = std::stoi(std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id, nullptr, 16);
+                    bool validCastingItem = allowedCastingType && allowedChargeTime;
 
-                RE::SpellItem* item = RE::TESForm::LookupByID<RE::SpellItem>(currentCommand.ID);
+                    logger::info("Spell Command Identified: Name: \"{}\"     Hand: \"{}\"", item->GetName(), currentCommand.Hand);
 
-                if (item->GetName() == NULL || item->GetName() == "") {
-                    logger::info("Spell is NULL");
-                    return;
-                }
-
-                RE::SpellItem* spell = item->As<RE::SpellItem>();
-                bool allowedChargeTime = spell->data.chargeTime <= 1 || VOX_LongAutoCast->value == 1;
-                bool allowedCastingType = item->As<RE::MagicItem>()->GetCastingType() == RE::MagicSystem::CastingType::kFireAndForget;;
-
-                bool validItem = !(allowedCastingType && allowedChargeTime);
-                
-
-                logger::info("Spell Command Identified: Name: \"{}\"     Hand: \"{}\"", item->GetName(), currentCommand.Hand);
-
-                switch (currentCommand.Hand) {
-                    case 0:
-                        if (validItem && !(currentCommand.AutoCast && CastMagic(player, item, ActorSlot::Left))) {
-                            EquipToActor(player, item, ActorSlot::Left);
-                        }
-                        break;
-
-                    case 1:
-                        if (validItem && !(currentCommand.AutoCast && CastMagic(player, item, ActorSlot::Left))) {
-                            EquipToActor(player, item, ActorSlot::Right);
-                        }
-                        break;
-
-                    case 2:
-                        if (validItem && !(currentCommand.AutoCast && CastMagic(player, item, ActorSlot::Both))) {
-                            EquipToActor(player, item, ActorSlot::Both);
-                        }
-                        break;
-                }  // End Switch
-
-                // Clear Hands
-            } else if (currentCommand.Type == "clear hands") {
-                logger::info("Clear Hands");
-                UnEquipFromActor(player, ActorSlot::Both);
-                SendNotification("Cleared Hands");
-
-                // Clear Voice
-            } else if (currentCommand.Type == "clear shout") {
-                logger::info("Clear Voice");
-                UnEquipFromActor(player, ActorSlot::Voice);
-                SendNotification("Cleared Voice");
-
-                // Power
-            } else if (currentCommand.Type == "power") {
-                id = std::format("{:X}", currentCommand.ID, nullptr, 16);
-
-                for (; id.length() < 6; id = '0' + id)
-                    ;
-
-                currentCommand.ID = std::stoi(std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id, nullptr, 16);
-
-                RE::SpellItem* item = RE::TESForm::LookupByID<RE::SpellItem>(currentCommand.ID);
-
-                if (item->GetName() == NULL || item->GetName() == "") {
-                    logger::info("Power is NULL");
-                    return;
-                }
-
-                logger::info("Power Command Identified: Name: \"{}\"", item->GetName());
-
-                if (currentCommand.AutoCast)
-                    CastMagic(player, item, ActorSlot::Voice);
-                else
-                    EquipToActor(player, item, ActorSlot::Voice);
-
-                // Shout
-            } else if (currentCommand.Type == "shout") {
-                id = std::format("{:X}", currentCommand.ID, nullptr, 16);
-
-                for (; id.length() < 6; id = '0' + id)
-                    ;
-
-                currentCommand.ID = std::stoi(std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id, nullptr, 16);
-
-                RE::TESShout* item = RE::TESForm::LookupByID<RE::TESShout>(currentCommand.ID);
-
-                if (item->GetName() == NULL || item->GetName() == "") {
-                    logger::info("Shout is NULL");
-                    return;
-                }
-
-                logger::info("Shout Command Identified: Name: \"{}\"     Level: \"{}\"", item->GetName(),
-                             currentCommand.Hand + 1);  // Hand meanings: [0] == Level 1   [1] == Level 2   [2] = Level 3
-
-                if (currentCommand.AutoCast)
-                    CastMagic(player, item, ActorSlot::Voice, currentCommand.Hand);
-                else
-                    EquipToActor(player, item, ActorSlot::Voice);
-
-                // Keybind
-            } else if (currentCommand.Type == "keybind") {
-                if (currentCommand.Morph != "horseriding") {
-                    if (currentCommand.KeybindDuration >= 0) {
-                        PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
-
-                    } else
-                        switch (currentCommand.KeybindDuration) {
-                            case -1:
-                                SendKeyDown(currentCommand.ID);
-                                SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
-                                break;
-                            case -2:
-                                SendKeyUp(currentCommand.ID);
-                                SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
-                                break;
-                            default:
-                                SendNotification("ERROR: Invalid key duration: " + std::to_string(currentCommand.ID));
-                                logger::error("Invalid key duration: {}", currentCommand.ID);
-                                break;
-                        }
-                } else {
-                    // Command is likely meant for a horse
-                    
-                    //RE::BSInputDeviceManager* gamepad = RE::BSInputDeviceManager::GetSingleton();
-                    //gamepad->GetGamepadHandler()->Initialize();
-
-                    switch (currentCommand.ID) {
-                        // W
-                        case 17:
-                            if (currentCommand.KeybindDuration == -1) {
-                                MoveHorse(MoveType::MoveForward);
-                                SendNotification("Horse: Move Forward");
-                            } else {
-                                MoveHorse(MoveType::StopMoving);
-                                SendNotification("Horse: Stop Moving");
+                    switch (currentCommand.Hand)
+                    {
+                        case 0:
+                            if (!validCastingItem || !currentCommand.AutoCast || !CastMagic(player, item, ActorSlot::Left))
+                            {
+                                EquipToActor(player, item, ActorSlot::Left);
                             }
                             break;
 
-                            // A
-                        case 30:
-                            if (currentCommand.KeybindDuration == 0) {
-                                MoveHorse(MoveType::MoveLeft);
-                                SendNotification("Horse: Move Left");
-                            } else {
-                                MoveHorse(MoveType::TurnLeft);
-                                SendNotification("Horse: Turn Left");
+                        case 1:
+                            if (!validCastingItem || !currentCommand.AutoCast || !CastMagic(player, item, ActorSlot::Right))
+                            {
+                                EquipToActor(player, item, ActorSlot::Right);
                             }
                             break;
 
-                            // S
-                        case 31:
-                            MoveHorse(MoveType::MoveBackward);
-                            SendNotification("Horse: Turn Around");
-                            break;
-
-                            // D
-                        case 32:
-                            if (currentCommand.KeybindDuration == 0) {
-                                MoveHorse(MoveType::MoveRight);
-                                SendNotification("Horse: Move Right");
-                            } else
-                                MoveHorse(MoveType::TurnRight);
-                            SendNotification("Horse: Turn Right");
-                            {}
-                            break;
-
-                            // Space
-                        case 57:
-                            MoveHorse(MoveType::MoveJump);
-                            SendNotification("Horse: Jump");
-                            break;
-
-                            // Shift
-                        case 42:
-                            if (currentCommand.KeybindDuration == 0) {
-                                MoveHorse(MoveType::MoveSprint);
-                                SendNotification("Horse: Sprint");
-                            } else {
-                                MoveHorse(MoveType::StopSprint);
-                                SendNotification("Horse: Stop Sprinting");
+                        case 2:
+                            if (!validCastingItem || !currentCommand.AutoCast || !CastMagic(player, item, ActorSlot::Both))
+                            {
+                                EquipToActor(player, item, ActorSlot::Both);
                             }
                             break;
+                    }  // End Switch
 
-                        default:  // Not a command for controlling the horse
-                            if (currentCommand.KeybindDuration >= 0)
-                                PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                            else
-                                switch (currentCommand.KeybindDuration) {
-                                    case -1:
-                                        SendKeyDown(currentCommand.ID);
-                                        SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
-                                        break;
-                                    case -2:
-                                        SendKeyUp(currentCommand.ID);
-                                        SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
-                                        break;
-                                    default:
-                                        PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
-                                        break;
+                    // Clear Hands
+                }
+                else if (currentCommand.Type == "setting")
+                {
+                    #pragma region Clear Hands /Voice
+                    if (currentCommand.Name == "clear hands")
+                    {
+                        logger::info("Clear Hands");
+                        UnEquipFromActor(player, ActorSlot::Both);
+                        SendNotification("Cleared Hands");
+                    }
+                    else if (currentCommand.Name == "clear shout")
+                    {
+                        logger::info("Clear Voice");
+                        UnEquipFromActor(player, ActorSlot::Voice);
+                        SendNotification("Cleared Voice");
+                    #pragma endregion
+
+                    #pragma region Map Controls
+                    }
+                    else if (currentCommand.Name == "open map")
+                    {
+                        MenuInteraction(MenuType::Map, MenuAction::Open);
+                        // SendNotification("Opening Map");
+                    }
+                    else if (currentCommand.Name == "close map")
+                    {
+                        MenuInteraction(MenuType::Map, MenuAction::Close);
+                    // SendNotification("Closing Map");
+                    #pragma endregion
+
+                    #pragma region Journal Controls
+                    }
+                    else if (currentCommand.Name == "open journal")
+                    {
+                        MenuInteraction(MenuType::Journal, MenuAction::Open);
+                        //SendNotification("Opening Journal");
+                    }
+                    else if (currentCommand.Name == "close journal")
+                    {
+                        MenuInteraction(MenuType::Journal, MenuAction::Close);
+                        //SendNotification("Closing Journal");
+                    #pragma endregion
+
+                    #pragma region Inventory Controls
+                    }
+                    else if (currentCommand.Name == "open inventory")
+                    {
+                        MenuInteraction(MenuType::Inventory, MenuAction::Open);
+                        //SendNotification("Opening Inventory");
+                    }
+                    else if (currentCommand.Name == "close inventory")
+                    {
+                        MenuInteraction(MenuType::Inventory, MenuAction::Close);
+                        //SendNotification("Closing Inventory");
+                    #pragma endregion
+
+                    #pragma region Spellbook Controls
+                    }
+                    else if (currentCommand.Name == "open spellbook")
+                    {
+                        MenuInteraction(MenuType::Magic, MenuAction::Open);
+                        //SendNotification("Opening Spellbook");
+                    }
+                    else if (currentCommand.Name == "close spellbook")
+                    {
+                        MenuInteraction(MenuType::Magic, MenuAction::Close);
+                        //SendNotification("Closing Spellbook");
+#                   pragma endregion
+
+                    #pragma region Skills Controls
+                    }
+                    else if (currentCommand.Name == "open skills")
+                    {
+                        MenuInteraction(MenuType::Skills, MenuAction::Open);
+                        //SendNotification("Opening Skills");
+                    }
+                    else if (currentCommand.Name == "close skills")
+                    {
+                        MenuInteraction(MenuType::Skills, MenuAction::Close);
+                        //SendNotification("Closing Skills");
+                    #pragma endregion
+
+                    #pragma region Level Up Controls
+                    }
+                    else if (currentCommand.Name == "open levelup")
+                    {
+                        MenuInteraction(MenuType::LevelUp, MenuAction::Open);
+                        //SendNotification("Opening Level Up");
+                    #pragma endregion
+
+                    #pragma region Save /Load Game
+                    }
+                    else if (currentCommand.Name == "quick save")
+                    {
+                        player->GetCurrentLocation();
+                        const char* saveGameName = ("Voxima Quick Save - " + (std::string)player->GetCurrentLocation()->GetName()).c_str();
+                        RE::BGSSaveLoadManager::GetSingleton()->Save(saveGameName);
+                        SendNotification("Saving Game");
+                    }
+                    else if (currentCommand.Name == "quick load")
+                    {
+                        RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
+                        SendNotification("Loading Game");
+                    }
+                    #pragma endregion
+
+                    #pragma region Wait Controls
+                    else if (currentCommand.Name == "open wait")
+                    {
+                        MenuInteraction(MenuType::SleepWait, MenuAction::Open);
+                        //SendNotification("Opening Wait");
+                    }
+                    else if (currentCommand.Name == "close wait")
+                    {
+                        MenuInteraction(MenuType::SleepWait, MenuAction::Close);
+                        //SendNotification("Closing Wait");
+                    }
+                    #pragma endregion
+
+                    #pragma region Favorites Controls
+                    else if (currentCommand.Name == "open favorites")
+                    {
+                        MenuInteraction(MenuType::Favorites, MenuAction::Open);
+                        //SendNotification("Opening Favorites");
+                    }
+                    else if (currentCommand.Name == "close favorites")
+                    {
+                        MenuInteraction(MenuType::Favorites, MenuAction::Close);
+                        //SendNotification("Closing Favorites");
+                    }
+                    #pragma endregion
+
+                    #pragma region Favorites Controls
+                    else if (currentCommand.Name == "open console")
+                    {
+                        MenuInteraction(MenuType::Console, MenuAction::Open);
+                        //SendNotification("Opening Console");
+                    }
+                    else if (currentCommand.Name == "close console")
+                    {
+                        MenuInteraction(MenuType::Console, MenuAction::Close);
+                        //SendNotification("Closing Console");
+                    }
+                    #pragma endregion
+                    // Power
+                }
+                else if (currentCommand.Type == "power")
+                {
+                    id = std::format("{:X}", currentCommand.ID, nullptr, 16);
+
+                    for (; id.length() < 6; id = '0' + id)
+                        ;
+
+                    currentCommand.ID = std::stoi(std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id, nullptr, 16);
+
+                    RE::SpellItem* item = RE::TESForm::LookupByID<RE::SpellItem>(currentCommand.ID);
+
+                    if (item->GetName() == NULL || item->GetName() == "")
+                    {
+                        logger::info("Power is NULL");
+                        return;
+                    }
+
+                    logger::info("Power Command Identified: Name: \"{}\"", item->GetName());
+
+                    if (currentCommand.AutoCast)
+                        CastMagic(player, item, ActorSlot::Voice);
+                    else
+                        EquipToActor(player, item, ActorSlot::Voice);
+
+                    // Shout
+                }
+                else if (currentCommand.Type == "shout")
+                {
+                    id = std::format("{:X}", currentCommand.ID, nullptr, 16);
+
+                    for (; id.length() < 6; id = '0' + id)
+                        ;
+
+                    currentCommand.ID = std::stoi(std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id, nullptr, 16);
+
+                    RE::TESShout* item = RE::TESForm::LookupByID<RE::TESShout>(currentCommand.ID);
+
+                    if (item->GetName() == NULL || item->GetName() == "")
+                    {
+                        logger::info("Shout is NULL");
+                        return;
+                    }
+
+                    logger::info("Shout Command Identified: Name: \"{}\"     Level: \"{}\"", item->GetName(),
+                                 currentCommand.Hand + 1);  // Hand meanings: [0] == Level 1   [1] == Level 2   [2] = Level 3
+
+                    if (currentCommand.AutoCast)
+                        CastMagic(player, item, ActorSlot::Voice, currentCommand.Hand);
+                    else
+                        EquipToActor(player, item, ActorSlot::Voice);
+
+                    // Keybind
+                }
+                else if (currentCommand.Type == "keybind")
+                {
+                    if (currentCommand.Morph != "horseriding")
+                    {
+                        if (currentCommand.KeybindDuration >= 0)
+                        {
+                            PressKey(currentCommand.ID, currentCommand.KeybindDuration);
+                            SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
+                        }
+                        else
+                            switch (currentCommand.KeybindDuration)
+                            {
+                                case -1:
+                                    SendKeyDown(currentCommand.ID);
+                                    SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
+                                    break;
+                                case -2:
+                                    SendKeyUp(currentCommand.ID);
+                                    SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
+                                    break;
+                                default:
+                                    SendNotification("ERROR: Invalid key duration: " + std::to_string(currentCommand.ID));
+                                    logger::error("Invalid key duration: {}", currentCommand.ID);
+                                    break;
+                            }
+                    }
+                    else
+                    {
+                        // Command is likely meant for a horse
+
+                        // RE::BSInputDeviceManager* gamepad = RE::BSInputDeviceManager::GetSingleton();
+                        // gamepad->GetGamepadHandler()->Initialize();
+
+                        switch (currentCommand.ID)
+                        {
+                            // W
+                            case 17:
+                                if (currentCommand.KeybindDuration == -1)
+                                {
+                                    MoveHorse(MoveType::MoveForward);
+                                    SendNotification("Horse: Move Forward");
                                 }
+                                else
+                                {
+                                    MoveHorse(MoveType::StopMoving);
+                                    SendNotification("Horse: Stop Moving");
+                                }
+                                break;
+
+                                // A
+                            case 30:
+                                if (currentCommand.KeybindDuration == 0)
+                                {
+                                    MoveHorse(MoveType::MoveLeft);
+                                    SendNotification("Horse: Move Left");
+                                }
+                                else
+                                {
+                                    MoveHorse(MoveType::TurnLeft);
+                                    SendNotification("Horse: Turn Left");
+                                }
+                                break;
+
+                                // S
+                            case 31:
+                                MoveHorse(MoveType::MoveBackward);
+                                SendNotification("Horse: Turn Around");
+                                break;
+
+                                // D
+                            case 32:
+                                if (currentCommand.KeybindDuration == 0)
+                                {
+                                    MoveHorse(MoveType::MoveRight);
+                                    SendNotification("Horse: Move Right");
+                                }
+                                else
+                                    MoveHorse(MoveType::TurnRight);
+                                SendNotification("Horse: Turn Right");
+                                {
+                                }
+                                break;
+
+                                // Space
+                            case 57:
+                                MoveHorse(MoveType::MoveJump);
+                                SendNotification("Horse: Jump");
+                                break;
+
+                                // Shift
+                            case 42:
+                                if (currentCommand.KeybindDuration == 0)
+                                {
+                                    MoveHorse(MoveType::MoveSprint);
+                                    SendNotification("Horse: Sprint");
+                                }
+                                else
+                                {
+                                    MoveHorse(MoveType::StopSprint);
+                                    SendNotification("Horse: Stop Sprinting");
+                                }
+                                break;
+
+                            default:  // Not a command for controlling the horse
+                                if (currentCommand.KeybindDuration >= 0)
+                                    PressKey(currentCommand.ID, currentCommand.KeybindDuration);
+                                else
+                                    switch (currentCommand.KeybindDuration)
+                                    {
+                                        case -1:
+                                            SendKeyDown(currentCommand.ID);
+                                            SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
+                                            break;
+                                        case -2:
+                                            SendKeyUp(currentCommand.ID);
+                                            SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
+                                            break;
+                                        default:
+                                            PressKey(currentCommand.ID, currentCommand.KeybindDuration);
+                                            SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
+                                            break;
+                                    }
+                        }
                     }
                 }
+                else if (currentCommand.Type == "console")
+                {
+                    try
+                    {
+                        SendNotification("Console: " + currentCommand.Name);
+                        std::string command = currentCommand.Name;
+                        std::string line = "";
+                        std::string count = "";
+                        std::vector<std::string> list;
 
-            } else if (currentCommand.Type == "console") {
-                try {
-                    SendNotification("Console: " + currentCommand.Name);
-                    std::string command = currentCommand.Name;
-                    std::string line = "";
-                    std::string count = "";
-                    std::vector<std::string> list;
-
-                    for (int i = 0; i < command.length(); i++) {
-                        for (line = ""; i < command.length() && command[i] != '+' && command[i] != '*'; i++) {
-                            line += command[i];
-                        }
-
-                        if (command[i] == '*') {
-                            for (i++, count = ""; i < command.length() && command[i] != '+'; i++) {
-                                count += command[i];
+                        for (int i = 0; i < command.length(); i++)
+                        {
+                            for (line = ""; i < command.length() && command[i] != '+' && command[i] != '*'; i++)
+                            {
+                                line += command[i];
                             }
 
-                            for (int j = std::stoi(count); j > 0; j--) {
+                            if (command[i] == '*')
+                            {
+                                for (i++, count = ""; i < command.length() && command[i] != '+'; i++)
+                                {
+                                    count += command[i];
+                                }
+
+                                for (int j = std::stoi(count); j > 0; j--)
+                                {
+                                    list.push_back(line);
+                                }
+                            }
+                            else
                                 list.push_back(line);
-                            }
 
-                        } else
-                            list.push_back(line);
+                        }  // End for
 
-                    }  // End for
-
-                    std::jthread console(ExecuteConsoleCommand, list);
-                    console.detach();
-
-                } catch (exception ex) {
-                    SendNotification("ERROR: Invalid Command: " + currentCommand.Name);
-                    logger::error("Invalid Console Command: {}\n{}", currentCommand.Name, ex.what());
+                        std::jthread console(ExecuteConsoleCommand, list);
+                        console.detach();
+                    }
+                    catch (exception ex)
+                    {
+                        SendNotification("ERROR: Invalid Command: " + currentCommand.Name);
+                        logger::error("Invalid Console Command: {}\n{}", currentCommand.Name, ex.what());
+                    }
                 }
+                else if (currentCommand.Type == "location")
+                {
+                    if (currentCommand.Name == "playerlocation")
+                        NavigateToPlayer();
+                    else
+                        NavigateToLocation(currentCommand.Name);
 
-            } else if (currentCommand.Type == "location") {
-                if (currentCommand.Name == "playerlocation")
-                    NavigateToPlayer();
-                else
-                    NavigateToLocation(currentCommand.Name);
-
-            }  // End type check
-        });    // End Task
+                }  // End type check
+            });    // End Task
     }
 }
 
@@ -980,10 +1240,12 @@ void ExecuteCommand(Command command) {
 
 #pragma region Animation Events
 
-constexpr uint32_t exHash(const char* data, size_t const size) noexcept {
+constexpr uint32_t exHash(const char* data, size_t const size) noexcept
+{
     uint32_t hash = 5381;
 
-    for (const char* c = data; c < data + size; ++c) {
+    for (const char* c = data; c < data + size; ++c)
+    {
         hash = ((hash << 5) + hash) + (unsigned char)*c;
     }
 
@@ -993,8 +1255,8 @@ constexpr uint32_t exHash(const char* data, size_t const size) noexcept {
 constexpr uint32_t operator"" _h(const char* str, size_t size) noexcept { return exHash(str, size); }
 
 // Executes when animation events occur
-void Anim::Events::AnimationEvent(const char* holder, const char* name) {
-
+void Anim::Events::AnimationEvent(const char* holder, const char* name)
+{
 #pragma region Events of Interest
 
     // weaponDraw = take out weapon, spells, etc.
@@ -1002,21 +1264,22 @@ void Anim::Events::AnimationEvent(const char* holder, const char* name) {
     // MountEnd = occurs near beginning of mount horse or dragon
     // StopHorseCamera = occurs near the beginning of unmount horse or dragon
 
-#pragma endregion Relevant events to track for UpdateCheck triggering    
+#pragma endregion Relevant events to track for UpdateCheck triggering
 
-    string eventName(name); // Convert passed-in argument to string
-    ///logger::debug("{}: {}", holder, eventName);  // Output all the captured events to the log
-    switch (exHash(name, eventName.size())) { 
-    case "weaponDraw"_h:
+    string eventName(name);  // Convert passed-in argument to string
+    /// logger::debug("{}: {}", holder, eventName);  // Output all the captured events to the log
+    switch (exHash(name, eventName.size()))
+    {
+        case "weaponDraw"_h:
             logger::debug("Weapon has been drawn!!");
             break;
-    case "weaponSheathe"_h:
+        case "weaponSheathe"_h:
             logger::debug("Weapon has been sheathed!!");
             break;
-    case "MountEnd"_h:
+        case "MountEnd"_h:
             logger::debug("Player is now mounted!!");
             break;
-    case "StopHorseCamera"_h:
+        case "StopHorseCamera"_h:
             logger::debug("Player is now dismounted!!");
             // Stop all residual movement from horse controls
             SendKeyUp(17);  // Direction (N)
@@ -1026,18 +1289,22 @@ void Anim::Events::AnimationEvent(const char* holder, const char* name) {
             SendKeyUp(30);  // Direction (W)
             SendKeyUp(42);  // Sprint    (Shift)
             break;
-    default:
+        default:
             return;
     }
-    if (readyForUpdate == false) {  // Check if CheckUpdate should NOT fully execute
+    if (readyForUpdate == false)
+    {  // Check if CheckUpdate should NOT fully execute
         logger::debug("Not ready for animation update!");
-    return;
+        return;
     }
-    thread([]() {
-        readyForUpdate = false;
-        Sleep(500);  // Amount of time to disallow CheckUpdate from running again based on animation event triggers
-        readyForUpdate = true;
-    }).detach();
+    thread(
+        []()
+        {
+            readyForUpdate = false;
+            Sleep(500);  // Amount of time to disallow CheckUpdate from running again based on animation event triggers
+            readyForUpdate = true;
+        })
+        .detach();
     CheckUpdate();  // Call method to check for game data updates
 
     /* if (eventName.find("weapon") != string::npos)
@@ -1052,44 +1319,50 @@ void Anim::Events::AnimationEvent(const char* holder, const char* name) {
     } */
 }
 
-#pragma endregion 
+#pragma endregion
 
 // Executes when new spells are learned
-void SpellLearnedEvent::EventHandler::SpellLearned(const RE::SpellItem* const spell) {
+void SpellLearnedEvent::EventHandler::SpellLearned(const RE::SpellItem* const spell)
+{
     logger::debug("New spell learned!!");
-    ///logger::info("Spell Learned = {}", spell->fullName.c_str());
-    ///logger::info("Spell Learned = {}", spell->GetName());
-    ///CheckUpdate();  // Call method to check for game data updates
+    /// logger::info("Spell Learned = {}", spell->fullName.c_str());
+    /// logger::info("Spell Learned = {}", spell->GetName());
+    /// CheckUpdate();  // Call method to check for game data updates
 }
 
 // Executes when player's morph changes
-void MorphEvents::EventHandler::MorphChanged() {
+void MorphEvents::EventHandler::MorphChanged()
+{
     logger::debug("Player morph changed!!");
     CheckUpdate();  // Call method to check for game data updates
 }
 
 // Executes when game loads
-void LoadGameEvent::EventHandler::GameLoaded() {
+void LoadGameEvent::EventHandler::GameLoaded()
+{
     logger::debug("Game loaded!!");
     CheckUpdate();  // Call method to check for game data updates
 }
 
 // Executes when a menu opens or closes
-void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEvent* event) {
-    string menuName = event->menuName.c_str(); // Capture name of triggering menu
-    ///logger::info("Trigger Menu = {}!!", menuName);
+void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEvent* event)
+{
+    string menuName = event->menuName.c_str();  // Capture name of triggering menu
+    /// logger::info("Trigger Menu = {}!!", menuName);
     MenuType type;
     static std::unordered_map<std::string, MenuType> const table = {
-        {"Console", MenuType::Console}, {"FavoritesMenu", MenuType::Favorites}, {"InventoryMenu", MenuType::Inventory}, 
-        {"Journal Menu", MenuType::Journal}, {"LevelUp Menu", MenuType::LevelUp}, {"MagicMenu", MenuType::Magic},
-        {"MapMenu", MenuType::Map}, {"StatsMenu", MenuType::Skills}, {"Sleep/Wait Menu", MenuType::SleepWait}, {"TweenMenu", MenuType::Tween}, 
+        {"Console", MenuType::Console},      {"FavoritesMenu", MenuType::Favorites}, {"InventoryMenu", MenuType::Inventory},
+        {"Journal Menu", MenuType::Journal}, {"LevelUp Menu", MenuType::LevelUp},    {"MagicMenu", MenuType::Magic},
+        {"MapMenu", MenuType::Map},          {"StatsMenu", MenuType::Skills},        {"Sleep/Wait Menu", MenuType::SleepWait},
+        {"TweenMenu", MenuType::Tween},
     };
     auto it = table.find(menuName);
-    if (it != table.end()) // Check if match was found within enums
+    if (it != table.end())  // Check if match was found within enums
         type = it->second;
-    else // No enum match found
+    else  // No enum match found
         return;
-    switch (type) { // Check if triggering menu is of interest
+    switch (type)
+    {  // Check if triggering menu is of interest
         case MenuType::Console:
             menuName = RE::Console::MENU_NAME;
             break;
@@ -1135,50 +1408,50 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
             menuName = RE::TweenMenu::MENU_NAME;
             break;
 
-        default: // Triggering menu is not of interest
+        default:  // Triggering menu is not of interest
             logger::error("Error processing menu event - unexpected enum encountered");
             return;
     }
-    //if (event->opening == true) {  // Check if captured event involves menu OPENING
-    //    logger::info("OPEN Menu = {}!!", menuName);
-    //} else {  // Captured event involves menu CLOSING
-    //    logger::debug("CLOSED Menu = {}!!", menuName);
-    //}
+    // if (event->opening == true) {  // Check if captured event involves menu OPENING
+    //     logger::info("OPEN Menu = {}!!", menuName);
+    // } else {  // Captured event involves menu CLOSING
+    //     logger::debug("CLOSED Menu = {}!!", menuName);
+    // }
     CheckUpdate();  // Call method to check for game data updates
-    
-    //string menuName = event->menuName.c_str();  // Capture name of closed menu
-    //if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if trigger menu is of interest
-    //    logger::info("Trigger Menu = {}!!", menuName);
-    //    if (event->opening == true) // Check if captured event involves menu OPENING
-    //        logger::debug("OPENED Menu = {}!!", menuName);
-    //    else
-    //        logger::debug("CLOSED Menu = {}!!", menuName);
-    //    CheckUpdate();  // Call method to check for game data updates
-    //}
+
+    // string menuName = event->menuName.c_str();  // Capture name of closed menu
+    // if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if trigger menu is of interest
+    //     logger::info("Trigger Menu = {}!!", menuName);
+    //     if (event->opening == true) // Check if captured event involves menu OPENING
+    //         logger::debug("OPENED Menu = {}!!", menuName);
+    //     else
+    //         logger::debug("CLOSED Menu = {}!!", menuName);
+    //     CheckUpdate();  // Call method to check for game data updates
+    // }
 
     ///// logger::debug("Menu opened or closed!!");
-    //if (event->opening == false) {  // Check if capture event involves menu CLOSING
-    //    string menuName = event->menuName.c_str(); // Capture name of closed menu
-    //    /// logger::info("CLOSE Menu = {}!!", menuName);
-    //    if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if menu of interest was closed
-    //        logger::debug("CLOSED Menu = {}!!", menuName);
-    //        CheckUpdate(); // Call method to check for game data updates
-    //    }
-    //} else {
-    //    string menuName = event->menuName.c_str();  // Capture name of opened menu
-    //    /// logger::info("OPEN Menu = {}!!", menuName);
-    //    if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if menu of interest was closed
-    //        logger::debug("CLOSED Menu = {}!!", menuName);
-    //        CheckUpdate();  // Call method to check for game data updates
-    //    }
-    //}
+    // if (event->opening == false) {  // Check if capture event involves menu CLOSING
+    //     string menuName = event->menuName.c_str(); // Capture name of closed menu
+    //     /// logger::info("CLOSE Menu = {}!!", menuName);
+    //     if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if menu of interest was closed
+    //         logger::debug("CLOSED Menu = {}!!", menuName);
+    //         CheckUpdate(); // Call method to check for game data updates
+    //     }
+    // } else {
+    //     string menuName = event->menuName.c_str();  // Capture name of opened menu
+    //     /// logger::info("OPEN Menu = {}!!", menuName);
+    //     if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if menu of interest was closed
+    //         logger::debug("CLOSED Menu = {}!!", menuName);
+    //         CheckUpdate();  // Call method to check for game data updates
+    //     }
+    // }
 }
 
 // Executes when new locations are discovered
-void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationName) {
+void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationName)
+{
     logger::debug("{} discovered", locationName);
     CheckUpdate();
-    
 
     ///*** do something with locationName or call GetKnownLocations()
 
@@ -1187,12 +1460,12 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
 
 #pragma endregion All tracked game events that trigger an UpdateCheck
 
-#pragma region Device Input Processing
+#pragma region Flatrim Device Input Processing
 
 bool pushToSpeakListening = false;
 
-// Executes when input device events are received
-void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode) {
+// Executes when "Flatrim" (non-VR Skyrim) input device events are received
+void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode) {
     /* 
         EXAMPLE "KEY" TRIGGERS
         Keyboard backslash (\) = 43
@@ -1208,69 +1481,60 @@ void DeviceInputEvent::DeviceInputHandler::InputDeviceEvent(RE::ButtonEvent* but
         [3] = Vocal
       */
 
+    if (VOX_PushToSpeakType->value == 0 || keyCode != VOX_PushToSpeakKeyCode->value) // Check if PushToSpeak is disabled OR triggering keyCode does NOT match target input value from VOX MCM
+        return; // Exit this method
 
-    if (VOX_PushToSpeakType->value == 0 || keyCode != VOX_PushToSpeakKeyCode->value)
-        return;  // Check if triggering keyCode does NOT match target input value from VOX MCM, and if so exit this method
-
-    
     if (VOX_PushToSpeakType->value == 1) {  // Button must be Held
         thread([button]() {  // Create new thread for execution (passing in button)
-            SendNotification("Input Triggered - Start listening!");
+            SendNotification("Flatrim Input Triggered - Start listening!");
             SendMessage(WebSocketMessage::EnableRecognition);
-
-
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
-            SendNotification("Input released - Stop Listening!");
+            SendNotification("Flatrim Input released - Stop Listening!");
             SendMessage(WebSocketMessage::DisableRecognition);
-
-        })
-            .detach();
+        }).detach();
     } else if (VOX_PushToSpeakType->value == 2) { // Button toggles
         thread([button]() {              // Create new thread for execution (passing in button)
             if (!pushToSpeakListening) {          // Check if recognition app is NOT listening
                 pushToSpeakListening = true;      // Set isRecognitionEnabled flag
-
-                SendNotification("Input Triggered - Start listening!");
+                SendNotification("Flatrim Input Triggered - Start listening!");
                 SendMessage(WebSocketMessage::EnableRecognition);
-
             } else {
                 pushToSpeakListening = false;  // Reset isRecognitionEnabled flag
-                SendNotification("Input released - Stop Listening!");
+                SendNotification("Flatrim Input released - Stop Listening!");
                 SendMessage(WebSocketMessage::DisableRecognition);
-
             }
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
-        })
-            .detach();
+        }).detach();
     }
 }
 
-#pragma endregion Device input triggers for speech recognition listening
+#pragma endregion "Flatrim" device input triggers for speech recognition listening
 
-//#pragma region VR Input Processing
+// #pragma region VR Input Processing
 //
 //
 //
-//#pragma endregion
+// #pragma endregion
 
-
-//Initializes Plugin, Speech Recognition, Websocket, and data tracker
-SKSEPluginLoad(const SKSE::LoadInterface* skse) {
-    try {
+// Initializes Plugin, Speech Recognition, Websocket, and data tracker
+SKSEPluginLoad(const SKSE::LoadInterface* skse)
+{
+    try
+    {
         SKSE::Init(skse);  // Initialize SKSE plugin
-        ///MessageBoxA(NULL, "Press OK when you're ready!", "Skyrim", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
+        /// MessageBoxA(NULL, "Press OK when you're ready!", "Skyrim", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
         SetupLog();  // Set up the debug logger
 
-        SKSE::GetMessagingInterface()->RegisterListener(OnMessage); // Listen for game messages (usually "Is Game Loaded" comes first) and execute OnMessage method in response
-        logger::info("Voxima finished loading");  // Temporary debug line so I can see the program started
+        SKSE::GetMessagingInterface()->RegisterListener(OnMessage);  // Listen for game messages (usually "Is Game Loaded" comes first) and execute OnMessage method in response
+        logger::info("Voxima finished loading");                     // Temporary debug line so I can see the program started
         return true;
-    
-    } catch (exception ex) {
+    }
+    catch (exception ex)
+    {
         logger::info("ERROR initializing Voxima SKSE plugin: {}", ex.what());
         return false;
     }
-} // End SKSEPluginLoad
-
+}  // End SKSEPluginLoad
 
 // Notes
 /*
@@ -1302,7 +1566,7 @@ called again, starting the loop
     }
 }; */
 
-/* class EventProcessor : public RE::BSTEventSink<RE::TESActivateEvent>, 
+/* class EventProcessor : public RE::BSTEventSink<RE::TESActivateEvent>,
                        public RE::BSTEventSink<RE::MenuOpenCloseEvent>,
                        public RE::BSTEventSink<RE::TESBookReadEvent>
 {
@@ -1397,5 +1661,8 @@ void GamepadInputEvent::GamepadInputHandler::GamepadEvent(RE::BSWin32GamepadDevi
 
 // Hash parttern for switch statements modified from TrueDirectionalMovement by Ersh ==> https://github.com/ersh1/TrueDirectionalMovement
 // string to enum ==> https://stackoverflow.com/questions/7163069/c-string-to-enum/7163130#7163130
+
+// Leverages SkyrimVRTools plugin (required mod) https://www.nexusmods.com/skyrimspecialedition/mods/27782
+// Leverages code from VRCustomQuickslots https://github.com/lfrazer/VRCustomQuickslots
 
 #pragma endregion

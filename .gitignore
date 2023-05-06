@@ -348,3 +348,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+Plugin/out/build/x64-Debug/CMakeCache.txt
+Plugin/out/build/x64-Debug/CMakeFiles/3.25.1-msvc1/CMakeDetermineCompilerABI_CXX.bin

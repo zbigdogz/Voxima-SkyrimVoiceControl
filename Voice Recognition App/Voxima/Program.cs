@@ -722,7 +722,7 @@ namespace Voxima
                     commands.Add(item);
                 }
 
-                if (currentLocationCommands[0] != null)
+                if (currentLocationCommands.Count != 0)
                 {
                     Grammar grammar = new Grammar(commands);
                     grammar.Name = $"playerlocation\tlocation";
@@ -779,7 +779,7 @@ namespace Voxima
                 #region Main Processing
 
                 Log.Activity("Program Running");
-            //ChangeCommands(Morph);
+                //ChangeCommands(Morph);
                 waitHandle.WaitOne(); // Wait main thread at this line until wait restriction is removed (set)
 
                 //bool found = false;
@@ -2690,22 +2690,6 @@ namespace Voxima
                     }
                 }
 
-                //Assign Some Settings
-                switch (name.ToLower())
-                {
-                    case "clear hands":
-                        type = "Clear Hands";
-                        from = "Skyrim.esm";
-                        id = "0";
-                        break;
-
-                    case "clear shout":
-                        type = "Clear Shout";
-                        from = "Skyrim.esm";
-                        id = "0";
-                        break;
-                }
-
                 if (VocalPushToSpeak)
                 {
                     if (Title == "Vocal Command Toggle - Enable")
@@ -2758,25 +2742,33 @@ namespace Voxima
 
                     type = "keybind";
 
-                }
-                else if (Title.EndsWith("console"))
-                {
-                    from = "Skyrim.esm";
-                    type = "console";
+            }
+            else if (Title.EndsWith("console"))
+            {
+                from = "Skyrim.esm";
+                type = "console";
 
-                    id = "0";
+                id = "0";
+            }
 
-                }
-                else if (Title.EndsWith("location"))
-                {
-                    from = "Skyrim.esm";
-                    type = "location";
+            else if (Title.EndsWith("setting"))
+            {
+                from = "Skyrim.esm";
+                id = "0";
 
-                    id = "0";
+                type = "setting";
 
-                }
-                else if (Title == "")
-                { //This means it was from the full dictation grammar
+            }
+            else if (Title.EndsWith("location"))
+            {
+                from = "Skyrim.esm";
+                type = "location";
+
+                id = "0";
+
+            }
+            else if (Title == "")
+            { //This means it was from the full dictation grammar
                     Log.Activity("Something went wrong and there is no title for this command (\"" + e.Result.Text.ToString() + "\"). (Method: Recognizer_SpeechRecognized)", Log.LogType.Error);
 
                 }//End if else

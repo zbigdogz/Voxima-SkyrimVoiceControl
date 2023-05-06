@@ -24,5 +24,6 @@ ColumnLimit: 180
 NamespaceIndentation: All
 IndentPPDirectives: BeforeHash
 FixNamespaceComments: false
-
+BreakBeforeBraces: Allman
+SortIncludes: false
 ...

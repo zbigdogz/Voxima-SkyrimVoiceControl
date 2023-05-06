@@ -2,8 +2,13 @@
 # If you use CMake features from higher versions, update this to match.
 cmake_minimum_required(VERSION 3.21)
 
+#set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(VCPKG_TARGET_TRIPLET "x64-windows-skse")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # Set your project name. This will be the name of your SKSE .dll file. Version Notation = major.minor.patch.tweak
-project(Voxima-SkyrimVoiceControl VERSION 0.0.0.2 LANGUAGES CXX)
+project(Voxima-SkyrimVoiceControl VERSION 0.3.0.0 LANGUAGES CXX)
 
 # Set name of project folder
 set(FOLDER_NAME "Voxima - Skyrim Voice Control")
@@ -17,6 +22,9 @@ find_package(websocketpp CONFIG REQUIRED)
 # Note: boost-random only seems to be requied when using the C++ *client*
 # You can remove this if you are only using C++ for a WebSocket *server*
 find_package(Boost REQUIRED COMPONENTS random)
+
+# Find Valve OpenVR
+find_package(OpenVR REQUIRED)
 
 #
 # YOU DO NOT NEED TO EDIT ANYTHING BELOW HERE
@@ -47,10 +55,11 @@ endif()
 
 # Setup your SKSE plugin as an SKSE plugin!
 find_package(CommonLibSSE CONFIG REQUIRED)
-add_commonlibsse_plugin(${PROJECT_NAME} SOURCES plugin.cpp) # <--- specifies plugin.cpp
+add_commonlibsse_plugin(${PROJECT_NAME} SOURCES source/plugin.cpp) # <--- specifies plugin.cpp
 
 set(COMMONLIBSSE_VERSION_MATCH TRUE PARENT_SCOPE)
-    set(COMMONLIBSSE_VERSION_MAJOR "${CMAKE_MATCH_1}" PARENT_SCOPE)
+    set(COMMONLIBSSE_VERSION_MAJOR "$0" PARENT_SCOPE)
+	#set(COMMONLIBSSE_VERSION_MAJOR "${CMAKE_MATCH_1}" PARENT_SCOPE)
     set(COMMONLIBSSE_VERSION_MINOR "0" PARENT_SCOPE)
     set(COMMONLIBSSE_VERSION_PATCH "0" PARENT_SCOPE)
     set(COMMONLIBSSE_VERSION_TWEAK "0" PARENT_SCOPE)
@@ -72,6 +81,8 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE PCH.h) # <--- PCH.h is require
 target_link_libraries(${PROJECT_NAME} PRIVATE websocketpp::websocketpp)
 # websocketpp client seems to also need boost's random library
 target_link_libraries(${PROJECT_NAME} PRIVATE Boost::boost Boost::random)
+# Add OpenVR dependency to the SKSE project
+target_link_libraries("${PROJECT_NAME}" PRIVATE PUBLIC OpenVR::OpenVR)
 
 # When your SKSE .dll is compiled, this will automatically copy the .dll into your mods folder.
 # Only works if you configure DEPLOY_ROOT above (or set the SKYRIM_MODS_FOLDER environment variable)
