@@ -455,26 +455,6 @@ namespace Voxima
 
             #endregion
 
-            /* #region Application Variable Setup (demo for now)
-
-            // Demo for sending a message to WebSocketClient
-            while (server != null) {
-                if (server.IsClientConnected == true) {
-                    while (server != null) {
-                        Random r = new Random();
-                        int number = r.Next(0, 100);
-                        server.SendMessage($"Hello World! {number}");
-                        Thread.Sleep(3000);
-                    }
-                    if (server == null)
-                        break;
-                }
-                Thread.Sleep(1000);
-                Log.Debug("Waiting for client...", Log.LogType.Info);
-            }
-
-            #endregion */
-
             int i = 0, j = 0;
 
             /*//debug1//*/
@@ -1095,6 +1075,9 @@ namespace Voxima
             return new Grammar(new Choices("Not Found"));
         }//End GetProgression
 
+        /// <summary>
+        /// Decides if a grammar (spell, shout, or power) should be enabled, disabled, or ignored
+        /// </summary>
         static int[] DecideGrammar(string type)
         {
             //Log.Debug($"Deciding Grammar for {type}");
