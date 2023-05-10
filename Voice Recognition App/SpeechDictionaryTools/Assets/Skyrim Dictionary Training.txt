@@ -40,12 +40,12 @@ Mid; m iy d
 Vur; v uw r
 Shaan; sh aa n
 
-// Become Ethereal ** Gron
+// Become Ethereal
 Feim; f ay m
 Zii; z iy
 Gron; g r ow n
 
-// Bend Will ** Gol
+// Bend Will
 Gol; g ow l
 Hah; h aa
 Dov; d ow v
@@ -85,7 +85,7 @@ Mul; m uw l
 Qah; k aa
 Diiv; d iy v
 
-// Dragonrend ** Joor
+// Dragonrend
 Joor; jh ao r
 Zah; z aa
 Frul; f r uw l
@@ -145,7 +145,7 @@ Dur; d uw r
 Neh; n eh
 Viir; v iy r
 
-// Throw Voice ** Gut
+// Throw Voice
 Zul; z uw l
 Mey; m ey
 Gut; g uw t
