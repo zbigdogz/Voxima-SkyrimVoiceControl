@@ -1055,6 +1055,9 @@ namespace Voxima
             return new Grammar(new Choices("Not Found"));
         }//End GetProgression
 
+        /// <summary>
+        /// Decides if a grammar (spell, shout, or power) should be enabled, disabled, or ignored
+        /// </summary>
         static int[] DecideGrammar(string type)
         {
             //Log.Debug($"Deciding Grammar for {type}");
