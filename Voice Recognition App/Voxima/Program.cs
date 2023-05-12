@@ -25,6 +25,7 @@ using System.Windows.Forms;
 using Utilities;
 using WebSocket;
 using WebsocketPortConfigurator;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 namespace Voxima
 {
@@ -672,25 +673,25 @@ namespace Voxima
 
                 //Get Items
 
-                FindCommands(VSettingFiles, "setting", "setting");                                //Get Command Settings and Start/Stop commands
-                FindCommands(ConsoleCommandFiles, "console", "None");                       //Get Console commands
+                FindCommands(VSettingFiles, "setting", "setting");                      //Get Command Settings and Start/Stop commands
+                FindCommands(ConsoleCommandFiles, "console", "None");                   //Get Console commands
 
-                FindCommands(VampireLordPowerFiles, "Power", "VampireLord");              //Get Vampire Lord Powers
-                FindCommands(VampireLordSpellFiles, "Spell", "VampireLord");              //Get Vampire Lord Spells
+                FindCommands(VampireLordPowerFiles, "Power", "VampireLord");            //Get Vampire Lord Powers
+                FindCommands(VampireLordSpellFiles, "Spell", "VampireLord");            //Get Vampire Lord Spells
 
-                FindCommands(PowerFiles, "Power", "None");                                           //Get Powers
-                FindCommands(SpellFiles, "Spell", "None");                                           //Get Spells
+                FindCommands(PowerFiles, "Power", "None");                              //Get Powers
+                FindCommands(SpellFiles, "Spell", "None");                              //Get Spells
 
-                FindCommands(ShoutFiles, "Shout", "None");                                           //Get Shouts
+                FindCommands(ShoutFiles, "Shout", "None");                              //Get Shouts
 
-                FindCommands(DragonKeybindFiles, "Keybind", "DragonRiding",                 //Get Dragon Riding Keybinds
-                FindCommands(KeybindFiles, "Keybind", "None",                                     //Get None Keybinds
-                FindCommands(WerewolfKeybindFiles, "Keybind", "Werewolf",                 //Get Werewolf Keybinds
-                FindCommands(VampireLordKeybindFiles, "Keybind", "VampireLord",        //Get Vampire Lord Keybinds
-                FindCommands(HorseKeybindFiles, "Keybind", "HorseRiding", 0)))));            //Get Horse Riding Commands
+                FindCommands(DragonKeybindFiles, "Keybind", "DragonRiding",             //Get Dragon Riding Keybinds
+                FindCommands(KeybindFiles, "Keybind", "None",                           //Get None Keybinds
+                FindCommands(WerewolfKeybindFiles, "Keybind", "Werewolf",               //Get Werewolf Keybinds
+                FindCommands(VampireLordKeybindFiles, "Keybind", "VampireLord",         //Get Vampire Lord Keybinds
+                FindCommands(HorseKeybindFiles, "Keybind", "HorseRiding", 0)))));    //Get Horse Riding Commands
 
-                j = FindProgression(ProgressionFiles, "None",                                  //Get Progressions
-                FindProgression(VampireLordProgressionFiles, "VampireLord", 0));    //Get Vampire Lord Progressions
+                j = FindProgression(ProgressionFiles, "None",                                //Get Progressions
+                FindProgression(VampireLordProgressionFiles, "VampireLord", 0));          //Get Vampire Lord Progressions
 
                 //Get "Current Location" commands
                 Choices commands = new Choices();
@@ -706,7 +707,9 @@ namespace Voxima
                 {
                     Grammar grammar = new Grammar(commands);
                     grammar.Name = $"playerlocation\tlocation";
-                    LocationsGrammars.Add("playerlocation", grammar);
+
+                    if (!LocationsGrammars.Contains("playerlocation"))
+                        LocationsGrammars.Add("playerlocation", grammar);
                 }
 
 
@@ -735,6 +738,7 @@ namespace Voxima
 
                 // Add a handler for the speech recognized event.  
                 recognizer.SpeechRecognized += new EventHandler<SpeechRecognizedEventArgs>(Recognizer_SpeechRecognized);
+
                 //recognizer.AudioLevelUpdated += new EventHandler<AudioLevelUpdatedEventArgs>(Recognizer_AudioLevelUpdated);   //See function for details on this line
 
                 //Set recognition specifications(same settings as Voice Macro)
@@ -754,6 +758,11 @@ namespace Voxima
 
                 FullDictation.Weight = Sensitivity;
 
+                if (!recognizer.Grammars.Contains(FullDictation))
+                    recognizer.LoadGrammar(FullDictation);
+
+                recognizer.RecognizeAsync(RecognizeMode.Multiple);
+
                 #endregion
 
                 #region Main Processing
@@ -761,35 +770,6 @@ namespace Voxima
                 Log.Activity("Program Running");
                 //ChangeCommands(Morph);
                 waitHandle.WaitOne(); // Wait main thread at this line until wait restriction is removed (set)
-
-                //bool found = false;
-                ////Check if the game is running 
-                //foreach (string name in targetProcesses)
-                //{
-                //    if (Process.GetProcessesByName(name).Length >= 1)
-                //        found = true;
-                //}
-
-                //if (found)
-                //{
-                //    Log.Activity("Program Running");
-                //    //ChangeCommands(Morph);    //This is used for debuging without websocket
-                //    //int count = 0;
-                //    /* while (runApplication == true)
-                //    {
-                //        //if (count == 5)
-                //        //{
-                //        //    count = 0;
-                //        //    ChangeCommands(Morph);
-                //        //}
-                //        Thread.Sleep(1000);
-                //        //count += 1;
-                //    }//End while */
-                //    //Game is Not Running
-                //} else
-                //{
-                //    Log.Activity("Program Closed because Skyrim is not running");
-                //}//End if else
 
                 #endregion
 
@@ -1804,7 +1784,6 @@ namespace Voxima
             foreach (string item in items)
             {
                 //Correct Dovahzul Pronunciations
-
                 foreach (string dovahzulWord in item.Split(' '))
                 {
                     string phonemes = dovahzulPhonemes.GetString(dovahzulWord);
@@ -1893,6 +1872,18 @@ namespace Voxima
                                     commands.Add(b + "\t" + a + "\t" + command);
                                     commands.Add(b + "\t" + command + "\t" + a);
                                     commands.Add(a + "\t" + b + "\t" + command);
+
+                                    foreach (string c in handLeft)
+                                    {
+                                        commands.Add(b + "\t" + c + "\t" + command + "\t" + a); //Cast Dual Firebolt Left
+                                        commands.Add(a + "\t" + b + "\t" + command + "\t" + c); //Dual Cast Firebolt Left
+                                    }
+
+                                    foreach (string c in handRight)
+                                    {
+                                        commands.Add(b + "\t" + a + "\t" + command + "\t" + c); //Cast Dual Firebolt Right
+                                        commands.Add(a + "\t" + b + "\t" + command + "\t" + c); //Dual Cast Firebolt Right
+                                    }
                                 }
                             }
 
@@ -2441,6 +2432,7 @@ namespace Voxima
         }
         */
 
+
         /// <summary>
         /// Executes when user speech is recognized (SpeechRecognized event)
         /// </summary>
@@ -2476,178 +2468,86 @@ namespace Voxima
 
                 ///Log.Debug($"Command = {Command}", Log.LogType.Info);
 
+                bool isLeft = false;
+                bool isRight = false;
+                bool isBoth = false;
 
-                //Hand Left
-                foreach (string a in handLeft)
+                #region Determine Modifications
+                foreach (string item in Command.Split('\t'))
                 {
+                    if (item == Command) break;
 
-                    foreach (string b in handCast)
+                    //Hand Left
+                    foreach (string a in handLeft)
                     {
-
-                        if (e.Result.Text.StartsWith(a + '\t' + b + '\t') || e.Result.Text.StartsWith(b + '\t' + a + '\t'))
+                        if (item == a)
                         {
-                            Command = e.Result.Text.Remove(0, a.Length + b.Length + 2);
                             hand = 0;
-                            autoCast = true;
-                            break;
-
-                        }
-
-                        if (e.Result.Text.StartsWith(b + '\t') && e.Result.Text.EndsWith('\t' + a))
-                        {
-                            Command = e.Result.Text.Remove(0, b.Length + 1);
-                            Command = Command.Remove(Command.Length - a.Length - 1, a.Length + 1);
-                            hand = 0;
-                            autoCast = true;
-                            break;
+                            isLeft = true;
+                            goto nextItem;
                         }
                     }
 
-                    if (Command == e.Result.Text)
-                    {
-                        if (e.Result.Text.StartsWith(a + '\t'))
-                        {
-                            Command = e.Result.Text.Remove(0, a.Length + 1);
-                            hand = 0;
-                            break;
-
-                        }
-                        else if (e.Result.Text.EndsWith('\t' + a))
-                        {
-                            Command = e.Result.Text.Remove(e.Result.Text.Length - a.Length - 1, a.Length + 1);
-                            hand = 0;
-                            break;
-                        }
-                    }
-                }
-
-                //Hand Right
-                if (Command == e.Result.Text)
+                    //Hand Right
                     foreach (string a in handRight)
                     {
-
-                        foreach (string b in handCast)
+                        if (item == a)
                         {
-
-                            if (e.Result.Text.StartsWith(a + '\t' + b + '\t') || e.Result.Text.StartsWith(b + '\t' + a + '\t'))
-                            {
-                                Command = e.Result.Text.Remove(0, a.Length + b.Length + 2);
-                                hand = 1;
-                                autoCast = true;
-                                break;
-
-                            }
-
-                            if (e.Result.Text.StartsWith(b + '\t') && e.Result.Text.EndsWith('\t' + a))
-                            {
-                                Command = e.Result.Text.Remove(0, b.Length + 1);
-                                Command = Command.Remove(Command.Length - a.Length - 1, a.Length + 1);
-                                hand = 1;
-                                autoCast = true;
-                                break;
-                            }
-                        }
-
-                        if (Command == e.Result.Text)
-                        {
-                            if (e.Result.Text.StartsWith(a + '\t'))
-                            {
-                                Command = e.Result.Text.Remove(0, a.Length + 1);
-                                hand = 1;
-                                break;
-
-                            }
-                            else if (e.Result.Text.EndsWith('\t' + a))
-                            {
-                                Command = e.Result.Text.Remove(e.Result.Text.Length - a.Length - 1, a.Length + 1);
-                                hand = 1;
-                                break;
-                            }
+                            hand = 1;
+                            isRight = true;
+                            goto nextItem;
                         }
                     }
 
-                //Hand Both
-                if (Command == e.Result.Text)
+                    //Hand Both
                     foreach (string a in handBoth)
                     {
-
-                        foreach (string b in handCast)
+                        if (item == a)
                         {
-
-                            if (e.Result.Text.StartsWith(a + '\t' + b + '\t') || e.Result.Text.StartsWith(b + '\t' + a + '\t'))
-                            {
-                                Command = e.Result.Text.Remove(0, a.Length + b.Length + 2);
-                                hand = 2;
-                                autoCast = true;
-                                break;
-
-                            }
-
-                            if (e.Result.Text.StartsWith(b + '\t') && e.Result.Text.EndsWith('\t' + a))
-                            {
-                                Command = e.Result.Text.Remove(0, b.Length + 1);
-                                Command = Command.Remove(Command.Length - a.Length - 1, a.Length + 1);
-                                hand = 2;
-                                autoCast = true;
-                                break;
-                            }
-                        }
-
-                        if (Command == e.Result.Text)
-                        {
-                            if (e.Result.Text.StartsWith(a + '\t'))
-                            {
-                                Command = e.Result.Text.Remove(0, a.Length + 1);
-                                hand = 2;
-                                break;
-
-                            }
-                            else if (e.Result.Text.EndsWith('\t' + a))
-                            {
-                                Command = e.Result.Text.Remove(e.Result.Text.Length - a.Length - 1, a.Length + 1);
-                                hand = 2;
-                                break;
-                            }
+                            hand = 2;
+                            isBoth = true;
+                            goto nextItem;
                         }
                     }
 
-                //Hand Cast
-                if (Command == e.Result.Text)
-                    foreach (string a in handCast)
+                    if (autoCast == false)
                     {
-                        if (e.Result.Text.StartsWith(a + '\t'))
+                        //Hand Cast
+                        foreach (string a in handCast)
                         {
-                            Command = e.Result.Text.Remove(0, a.Length + 1);
-                            autoCast = true;
-                            break;
-
+                            if (item == a)
+                            {
+                                autoCast = true;
+                                goto nextItem;
+                            }
                         }
-                        else if (e.Result.Text.EndsWith('\t' + a))
+
+                        //Power Cast
+                        foreach (string a in powerCast)
                         {
-                            Command = e.Result.Text.Remove(e.Result.Text.Length - a.Length - 1, a.Length + 1);    //This line is never reached because "Cast" can only be at the beginning of a command. I'm leaving it here in case I decide to change that
-                            autoCast = true;
-                            break;
+                            if (item == a)
+                            {
+                                autoCast = true;
+                                goto nextItem;
+                            }
                         }
                     }
 
-                //Power Cast
-                if (Command == e.Result.Text)
-                    foreach (string a in powerCast)
-                    {
-                        if (e.Result.Text.StartsWith(a + '\t'))
-                        {
-                            Command = e.Result.Text.Remove(0, a.Length);
-                            autoCast = true;
-                            break;
+                    Command = item;
 
-                        }
-                        else if (e.Result.Text.EndsWith('\t' + a))
-                        {
-                            Command = e.Result.Text.Remove(e.Result.Text.Length - a.Length - 1, a.Length + 1);    //This line is never reached because "Cast" can only be at the beginning of a command. I'm leaving it here in case I decide to change that
-                            autoCast = true;
-                            break;
-                        }
-                    }
+                    nextItem:
+                    continue;
+                }
+
+                if (isBoth && autoCast && (isLeft || isRight))
+                {
+                    if (isLeft)
+                        hand = 3;
+
+                    else if (isRight)
+                        hand = 4;
+                }
+                #endregion
 
                 Title = e.Result.Grammar.Name;
 
