@@ -1249,6 +1249,7 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
 #pragma endregion All tracked game events that trigger an UpdateCheck
 
 #pragma region Flatrim Device Input Processing
+bool pushToSpeakListening = true;
 
 // Executes when "Flatrim" (non-VR Skyrim) input device events are received
 void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode)
