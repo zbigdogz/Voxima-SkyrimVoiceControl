@@ -107,7 +107,7 @@ void InitializeWebSocketClient() {
     logger::info("Initializing websocket client");
     if (stopProcessing == true) {
         logger::info("Call to exit");
-        exit;
+        exit(0);
     }
     try {
         _webSocketClient.clear_access_channels(websocketpp::log::alevel::all);

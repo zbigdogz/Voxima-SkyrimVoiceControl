@@ -43,7 +43,7 @@ namespace Voxima
         static ObservableConcurrentQueue<string> observableConcurrentQueue;
         static DictionaryInterface dictionaryInterface;
         static readonly System.Threading.EventWaitHandle waitHandle = new System.Threading.AutoResetEvent(false);
-        static ResourceManager dovahzulPhonemes = new ResourceManager("Voxima.DovahzulPhonemes", Assembly.GetExecutingAssembly());
+        static readonly ResourceManager dovahzulPhonemes = new ResourceManager("Voxima.DovahzulPhonemes", Assembly.GetExecutingAssembly());
         static List<string> trainedWords = new List<string>();
 
 
@@ -164,11 +164,15 @@ namespace Voxima
         static List<string> handRight = new List<string>();
         static List<string> handBoth = new List<string>();
         static List<string> handCast = new List<string>();
+        static List<string> handPerk = new List<string>();
         static List<string> powerCast = new List<string>();
         static List<string> locationCommands = new List<string>();
         static List<string> currentLocationCommands = new List<string>();
 
         static string Morph = "none";
+        static bool isRidingHorse = false;
+        static bool isRidingDragon = false;
+
         static DateTime Time = DateTime.Now;
         static int updateNum = 0;
         static bool isUpdating = false;
@@ -176,6 +180,7 @@ namespace Voxima
         static int commandNum = 1;
 
         static WebSocketServer server;
+
 
         #endregion Fields
 
@@ -368,7 +373,7 @@ namespace Voxima
 
             #region Skyrim Process Exit Monitoring
 
-            string[] targetProcesses = new string[] { "SkyrimSE", "SkyrimVR", "Notepad"};
+            string[] targetProcesses = new string[] { "SkyrimSE", "SkyrimVR", "Notepad" };
             if (ProcessWatcher.MonitorForExit(targetProcesses) == true) // Call method to monitor the targetProcesses for exit in separate thread (actually the first of the targetProcesses found), and check if processing was successful
                 ProcessWatcher.ProcessClosed += OnProcessClosed; // Subscribe OnProcessClosed to ProcessClosed events
 
@@ -799,13 +804,8 @@ namespace Voxima
             try
             {
                 /*//debug2//*/
-                int i = 0;
-                string CurrentID = "";
-                string[] nameInfo;
-                string ItemName = "";
-                string From = "";
                 string CurrentCommand = "";
-            List<string> CommandList = new List<string>();
+                List<string> CommandList = new List<string>();
                 Morph = Morph.ToLower();
                 Type = Type.ToLower();
                 Choices Commands = new Choices();
@@ -828,85 +828,86 @@ namespace Voxima
                         break;
                 }
 
-            foreach (string currentLocation in Location)
-            {
-
-                if (Type != "console")
+                foreach (string currentLocation in Location)
                 {
-                    foreach (string commandBlock in File.ReadAllText(currentLocation).ToString().Replace("\r", "").ToLower().Split('['))
+
+                    if (Type != "console")
                     {
-                        CurrentCommand = commandBlock.Split(']')[0];
-
-                        if (CurrentCommand == "" || CurrentCommand == "\n" || CurrentCommand == "\n\n")
-                            continue;
-
-                        CommandList = new List<string>();
-                        Commands = new Choices();
-                        isCommand = false;
-
-                        if (Type == "power") { };
-
-                        foreach (string command in commandBlock.Split(']')[1].Split('\n'))
+                        foreach (string commandBlock in File.ReadAllText(currentLocation).ToString().Replace("\r", "").ToLower().Split('['))
                         {
-                            if (command == "")
+                            CurrentCommand = commandBlock.Split(']')[0];
+
+                            if (CurrentCommand == "" || CurrentCommand == "\n" || CurrentCommand == "\n\n")
                                 continue;
 
-                            //Detects if the item is meant to be a command or a general setting for commands 
-                            switch (CurrentCommand)
+                            CommandList = new List<string>();
+                            Commands = new Choices();
+                            isCommand = false;
+
+                            if (Type == "power") { };
+
+                            foreach (string command in commandBlock.Split(']')[1].Split('\n'))
                             {
-                                case "hand - left": handLeft.Add(command); isCommand = false; break;
-                                case "hand - right": handRight.Add(command); isCommand = false; break;
-                                case "hand - both": handBoth.Add(command); isCommand = false; break;
-                                case "hand - cast": handCast.Add(command); isCommand = false; break;
-                                case "power - cast": powerCast.Add(command); isCommand = false; break;
-                                case "location prefixes": locationCommands.Add(command); isCommand = false; break;
-                                case "current location commands": currentLocationCommands.Add(command); isCommand = false; break;
-                                default: isCommand = true; CommandList.Add(command); break;
-                            }
-                        }//End Foreach
+                                if (command == "")
+                                    continue;
 
-                        //See why all of the commands for the "hand - left" and similar command types are getting added to AllItems. They should NOT be getting added to that
-                        if (!isCommand)
-                            continue;
+                                //Detects if the item is meant to be a command or a general setting for commands 
+                                switch (CurrentCommand)
+                                {
+                                    case "hand - left": handLeft.Add(command); isCommand = false; break;
+                                    case "hand - right": handRight.Add(command); isCommand = false; break;
+                                    case "hand - both": handBoth.Add(command); isCommand = false; break;
+                                    case "hand - cast": handCast.Add(command); isCommand = false; break;
+                                    case "hand - perk": handPerk.Add(command); isCommand = false; break;
+                                    case "power - cast": powerCast.Add(command); isCommand = false; break;
+                                    case "location prefixes": locationCommands.Add(command); isCommand = false; break;
+                                    case "current location commands": currentLocationCommands.Add(command); isCommand = false; break;
+                                    default: isCommand = true; CommandList.Add(command); break;
+                                }
+                            }//End Foreach
 
-                        grammar = CreateGrammar(Type + "\t" + CurrentCommand, Morph, table, CommandList);
-                    }//End for
-                }
-                else
-                {
-                    foreach (string line in System.IO.File.ReadAllLines(currentLocation))
-                    {
-                        //Clean the line
-                        string text = line.ToString().Replace("\r", "").Replace("\t", " ").TrimStart(' ').ToLower();
+                            //See why all of the commands for the "hand - left" and similar command types are getting added to AllItems. They should NOT be getting added to that
+                            if (!isCommand)
+                                continue;
 
-                        //Remove comments
-                        if (text.Contains("#"))
-                            text = text.Remove(text.IndexOf('#'), text.Length);
-
-                        if (text.Contains("["))
-                            text = text.Remove(text.IndexOf('['), text.Length);
-
-                        //If the line is empty, go to the next line
-                        if (text == "")
-                            continue;
-
-                        //[0] = Voice Commands.   [1] = console commands
-                        string[] command = text.Split('=');
-
-
-                        Commands = new Choices(command[0].Replace("(", "").Trim(')', ' ').Split(')'));
-
-                        CommandList = command[0].Replace("(", "").Trim(')', ' ').Split(')').ToList<string>();
-                        grammar = CreateGrammar("console\t" + command[1], Morph, table, CommandList);
-
+                            grammar = CreateGrammar(Type + "\t" + CurrentCommand, Morph, table, CommandList);
+                        }//End for
                     }
-                }
-            }//End for
+                    else
+                    {
+                        foreach (string line in System.IO.File.ReadAllLines(currentLocation))
+                        {
+                            //Clean the line
+                            string text = line.ToString().Replace("\r", "").Replace("\t", " ").TrimStart(' ').ToLower();
 
-            /*//debug1//*/
-        }
-        catch (Exception EX) { Log.Activity("Error in \"FindCommands\":\n" + EX.ToString() + "\n", Log.LogType.Error); }
-        /*//debug2//*/
+                            //Remove comments
+                            if (text.Contains("#"))
+                                text = text.Remove(text.IndexOf('#'), text.Length);
+
+                            if (text.Contains("["))
+                                text = text.Remove(text.IndexOf('['), text.Length);
+
+                            //If the line is empty, go to the next line
+                            if (text == "")
+                                continue;
+
+                            //[0] = Voice Commands.   [1] = console commands
+                            string[] command = text.Split('=');
+
+
+                            Commands = new Choices(command[0].Replace("(", "").Trim(')', ' ').Split(')'));
+
+                            CommandList = command[0].Replace("(", "").Trim(')', ' ').Split(')').ToList<string>();
+                            grammar = CreateGrammar("console\t" + command[1], Morph, table, CommandList);
+
+                        }
+                    }
+                }//End for
+
+                /*//debug1//*/
+            }
+            catch (Exception EX) { Log.Activity("Error in \"FindCommands\":\n" + EX.ToString() + "\n", Log.LogType.Error); }
+            /*//debug2//*/
             return k;
         }//End FindCommands
 
@@ -921,8 +922,6 @@ namespace Voxima
                 //Check in-game to see if progressions works
                 //If it does work, and no AllItems changes need to be made, push the changes to Github and look at the to-do list to see what's next. I may need to test Exergist's stuff
 
-                int i = 0,
-                    j = 0;
                 string CurrentCommand = "";
                 List<string> progressionList = new List<string>();
                 Choices Commands;
@@ -1110,7 +1109,7 @@ namespace Voxima
                 if (newList.Length < oldList.Length || CurrentMorph != Morph)
                 {
                     //Log.Debug("recognizer disabled");
-                    recognizer.RecognizeAsyncStop();
+                    recognizer.RecognizeAsyncCancel();
                 }
 
                 if (CurrentMorph != Morph)
@@ -1273,7 +1272,6 @@ namespace Voxima
             {
                 /*//debug2//*/
                 //int currentUpdateNum = updateNum;
-                int i = 0, j = 0;
                 double duration = 0;
                 int ItemsRemoved = 0,
                     ItemsAdded = 0;
@@ -1300,30 +1298,18 @@ namespace Voxima
                 Log.EnabledCommands("", Log.LogType.Info, true);
 
                 //Unload all Grammars and FullDictionary
-                //recognizer.RecognizeAsyncStop();    //Unloading grammars takes significnatly more time without this line
+                //recognizer.RecognizeAsyncCancel();    //Unloading grammars takes significnatly more time without this line
 
                 //Configure input to the speech recognizer. This is needed for when a new default microphone is set while the program is running, such as if a microphone is disconected then reconnected
                 //recognizer.SetInputToDefaultAudioDevice();
 
-                //if (currentUpdateNum != updateNum)
-                //    return 0;
 
                 if (!recognizer.Grammars.Contains(FullDictation))
                     recognizer.LoadGrammar(FullDictation);
                 ///recognizer.LoadGrammar(FullDictation); /// *** https://learn.microsoft.com/en-us/dotnet/api/system.speech.recognition.speechrecognitionengine.loadgrammarcompleted?view=netframework-4.8.1
                 /// RequestRecognizerUpdate ==> https://learn.microsoft.com/en-us/dotnet/api/system.speech.recognition.speechrecognitionengine.requestrecognizerupdate?view=netframework-4.8.1
 
-                //UnloadAllGrammarsDuration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
 
-                //This is used for testing without running websocket. Allows for testing without running C# through C++
-                //KnownSpells = new string[3];
-                //KnownSpells[0] = "flames\t12fcd\tspell\tskyrim.esm";
-                //KnownSpells[1] = "healing\t12fcc\tspell\tskyrim.esm";
-                //KnownSpells[2] = "incinerate\t10f7ed\tspell\tskyrim.esm";
-
-                //LoadCommand(KnownSpells[0], table);
-
-                //CurrentSpells[0] = KnownSpells[0];
                 if (Morph != "werewolf")
                 {
 
@@ -1342,10 +1328,6 @@ namespace Voxima
                     //    return 0;
 
                     //----------Shouts----------//
-                    //KnownShouts = new string[2];
-                    //KnownShouts[0] = "Aura Whisper\t7097B\tshout\tSkyrim.esm\tLaas\tYah\tNir";
-                    //KnownShouts[1] = "Become Ethereal\t32920\tshout\tSkyrim.esm\tFeim\tZii\tGron";
-
                     if (KnownShouts != null)
                     {
 
@@ -1355,9 +1337,6 @@ namespace Voxima
                     }
 
                     duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
-
-                    //if (currentUpdateNum != updateNum)
-                    //    return 0;
 
                     //----------POWERS----------//
                     if (KnownPowers != null)
@@ -1369,62 +1348,61 @@ namespace Voxima
 
                     duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
 
-                    //if (currentUpdateNum != updateNum)
-                    //    return 0;
                 }//End Werewolf morph check       
 
-                if (CurrentMorph != Morph)
+                if (CurrentMorph != Morph && Morph == "werewolf")
                 {
-                    if (Morph == "werewolf")
-                    {
-                        Log.Debug("Unloading all commands, due to morph change");
-                        recognizer.RecognizeAsyncStop();
-                        recognizer.UnloadAllGrammars(); //If the player just turned into a werewolf, unload all commands
-                    }
-
-                    //Add Keybinds
-                    if (KeybindGrammars != null)
-                    {
-                        //Add New Grammars
-                        foreach (Grammar grammar in KeybindGrammars)
-                        {
-                            if (grammar == null)
-                                break;
-
-                            //Valid Keybinds
-                            if (grammar.Name.StartsWith(Morph.ToLower()) || Morph.ToLower() == "dragonriding" && grammar.Name.StartsWith("none") || Morph.ToLower() == "horseriding" && grammar.Name.StartsWith("none"))
-                            {
-                                if (!recognizer.Grammars.Contains(grammar))
-                                {
-                                    recognizer.LoadGrammar(grammar);
-                                    ItemsAdded++;
-                                }
-                            }
-                            else if (recognizer.Grammars.Contains(grammar))
-                            {
-                                recognizer.LoadGrammar(grammar);
-                                ItemsRemoved++;
-                            }
-                        }//End for each Keybind Grammar
-                    }//End Keybind Grammars not NULL
-
-                    //Add Console Commands
-                    if (ConsoleGrammars != null)
-                    {
-                        //Add New Grammars
-                        foreach (Grammar grammar in ConsoleGrammars)
-                        {
-                            if (grammar == null)
-                                break;
-
-                            if (!recognizer.Grammars.Contains(grammar))
-                                recognizer.LoadGrammar(grammar);
-
-                        }//End foreach Console Grammar
-                    }//End Console Grammars not NULL
+                    Log.Debug("Unloading all commands, due to morph change");
+                    recognizer.RecognizeAsyncCancel();
+                    recognizer.UnloadAllGrammars(); //If the player just turned into a werewolf, unload all commands
 
                     CurrentMorph = Morph;
-                }//End Morph Changed
+                }
+
+
+                //Add Keybinds
+                if (KeybindGrammars != null)
+                {
+                    //Add New Grammars
+                    foreach (Grammar grammar in KeybindGrammars)
+                    {
+                        if (grammar == null)
+                            break;
+
+                        //Valid Keybinds
+                        if (grammar.Name.StartsWith(Morph.ToLower()) || isRidingDragon && grammar.Name.StartsWith("dragonriding") || isRidingHorse && grammar.Name.StartsWith("horseriding"))
+                        {
+                            if (!recognizer.Grammars.Contains(grammar))
+                            {
+                                recognizer.LoadGrammar(grammar);
+                                Log.EnabledCommands(grammar.Name);
+                                ItemsAdded++;
+                            }
+                        }
+                        //Invalid Keybinds
+                        else if (recognizer.Grammars.Contains(grammar))
+                        {
+                            recognizer.UnloadGrammar(grammar);
+                            ItemsRemoved++;
+                        }
+                    }//End for each Keybind Grammar
+                }//End Keybind Grammars not NULL
+
+                //Add Console Commands
+                if (ConsoleGrammars != null)
+                {
+                    //Add New Grammars
+                    foreach (Grammar grammar in ConsoleGrammars)
+                    {
+                        if (grammar == null)
+                            break;
+
+                        if (!recognizer.Grammars.Contains(grammar))
+                            recognizer.LoadGrammar(grammar);
+
+                    }//End foreach Console Grammar
+                }//End Console Grammars not NULL
+
 
                 duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
 
@@ -1565,30 +1543,30 @@ namespace Voxima
                     {
                         List<string> commandList = new List<string>();
 
-                    switch (type)
-                    {
-                        case "shout":
-                            commandList.Add(info[4]);
+                        switch (type)
+                        {
+                            case "shout":
+                                commandList.Add(info[4]);
 
-                            if (info.Length >= 6)
-                                commandList.Add($"{info[4]} {info[5]}");
+                                if (info.Length >= 6)
+                                    commandList.Add($"{info[4]} {info[5]}");
 
-                            if (info.Length >= 7)
-                                commandList.Add($"{info[4]} {info[5]} {info[6]}");
-                            break;
+                                if (info.Length >= 7)
+                                    commandList.Add($"{info[4]} {info[5]} {info[6]}");
+                                break;
 
-                        default:
-                            commandList.Add(name);
-                            break;
-                    }
+                            default:
+                                commandList.Add(name);
+                                break;
+                        }
 
-                    recognizer.LoadGrammar(CreateGrammar(type + '\t' + current, "none", table, commandList));
+                        recognizer.LoadGrammar(CreateGrammar(type + '\t' + current, "none", table, commandList));
 
                         return 1;
                     }
 
-                }
-                else if (Morph.ToLower() == "dragonriding" && table.Contains(current) && !recognizer.Grammars.Contains((Grammar)table[current]))
+                }/*
+                else if (isRidingDragon && table.Contains(current) && !recognizer.Grammars.Contains((Grammar)table[current]))
                 {
 
                     recognizer.LoadGrammar((Grammar)table[current]);
@@ -1597,7 +1575,7 @@ namespace Voxima
                     return 1;
 
                     //If the grammar is already loaded, then that means the item is in multiple progressions. This is fine
-                }
+                }*/
                 else if (AllProgressionItems.Contains(Morph.ToLower() + "\t" + current) && !recognizer.Grammars.Contains((Grammar)AllProgressionItems[Morph.ToLower() + "\t" + current]))
                 {
                     recognizer.LoadGrammar((Grammar)AllProgressionItems[Morph.ToLower() + " - " + current]);
@@ -1624,139 +1602,139 @@ namespace Voxima
             try
             {
                 /*//debug2//*/
-            Choices Commands = new Choices();
-            Grammar grammar = new Grammar(new Choices("NA"));
+                Choices Commands = new Choices();
+                Grammar grammar = new Grammar(new Choices("NA"));
 
-            string[] info = item.Split('\t');   //[0] == name   [1] == ID   [2] == from
-            string name = info[1];
-            string id = "";
-            string type = info[0];
-            string from = "";
-            string mod = "";
+                string[] info = item.Split('\t');   //[0] == name   [1] == ID   [2] == from
+                string name = info[1];
+                string id = "";
+                string type = info[0];
+                string from = "";
+                string mod = "";
 
-            item = name;
+                item = name;
 
-            switch (type)
-            {
-                case "keybind":
-                    id = info[2];
-                    item += '\t' + id;
-                    break;
-
-                case "setting": break;
-
-                case "console": break;
-                    
-
-                default:
-                    id = '\t' + info[2].TrimStart('0', '0', '0', '0', '0', '0'); ;
-                    from = '\t' + info[4];
-
-                    if (info.Length >= 6)
-                        mod = '\t' + info[5];  //Moddifications suchs as specified hand and autocast
-
-                    item += id + '\t' + type + from + mod;
-                    break;
-
-            }
-
-
-            //Typo Checker for files
-            switch (type)
-            {
-                case "spells": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Spell\". not \"Spells\""); break;
-                case "powers": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Shout\". not \"Shouts\""); break;
-                case "shouts": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Power\". not \"Powers\""); break;
-            }
-
-
-            grammar = new Grammar(CreateCommands(item, commandList));
-
-            switch (type)
-            {
-                case "keybind":
-                    grammar.Name = morph + "\t" + name + '\t' + id + '\t' + type;
-
-                    break;
-
-                case "console":
-                case "setting":
-                    grammar.Name = name + '\t' + type;
-                    break;
-
-                default:
-                    grammar.Name = item;
-                    break;
-            }
-
-
-            if (!table.Contains(grammar.Name) && !table.Contains(name + '\t' + id + '\t' + type + '\t' + from))
-            {
                 switch (type)
                 {
                     case "keybind":
-                        KeybindGrammars.Add(grammar);
+                        id = info[2];
+                        item += '\t' + id;
+                        break;
+
+                    case "setting": break;
+
+                    case "console": break;
+
+
+                    default:
+                        id = '\t' + info[2].TrimStart('0', '0', '0', '0', '0', '0'); ;
+                        from = '\t' + info[4];
+
+                        if (info.Length >= 6)
+                            mod = '\t' + info[5];  //Moddifications suchs as specified hand and autocast
+
+                        item += id + '\t' + type + from + mod;
+                        break;
+
+                }
+
+
+                //Typo Checker for files
+                switch (type)
+                {
+                    case "spells": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Spell\". not \"Spells\""); break;
+                    case "powers": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Shout\". not \"Shouts\""); break;
+                    case "shouts": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Power\". not \"Powers\""); break;
+                }
+
+
+                grammar = new Grammar(CreateCommands(item, commandList));
+
+                switch (type)
+                {
+                    case "keybind":
+                        grammar.Name = morph + "\t" + name + '\t' + id + '\t' + type;
+
                         break;
 
                     case "console":
-                        ConsoleGrammars.Add(grammar);
-                        break;
-
                     case "setting":
-                        SettingGrammars.Add(grammar);
+                        grammar.Name = name + '\t' + type;
                         break;
 
                     default:
-                        table.Add(grammar.Name, grammar);
+                        grammar.Name = item;
                         break;
                 }
 
-                foreach (string command in commandList)
+
+                if (!table.Contains(grammar.Name) && !table.Contains(name + '\t' + id + '\t' + type + '\t' + from))
                 {
-                    Log.AllCommands(command + " - " + grammar.Name);
-
-                    if (!AllItems.Contains(morph + " - " + command))
+                    switch (type)
                     {
-                        AllItems.Add(morph + " - " + command, grammar);
+                        case "keybind":
+                            KeybindGrammars.Add(grammar);
+                            break;
+
+                        case "console":
+                            ConsoleGrammars.Add(grammar);
+                            break;
+
+                        case "setting":
+                            SettingGrammars.Add(grammar);
+                            break;
+
+                        default:
+                            table.Add(grammar.Name, grammar);
+                            break;
                     }
-                    else
-                    {
-                        //If the item is from the same mod (has the same "from" value), output an error instead of adding it to the progression
-                        if (((Grammar)AllItems[Morph + " - " + command]).Name == grammar.Name)
-                        {
-                            Log.Activity($"Two or more identical items exist from the same mod. You must change the commands for one of them: \"{name}\t{id}\t{type}\t{from}\"", Log.LogType.Error);
 
-                        }
-                        else if (AllProgressions.Contains(command))
+                    foreach (string command in commandList)
+                    {
+                        Log.AllCommands(command + " - " + grammar.Name);
+
+                        if (!AllItems.Contains(morph + " - " + command))
                         {
-                            List<string> newOptions = new List<string>();
-                            newOptions =  (List<string>)AllProgressions[command];
-                            newOptions.Add(grammar.Name);
-                            AllProgressions[command] = newOptions;
+                            AllItems.Add(morph + " - " + command, grammar);
                         }
                         else
                         {
-                            AllProgressions.Add(command, new List<string>() { ((Grammar)AllItems[Morph + " - " + command]).Name, grammar.Name});
-                            Log.Activity($"Two or more identical items have the same command for the same morph ({morph}): \"{command}\". Item 1: \"{((Grammar)AllItems[Morph + " - " + command]).Name}\". Item 2: \"{grammar.Name}\"", Log.LogType.Error);
-                        }//End if
-                    }//End Try/Catch
+                            //If the item is from the same mod (has the same "from" value), output an error instead of adding it to the progression
+                            if (((Grammar)AllItems[Morph + " - " + command]).Name == grammar.Name)
+                            {
+                                Log.Activity($"Two or more identical items exist from the same mod. You must change the commands for one of them: \"{name}\t{id}\t{type}\t{from}\"", Log.LogType.Error);
+
+                            }
+                            else if (AllProgressions.Contains(command))
+                            {
+                                List<string> newOptions = new List<string>();
+                                newOptions = (List<string>)AllProgressions[command];
+                                newOptions.Add(grammar.Name);
+                                AllProgressions[command] = newOptions;
+                            }
+                            else
+                            {
+                                AllProgressions.Add(command, new List<string>() { ((Grammar)AllItems[Morph + " - " + command]).Name, grammar.Name });
+                                Log.Activity($"Two or more identical items have the same command for the same morph ({morph}): \"{command}\". Item 1: \"{((Grammar)AllItems[Morph + " - " + command]).Name}\". Item 2: \"{grammar.Name}\"", Log.LogType.Error);
+                            }//End if
+                        }//End Try/Catch
 
 
-                    //AllItems here
+                        //AllItems here
+                    }
                 }
-            }
-            else
-                grammar = (Grammar)table[grammar.Name];
+                else
+                    grammar = (Grammar)table[grammar.Name];
 
-            return grammar;
-            /*//debug1//*/
-        }
-        catch (Exception EX)
-        {
-            Log.Activity("Error in \"CreateGrammar\":\n" + EX.ToString() + "\n", Log.LogType.Error);
-            return new Grammar(new Choices("NA"));
-        }
-        /*//debug2//*/
+                return grammar;
+                /*//debug1//*/
+            }
+            catch (Exception EX)
+            {
+                Log.Activity("Error in \"CreateGrammar\":\n" + EX.ToString() + "\n", Log.LogType.Error);
+                return new Grammar(new Choices("NA"));
+            }
+            /*//debug2//*/
 
         }//End CreateGrammar
 
@@ -1842,6 +1820,14 @@ namespace Voxima
                                     commands.Add(b + "\t" + command + "\t" + a);
                                     commands.Add(a + "\t" + b + "\t" + command);
                                 }
+
+                                //Hand Perk
+                                foreach (string b in handPerk)
+                                {
+                                    commands.Add(b + "\t" + a + "\t" + command);
+                                    commands.Add(b + "\t" + command + "\t" + a);
+                                    commands.Add(a + "\t" + command + "\t" + b);
+                                }
                             }
 
                             //Hand Right ("Right Conjure Familiar")
@@ -1857,6 +1843,14 @@ namespace Voxima
                                     commands.Add(b + "\t" + command + "\t" + a);
                                     commands.Add(a + "\t" + b + "\t" + command);
 
+                                }
+
+                                //Hand Perk
+                                foreach (string b in handPerk)
+                                {
+                                    commands.Add(b + "\t" + a + "\t" + command);
+                                    commands.Add(b + "\t" + command + "\t" + a);
+                                    commands.Add(a + "\t" + command + "\t" + b);
                                 }
                             }
 
@@ -1892,6 +1886,13 @@ namespace Voxima
                             {
                                 commands.Add(a + "\t" + command);
 
+                            }
+
+                            //Hand Perk ("Charged Firebolt Left")
+                            foreach (string a in handPerk)
+                            {
+                                commands.Add(a + "\t" + command);
+                                commands.Add(command + "\t" + a);
                             }
 
                             //Additional commands with removed prefixes for more fluid commands ("Conjure Familiar" --> "Familiar" for all above command variations)
@@ -2186,24 +2187,41 @@ namespace Voxima
         /// <summary>
         /// Process messages from client (Skyrim plugin)
         /// </summary>
-        private static void ProcessClientMessage(string message)
+        private static async void ProcessClientMessage(string message)
         {
             if (message.StartsWith("update configuration"))
             {
                 Log.Debug($"Received from client: Update Configuration", Log.LogType.Info);
-                Morph = "none";
 
                 foreach (string item in message.Remove(0, 21).Replace("\r", "").TrimEnd('\n').ToLower().Split('\n'))
                 {
                     switch (item.Split('\t')[0])
                     {
-                        case "werewolf":
-                        case "vampirelord":
-                        case "dragonriding":
-                        case "horseriding":
-                            if (item.Split('\t')[1].ToLower() == "true")
-                                Morph = item.Split('\t')[0];
+                        case "morph":
+                            Morph = item.Split('\t')[1];
 
+                            if (CurrentMorph == "")
+                                CurrentMorph = Morph;
+                            break;
+
+                        case "mount":
+                            switch (item.Split('\t')[1])
+                            {
+                                case "horse":
+                                    isRidingHorse = true;
+                                    isRidingDragon = false;
+                                    break;
+
+                                case "dragon":
+                                    isRidingHorse = false;
+                                    isRidingDragon = true;
+                                    break;
+
+                                case "none":
+                                    isRidingHorse = false;
+                                    isRidingDragon = false;
+                                    break;
+                            }
                             break;
 
                         case "vox_sensitivity":
@@ -2335,22 +2353,28 @@ namespace Voxima
             {
                 Log.Debug($"Received from client: Enable Recognition", Log.LogType.Info);
 
-                recognizer.RecognizeAsync(RecognizeMode.Multiple);
+                try
+                {
+                    recognizer.RecognizeAsync(RecognizeMode.Multiple);
+                }
+                catch (Exception) { }
 
             }
             else if (message.StartsWith("disable recognition"))
             {
                 Log.Debug($"Received from client: Disable Recognition", Log.LogType.Info);
 
-                recognizer.RecognizeAsyncStop();
+                recognizer.RecognizeAsyncCancel();
 
             }
             else if (message.StartsWith("check for mic change"))
             {
                 Log.Debug($"Received from client: Check for Mic Change", Log.LogType.Info);
 
-                recognizer.RecognizeAsyncStop();
+                recognizer.RecognizeAsyncCancel();
+
                 recognizer.SetInputToDefaultAudioDevice();
+
                 recognizer.RecognizeAsync(RecognizeMode.Multiple);
 
             }
@@ -2362,7 +2386,7 @@ namespace Voxima
                 int currentUpdateNum = updateNum;
 
                 while (isUpdating && currentUpdateNum == updateNum)
-                    Task.Delay(10);
+                    await Task.Delay(10);
 
                 if (!isUpdating)
                 {
@@ -2373,7 +2397,7 @@ namespace Voxima
                         Log.Debug($"Stopped current update in favor of a new incoming update", Log.LogType.Info);
                     }
 
-                    Log.Debug($"Initialization Finished (Num: {currentUpdateNum})\n", Log.LogType.Info); ///*** do we want this extra space?
+                    //Log.Debug($"Initialization Finished (Num: {currentUpdateNum})\n", Log.LogType.Info);
                     isUpdating = false;
 
                 }
@@ -2455,6 +2479,7 @@ namespace Voxima
                 string from = "";
                 int hand = -1;  //-1 means it is unset. Leaving it unset may break on the mod's side, so ensure it changes
                 bool autoCast = false;
+                bool usePerk = false;
                 string autoHand = "";
                 string[] info;
                 DateTime latency = DateTime.Now;
@@ -2506,6 +2531,17 @@ namespace Voxima
                         {
                             hand = 2;
                             isBoth = true;
+                            goto nextItem;
+                        }
+                    }
+                    
+                    //Hand Perk
+                    foreach (string a in handPerk)
+                    {
+                        if (item == a)
+                        {
+                            usePerk = true;
+                            autoCast = true;
                             goto nextItem;
                         }
                     }
@@ -2625,33 +2661,33 @@ namespace Voxima
 
                     type = "keybind";
 
-            }
-            else if (Title.EndsWith("console"))
-            {
-                from = "Skyrim.esm";
-                type = "console";
+                }
+                else if (Title.EndsWith("console"))
+                {
+                    from = "Skyrim.esm";
+                    type = "console";
 
-                id = "0";
-            }
+                    id = "0";
+                }
 
-            else if (Title.EndsWith("setting"))
-            {
-                from = "Skyrim.esm";
-                id = "0";
+                else if (Title.EndsWith("setting"))
+                {
+                    from = "Skyrim.esm";
+                    id = "0";
 
-                type = "setting";
+                    type = "setting";
 
-            }
-            else if (Title.EndsWith("location"))
-            {
-                from = "Skyrim.esm";
-                type = "location";
+                }
+                else if (Title.EndsWith("location"))
+                {
+                    from = "Skyrim.esm";
+                    type = "location";
 
-                id = "0";
+                    id = "0";
 
-            }
-            else if (Title == "")
-            { //This means it was from the full dictation grammar
+                }
+                else if (Title == "")
+                { //This means it was from the full dictation grammar
                     Log.Activity("Something went wrong and there is no title for this command (\"" + e.Result.Text.ToString() + "\"). (Method: Recognizer_SpeechRecognized)", Log.LogType.Error);
 
                 }//End if else
@@ -2713,6 +2749,18 @@ namespace Voxima
                             hand = 2;
                             break;
                     }
+
+                if (usePerk)
+                {
+                    switch (hand)
+                    {
+                        case 0:
+                            hand = 3; break;
+
+                        case 1:
+                            hand = 4; break;
+                    }
+                }
 
                 //Print the information to the Command file
                 commandNum++;

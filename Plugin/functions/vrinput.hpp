@@ -171,7 +171,7 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
             if (pushToSpeakListening == false)
             {
                 pushToSpeakListening = true;
-                SendMessage(WebSocketMessage::EnableRecognition);
+                //SendMessage(WebSocketMessage::EnableRecognition);
                 SendNotification("SkyrimVR Input Pressed - Start Listening!");
             }
         }
@@ -181,7 +181,7 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
             if (pushToSpeakListening == true)
             {
                 pushToSpeakListening = false;
-                SendMessage(WebSocketMessage::DisableRecognition);
+                //SendMessage(WebSocketMessage::DisableRecognition);
                 SendNotification("SkyrimVR Input Released - Stop Listening!");
             }
         }
@@ -193,12 +193,12 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
             logger::debug("VR Button release deviceId: %d buttonId: %d", deviceId, buttonId);
             if (pushToSpeakListening == false)
             {
-                SendMessage(WebSocketMessage::EnableRecognition);
+                //SendMessage(WebSocketMessage::EnableRecognition);
                 SendNotification("SkyrimVR Input Released - Start Listening!");
             }
             else
             {
-                SendMessage(WebSocketMessage::DisableRecognition);
+                //SendMessage(WebSocketMessage::DisableRecognition);
                 SendNotification("SkyrimVR Input Released - Stop Listening!");
             }
             pushToSpeakListening = !pushToSpeakListening;

@@ -21,24 +21,28 @@ RE::TESGlobal* VOX_KnownShoutWordsOnly;  // Determines if you only get voice com
 
 #pragma region Enumerations and Structs
 enum ActorSlot { Left, Right, Both, Voice, None };
-enum Morph { Player, Werewolf, VampireLord };
 enum MagicType { null, Spell, Power, Shout };
 enum MenuType { Console, Favorites, Inventory, Journal, LevelUp, Magic, Map, Skills, SleepWait, Tween };
 enum MenuAction { Open, Close };
-enum MoveType { MoveForward, MoveLeft, MoveRight, MoveBackward, TurnLeft, TurnRight, MoveJump, MoveSprint, StopSprint, StopMoving };
+enum MoveType { MoveForward, MoveLeft, MoveRight, MoveBackward, TurnLeft, TurnRight, MoveJump, MoveSprint, StopSprint, StopMoving }; //Horse Controls
 
 //Pre-made messages that the App is prepared to recieve
 struct WebSocketMessage
 {
-    static constexpr const char* EnableRecognition = "enable recognition";
-    static constexpr const char* DisableRecognition = "disable recognition";
-    static constexpr const char* CheckForMicChange = "check for mic change";
-    static constexpr const char* InitializeUpdate = "initialize update";
-    static constexpr const char* UpdateSpells = "update spells\n";
-    static constexpr const char* UpdatePowers = "update powers\n";
-    static constexpr const char* UpdateShouts = "update shouts\n";
-    static constexpr const char* UpdateConfiguration = "update configuration\n";
-    static constexpr const char* UpdateLocations = "update locations\n";
+    static constexpr const char* EnableRecognition          = "enable recognition";
+    static constexpr const char* DisableRecognition         = "disable recognition";
+
+    static constexpr const char* CheckForMicChange          = "check for mic change";
+    static constexpr const char* InitializeUpdate           = "initialize update";
+    static constexpr const char* UpdateConfiguration        = "update configuration\n";
+
+    static constexpr const char* UpdateSpells               = "update spells\n";
+    static constexpr const char* UpdatePowers               = "update powers\n";
+    static constexpr const char* UpdateShouts               = "update shouts\n";
+
+    static constexpr const char* UpdateLocations            = "update locations\n";
+    static constexpr const char* EnableLocationCommands     = "enable location commands";
+    static constexpr const char* DisableLocationCommands    = "disable location commands";
 };
 
 // Value of a given actor slot (for equipping)
@@ -65,15 +69,6 @@ struct ActorSlotValue
 
 ActorSlotValue actorSlot;
 
-// Player's last recorded Mount
-struct Mount
-{
-    static const int None = 0;
-    static const int Horse = RE::CameraState::kMount;
-    static const int Dragon = RE::CameraState::kDragon;
-};
-
-int currentMount;
 #pragma endregion
 
 #pragma region Function Definitions
@@ -92,7 +87,7 @@ static void SendKeyDown(int keycode);
 static void SendKeyUp(int keycode);
 void PressKey(int keycode, int duration = 0);
 static bool IsKeyDown(int keyCode);
-void MoveHorse(MoveType moveType);
+static void MoveHorse(MoveType moveType);
 void ExecuteConsoleCommand(std::vector<std::string> command);
 void SendJoystickInput();
 void SendNotification(std::string message);
@@ -101,7 +96,7 @@ void MenuInteraction(MenuType type, MenuAction action);
 std::string TranslateL33t(std::string string);
 #pragma endregion
 
-// Returns whether the player is in God Mode
+// Returns whether the actor is in God Mode
 bool IsGodMode()
 {
     REL::Relocation<bool*> singleton{REL::VariantID(517711, 404238, 0x2FFFDEA)};
@@ -121,7 +116,7 @@ void SetWindowToFront()
     }
 }
 
-// Returns the player's current mount.  (0 = None)  (1 = Horse)  (2 = Dragon)
+// Returns the actor's current mount.  (0 = None)  (1 = Horse)  (2 = Dragon)
 int PlayerMount()
 {
     RE::ActorPtr mount;
@@ -222,7 +217,7 @@ static void MoveHorse(MoveType moveType)
     RE::ActorPtr horse;
     bool move = false;
 
-    player->GetMount(horse);
+   (void)player->GetMount(horse);
 
     // VR-specific control
     if (REL::Module::IsVR()) {
@@ -230,7 +225,7 @@ static void MoveHorse(MoveType moveType)
         float angleZ = horse->GetAngleZ();
 
         // Adjust the angle to a 360 degree metric, from a 6.3 degree metric
-        angleZ = angleZ * 360 / 6.3;
+        angleZ = (float)(angleZ * 360 / 6.3);
 
         // Adjust the angle to 8-degrees of freedom, from 360-degrees of freedom
         angleZ = roundf(angleZ / 45) * 45;
@@ -428,13 +423,13 @@ static void MoveHorse(MoveType moveType)
     /*
      * Potential Alternatives for the future:
      *   It's possible that moving the mouse will rotate the horse, causing "W" to move the horse in the new direction
-     *   I may be able to use the VR controller's joystick to move just the horse. Maybe the code that move sthe horse in the player's direction isn't directly tied to the movement
+     *   I may be able to use the VR controller's joystick to move just the horse. Maybe the code that move sthe horse in the actor's direction isn't directly tied to the movement
      * of the joystick Maybe a gamepad joystick can be simulated. It's possible that hte game will recognize the VR controllers as joysticks RE the code for WASD to see what
      * exactly is happening when you press those keys. Perhaps I can manually do it, and move in any direction I want
      */
 }
 
-// Sends a notification to the top left in Skyrim, if the player has logs enabled
+// Sends a notification to the top left in Skyrim, if the actor has logs enabled
 void SendNotification(std::string message)
 {
     if (VOX_ShowLog->value == 1) {
@@ -443,7 +438,7 @@ void SendNotification(std::string message)
 }
 
 #pragma region Player Morph Checks
-// Returns whether the player is in Werewolf form
+// Returns whether the actor is in Werewolf form
 bool IsPlayerWerewolf()
 {
     int currentWerewolfState = RE::TESQuest::LookupByEditorID<RE::TESQuest>("PlayerWerewolfQuest")->GetCurrentStageID();
@@ -455,7 +450,7 @@ bool IsPlayerWerewolf()
         return false;
 }
 
-// Returns whether the player is in Vampire Lord form
+// Returns whether the actor is in Vampire Lord form
 bool IsPlayerVampireLord()
 {
     int currentVampireLordState = RE::TESQuest::LookupByEditorID<RE::TESQuest>("DLC1PlayerVampireQuest")->GetCurrentStageID();
@@ -467,7 +462,7 @@ bool IsPlayerVampireLord()
         return false;
 }
 
-// Returns the player's current morph.  (0 = None)  (1 = Werewolf)  (2 = Vampire Lord)
+// Returns the actor's current morph.  (0 = None)  (1 = Werewolf)  (2 = Vampire Lord)
 int PlayerMorph()
 {
     if (IsPlayerWerewolf()) return 1;
@@ -490,7 +485,7 @@ void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, bool noti
          */
 
         // Get Actor Process to check for currently equipped items
-        RE::AIProcess* actorProcess = actor->GetActorRuntimeData().currentProcess;
+        //RE::AIProcess* actorProcess = actor->GetActorRuntimeData().currentProcess;
         std::vector<std::string> commands;
         std::string currentCommand;
 
@@ -546,7 +541,7 @@ void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, bool noti
         }
         else {
             logger::info("Item not equipped. Player does not know it");
-        }  // End check if player knows item
+        }  // End check if actor knows item
 
         // logger::info("Item Equipped");
     }
@@ -555,15 +550,15 @@ void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, bool noti
     }
 }
 
-// Unequip item from actor slot (only works for the player at the moment)
+// Unequip item from actor slot (only works for the actor at the moment)
 void UnEquipFromActor(RE::Actor* actor, ActorSlot hand)
 {
     // Unequipping functions
-    // Unequips a spell from the player's hand or power from their voice
+    // Unequips a spell from the actor's hand or power from their voice
     using spell = void(RE::BSScript::IVirtualMachine * a_vm, RE::VMStackID a_stack_id, RE::Actor * actor, RE::SpellItem * a_spell, uint32_t a_slot);
     const REL::Relocation<spell> un_equip_spell{REL::VariantID(227784, 54669, 0x984D00)};
 
-    // Unequips a shout from the player
+    // Unequips a shout from the actor
     using shout = void(RE::BSScript::IVirtualMachine * a_vm, RE::VMStackID a_stack_id, RE::Actor * actor, RE::TESShout * a_shout);
     const REL::Relocation<shout> un_equip_shout{REL::VariantID(53863, 54664, 0x984C60)};
 
@@ -690,10 +685,10 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int modifier
         // Spell
         else if (item->As<RE::SpellItem>()) {
             RE::MagicItem* spell = item->As<RE::MagicItem>();
-            int singleMagickaCost = spell->CalculateMagickaCost(actor);
-            int duelMagickaCost = singleMagickaCost * RE::GameSettingCollection::GetSingleton()->GetSetting("fMagicDualCastingCostMult")->GetFloat();
+            float singleMagickaCost = spell->CalculateMagickaCost(actor);
+            float duelMagickaCost = singleMagickaCost * RE::GameSettingCollection::GetSingleton()->GetSetting("fMagicDualCastingCostMult")->GetFloat();
             
-            int actorMagicka = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kMagicka);
+            float actorMagicka = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kMagicka);
             bool accountForDualPerk = false;
 
             bool canCastSingle = actorMagicka >= singleMagickaCost;
@@ -811,15 +806,15 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int modifier
     }//End is known item
     else {
         logger::info("Item not cast. Player does not know it");
-    }  // Determine if the player knows the item
+    }  // Determine if the actor knows the item
 
     return false;
 }
 
-// Asynconously casts a shout/power from the player
+// Asynconously casts a shout/power from the actor
 void CastVoice(RE::Actor* actor, RE::TESForm* item, int level)
 {
-    // Get the key the player designated as the key to press to activate shouts. Not automatic because VR says it's a controller button, which I can't press
+    // Get the key the actor designated as the key to press to activate shouts. Not automatic because VR says it's a controller button, which I can't press
     VOX_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_ShoutKey");
 
     // Manually inserted this becaue the timing needs to be perfect
@@ -831,7 +826,7 @@ void CastVoice(RE::Actor* actor, RE::TESForm* item, int level)
     /// ZeroMemory(&input, sizeof(input));
     input.type = INPUT_KEYBOARD;
     input.ki.dwFlags = KEYEVENTF_SCANCODE;
-    input.ki.wScan = VOX_ShoutKey->value;
+    input.ki.wScan = (WORD)VOX_ShoutKey->value;
 
     SendInput(1, &input, sizeof(INPUT));
 
@@ -874,12 +869,12 @@ void CastVoice(RE::Actor* actor, RE::TESForm* item, int level)
 std::vector<std::string> GetShoutList()
 {
     std::vector<std::string> shoutList;
-    auto playerSpells = player->GetActorBase()->GetSpellList();  // Obtain player spell data
-    RE::TESShout** playerShouts = playerSpells->shouts;          // Obtain all of player's known shouts
-    auto numberOfShouts = playerSpells->numShouts;               // Obtain number of player's known shouts
+    auto playerSpells = player->GetActorBase()->GetSpellList();  // Obtain actor spell data
+    RE::TESShout** playerShouts = playerSpells->shouts;          // Obtain all of actor's known shouts
+    int numberOfShouts = (int)playerSpells->numShouts;               // Obtain number of actor's known shouts
     /// logger::debug("Number of Known Shouts = {}", numberOfShouts);
     try {
-        for (int i = 0; i < numberOfShouts; i++) {            // Loop through each of the player's known shouts
+        for (int i = 0; i < numberOfShouts; i++) {            // Loop through each of the actor's known shouts
             RE::TESShout* shout = playerShouts[i];            // Capture the current shout at index i
             const char* shoutName = shout->fullName.c_str();  // Capture the name of the shout
             shoutList.push_back(shoutName);                   // Add the shoutName to the shoutList (thereby growing the list size)
@@ -890,7 +885,7 @@ std::vector<std::string> GetShoutList()
                 if (wordOfPower &&
                     (VOX_KnownShoutWordsOnly->value == 0 ||
                      wordOfPower->formFlags &
-                         0x10000)) {  // Check if current word of power is "shoutable" by player (both known AND unlocked) and if player wants to shout only known words
+                         0x10000)) {  // Check if current word of power is "shoutable" by actor (both known AND unlocked) and if actor wants to shout only known words
                     const char* wopName = wordOfPower->fullName.c_str();            // Capture name of known word of power (often contains L33T text)
                     std::string wopTranslation = wordOfPower->translation.c_str();  // Capture translation of known word of power
                     /// logger::debug("Shout \"{}\" Word {} = {} ({})", shoutName, j + 1, wopName, wopTranslation);
@@ -911,7 +906,7 @@ std::vector<std::string> GetShoutList()
 }
 
 // Get a list of Magic
-static std::string* GetActorMagic(RE::Actor* player, MagicType type1, MagicType type2, MagicType type3)
+static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType type2, MagicType type3)
 {
     int numTypes = 0;
     bool getSpells = false;
@@ -977,15 +972,15 @@ static std::string* GetActorMagic(RE::Actor* player, MagicType type1, MagicType 
 
     // If Spells or Powers
     if (getSpells || getPowers) {
-        int numSpells[2];
+        int numSpells[2] = {};
 
         // Get spells from Player Base
-        RE::SpellItem** baseSpells = player->GetActorBase()->GetSpellList()->spells;  // List of the player's spells.
-        numSpells[0] = player->GetActorBase()->GetSpellList()->numSpells;             // The number of spells the player has.
+        RE::SpellItem** baseSpells = actor->GetActorBase()->GetSpellList()->spells;  // List of the actor's spells.
+        numSpells[0] = actor->GetActorBase()->GetSpellList()->numSpells;             // The number of spells the actor has.
 
         // Get Spells from PlayerCharacter (all but Base)
-        RE::SpellItem** raceSpells = player->GetRace()->actorEffects->spells;  // List of the player's spells.
-        numSpells[1] = player->GetRace()->actorEffects->numSpells;             // The number of spells the player has.
+        RE::SpellItem** raceSpells = actor->GetRace()->actorEffects->spells;  // List of the actor's spells.
+        numSpells[1] = actor->GetRace()->actorEffects->numSpells;             // The number of spells the actor has.
 
         // Base Spells/Powers
         for (int i = 0; i < numSpells[0]; i++) {
@@ -1034,7 +1029,7 @@ static std::string* GetActorMagic(RE::Actor* player, MagicType type1, MagicType 
         }      // End Racial Spells/Powers
 
         // Obtained Spells/Powers
-        for (auto& spell : player->GetActorRuntimeData().addedSpells) {
+        for (auto& spell : actor->GetActorRuntimeData().addedSpells) {
             switch (spell->GetSpellType()) {
                 case RE::MagicSystem::SpellType::kSpell:
                     if (getSpells) {
@@ -1121,7 +1116,7 @@ static void SendKeyDown(int keycode)
     ZeroMemory(&input, sizeof(input));
     input.type = INPUT_KEYBOARD;
     input.ki.dwFlags = KEYEVENTF_SCANCODE;
-    input.ki.wScan = keycode;
+    input.ki.wScan = (WORD)keycode;
     SendInput(1, &input, sizeof(INPUT));
 }
 
@@ -1134,7 +1129,7 @@ static void SendKeyUp(int keycode)
     ZeroMemory(&input, sizeof(input));
     input.type = INPUT_KEYBOARD;
     input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
-    input.ki.wScan = keycode;
+    input.ki.wScan = (WORD)keycode;
 
     SendInput(1, &input, sizeof(INPUT));
 }
@@ -1143,13 +1138,13 @@ static void SendKeyUp(int keycode)
 static bool IsKeyDown(int keyCode)
 {
     int mouseOffset = 256;
-    int vrLeftOffset = null;
-    int vrRightOffset = null;
-    int gamepadOffset = null;
+    //int vrLeftOffset = null;
+    //int vrRightOffset = null;
+    //int gamepadOffset = null;
 
     // Mouse and keyboard input check
-    bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed(VOX_PushToSpeakKeyCode->value);
-    bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed(VOX_PushToSpeakKeyCode->value - mouseOffset);
+    bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed((uint32_t)keyCode);
+    bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed((uint32_t)keyCode - mouseOffset);
 
     //// VR controller input check
     // bool isLeftVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(VOX->value - vrLeftOffset);
@@ -1350,7 +1345,7 @@ void NavigateToLocation(std::string targetLocation)
     }
 }
 
-// Navigate to player's position on world map
+// Navigate to actor's position on world map
 void NavigateToPlayer()
 {
     auto playerRef = static_cast<RE::TESObjectREFR*>(player);
@@ -1359,7 +1354,7 @@ void NavigateToPlayer()
 }
 
 /// *** Work in progress
-// Navigate to player's custom world map marker
+// Navigate to actor's custom world map marker
 // void NavigateToCustomMarker() {
 //
 //    //https://discord.com/channels/535508975626747927/535530099475480596/1096307972902244423
@@ -1372,11 +1367,11 @@ void NavigateToPlayer()
 //    }
 //    auto test = PlayerCharacter->GetPlayerRuntimeData().questTargetsLock*/
 //
-//    //*** player's custom quest marker = playerMapMarker
+//    //*** actor's custom quest marker = playerMapMarker
 //
 //
-//    /*auto test = player->HasQuestObject();
-//    auto test3 = player->GetActorRuntimeData().;
+//    /*auto test = actor->HasQuestObject();
+//    auto test3 = actor->GetActorRuntimeData().;
 //    auto yes = test3.
 //    auto test2 = RE::BGSQuestObjective;*/
 //
@@ -1510,10 +1505,10 @@ void NavigateToPlayer()
 //             SendInput(1, &input, sizeof(INPUT));
 //             Sleep(1100);
 //
-//             // Get worldspace coordinates for player
-//             auto playerXPosition = (int)floor(player->GetPosition().x);
-//             auto playerYPosition = (int)floor(player->GetPosition().y);
-//             auto playerZPosition = (int)floor(player->GetPosition().z);
+//             // Get worldspace coordinates for actor
+//             auto playerXPosition = (int)floor(actor->GetPosition().x);
+//             auto playerYPosition = (int)floor(actor->GetPosition().y);
+//             auto playerZPosition = (int)floor(actor->GetPosition().z);
 //             std::string playerLocation = "Player = " + std::to_string(playerXPosition) + "," + std::to_string(playerYPosition) + "," + std::to_string(playerZPosition);
 //             SendNotification(playerLocation.c_str());
 //             logger::debug("{}", playerLocation);
@@ -1533,7 +1528,7 @@ void NavigateToPlayer()
 //             SendNotification(translateValues.c_str());
 //             logger::debug("{}", translateValues);
 //
-//             // Move map camera by inputted amount relative to player position
+//             // Move map camera by inputted amount relative to actor position
 //             auto scaler = 0.15/1000;
 //             const auto mapMenu = RE::UI::GetSingleton()->GetMenu<RE::MapMenu>().get();
 //             float cameraXOffset = xOffset * scaler;
@@ -1573,7 +1568,7 @@ void NavigateToPlayer()
 //             //// Zoom map camera by percentage (1 = 100% full zoom in, -1 = -100% full zoom out)
 //             //mapMenu->GetRuntimeData2().camera.zoomInput = -1;
 //
-//             //// Move map camera by inputted amount relative to player position
+//             //// Move map camera by inputted amount relative to actor position
 //             //mapMenu->GetRuntimeData2().camera.translationInput.x = 10000;
 //             //mapMenu->GetRuntimeData2().camera.translationInput.y = 10000;
 //             //mapMenu->GetRuntimeData2().camera.translationInput.z = 10000;
@@ -1621,4 +1616,11 @@ void NavigateToPlayer()
 //         container = refr.get();
 //     }
 
+//// Player's last recorded Mount
+//struct Mount
+//{
+//    static const int None = 0;
+//    static const int Horse = RE::CameraState::kMount;
+//    static const int Dragon = RE::CameraState::kDragon;
+//};
 #pragma endregion

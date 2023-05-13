@@ -43,12 +43,11 @@ void ExecuteCommand(Command command);
 
 #pragma region Global Variables
 std::string id = "";
-int currentMorph = Morph::Player;
-bool currentVocalPTS;
+int currentPushToSpeakType;
 float currentSensitivity;
 float currentAutoCastShouts;
 float currentAutoCastPowers;
-int numMagic[] = {0, 0};
+uint32_t numMagic[] = {0, 0};
 std::string knownShouts = "";
 std::string currentShouts = "";
 std::string knownCommand = "";
@@ -115,15 +114,14 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
             case SKSE::MessagingInterface::kPostLoad:
                 ConfigureWebsocketPort();  // Write target websocket port to file, which will be read by speech recognition application
                 LaunchSpeechRecoApp();     // Launch the companion speech recognition application
-                /// MessageBoxA(NULL, "Attach Voxima plugin debugger to Skyrim game process now. Press OK when you're ready!", "Skyrim Voxima (C++)", MB_OK | MB_ICONQUESTION);  //
-                /// MessageBox to halt execution so a debugger can be attached
+
                 if (REL::Module::IsVR()) {
                     logger::debug("SKSE PostLoad message received, registering for PapyrusVR messages from SkyrimVRTools");
                     SKSE::GetMessagingInterface()->RegisterListener("SkyrimVRTools", OnPapyrusVRMessage);
                 }
                 break;
 
-            // Data handler has loaded all its forms (Main menu has loaded???)
+            // Data handler has loaded all its forms (Main menu has loaded)
             case SKSE::MessagingInterface::kDataLoaded:
                 InitializeWebSocketClient();           // Initialize the websocket client owned by the plugin
                 InitializeLoadGameHooking();           // Setup game load event monitoring
@@ -161,13 +159,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
                 InitialUpdate();                                                  // Run initial data update
                 break;
 
-            //// Save game has been loaded
-            // case SKSE::MessagingInterface::kPostLoadGame:
-            //     logger::debug("Saved game loaded!!");
-            //     CheckUpdate();
-            //     break;
-
-            // Save Game as been created (manual or autosave)
+            // Save Game as been created (manual, autosave, or new game)
             case SKSE::MessagingInterface::kSaveGame:
                 if (saveTriggered == false) {
                     saveTriggered = true;
@@ -207,11 +199,46 @@ void InitialUpdate()
         VOX_KnownShoutWordsOnly = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_KnownShoutWordsOnly");
 
         // C++ --> C# Variables
-        // VOX_VocalPushToSpeak = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_VocalPushToSpeak");
         VOX_Sensitivity = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_Sensitivity");
         currentSensitivity = VOX_Sensitivity->value;
         currentAutoCastShouts = VOX_AutoCastShouts->value;
         currentAutoCastPowers = VOX_AutoCastPowers->value;
+
+
+
+        //Initialise player-based variables
+        switch (PlayerMount()) {
+            case 0:
+                SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "mount\tnone");
+                break;
+
+            case 1:
+                logger::debug("Player started on a Horse!!");
+                SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "mount\thorse");
+                break;
+
+            case 2:
+                logger::debug("Player started on a Dragon!!");
+                SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "mount\tdragon");
+                break;
+        }
+
+        switch (PlayerMorph()) {
+            case 0:
+                SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\tnone");
+                break;
+
+            case 1:
+                logger::debug("Player started as a werewolf!!");
+                SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\werewolf");
+                break;
+
+            case 2:
+                logger::debug("Player started as a Vampire Lord!!");
+                SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\tvampirelord");
+                break;
+        }
+
     }
     catch (const std::exception& ex) {
         logger::error("ERROR during InitialUpdate: {}", ex.what());
@@ -251,19 +278,16 @@ void CheckUpdate(bool loop, bool isAsync)
                 if (loop)
                     std::this_thread::sleep_for(std::chrono::seconds(5));  // 5 second delay to not loop unnecessarily. See Bottom of page Note (1)
                 else {
-                    SendMessage("disable recognition");
+                    SendMessage(WebSocketMessage::DisableRecognition);
                     isRecognitionEnabled = false;
                 }
 
                 continue;
             }
             else if (VOX_Enabled->value == 1 && !isRecognitionEnabled) {
-                SendMessage("enable recognition");
+                SendMessage(WebSocketMessage::EnableRecognition);
                 isRecognitionEnabled = true;
             }
-            // Have the C# program recieve the above messages and enable/disable recognition accordingly*****
-
-            // VOX_PushToSpeak
 
             fileUpdate = false;
             fullUpdate = false;
@@ -275,7 +299,7 @@ void CheckUpdate(bool loop, bool isAsync)
                 numMagic[0] = player->GetActorRuntimeData().addedSpells.size();
 
                 // Checks for a change in the number Spells or Powers
-                int currentSpells = 0;
+                uint32_t currentSpells = 0;
                 for (RE::SpellItem* item : player->GetActorRuntimeData().addedSpells) {
                     switch (item->GetSpellType()) {
                         case RE::MagicSystem::SpellType::kSpell:
@@ -294,70 +318,17 @@ void CheckUpdate(bool loop, bool isAsync)
                 }
             }
 
-            //-----Current Morph-----//
-
-            // Werewolf
-            if (IsPlayerWerewolf()) {  // If Werewolf
-                if (currentMorph != Morph::Werewolf) {
-                    currentMorph = Morph::Werewolf;
-                    logger::info("Sending \"Werewolf\" Morph to C#");
-                    std::this_thread::sleep_for(std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
-                    fileUpdate = true;
-                }
-                currentMorph = Morph::Werewolf;  ///*** is this needed?
-
-                // Vampire Lord
-            }
-            else if (IsPlayerVampireLord()) {  // If Vampire Lord
-                if (currentMorph != Morph::VampireLord) {
-                    currentMorph = Morph::VampireLord;
-                    logger::info("Sending \"Vampire Lord\" Morph to C#");
-                    std::this_thread::sleep_for(std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
-                    fullUpdate = true;
-                }
-                currentMorph = Morph::VampireLord;  ///*** is this needed?
-
-                // "Normal" player morph
-            }
-            else if (currentMorph != Morph::Player) {  // If not a morph but marked as one
-                currentMorph = Morph::Player;
-                logger::info("Sending \"Reverting Morph\" to C#");
-                std::this_thread::sleep_for(std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
-                fullUpdate = true;
-            }
-
-            //-----Current Mount-----//
-            switch (PlayerMount()) {
-                case 0:  // None
-                    if (currentMount != Mount::None) {
-                        currentMount = Mount::None;
-                        logger::info("Sending \"None\" riding to C#");
-                        fileUpdate = true;
-                    }
-                    currentMount = Mount::None;  ///*** is this needed?
-                    break;
-                case 1:  // Horse
-                    if (currentMount != Mount::Horse) {
-                        currentMount = Mount::Horse;
-                        logger::info("Sending \"Horse\" riding to C#");
-                        fileUpdate = true;
-                    }
-                    currentMount = Mount::Horse;  ///*** is this needed?
-                    break;
-                case 2:  // Dragon
-                    if (currentMount != Mount::Dragon) {
-                        currentMount = Mount::Dragon;
-                        logger::info("Sending \"Dragon\" riding to C#");
-                        fileUpdate = true;
-                    }
-                    currentMount = Mount::Dragon;  ///*** is this needed?
-                    break;
-            }
-
+           
             //-----MCM-----//
-            if (currentVocalPTS && VOX_PushToSpeakType->value != 3 || !currentVocalPTS && VOX_PushToSpeakType->value == 3) {
-                currentVocalPTS = !currentVocalPTS;
-                logger::info("Sending \"VOX_VocalPushToSpeak = {}\" to C#", currentVocalPTS);
+            #pragma region MCM Settings
+            if (currentPushToSpeakType != (int)VOX_PushToSpeakType->value) {
+                if (currentPushToSpeakType == 3 || VOX_PushToSpeakType->value == 3) {
+                    logger::info("Sending \"VOX_VocalPushToSpeak = {}\" to C#", VOX_PushToSpeakType->value);
+                }
+
+                SendMessage(WebSocketMessage::DisableRecognition);
+
+                currentPushToSpeakType = (int)VOX_PushToSpeakType->value;
                 fileUpdate = true;
             }
 
@@ -386,13 +357,15 @@ void CheckUpdate(bool loop, bool isAsync)
                 currentShouts = "";
                 fullUpdate = true;
             }
+            #pragma endregion
+
 
             knownShouts = GetActorMagic(player, MagicType::Shout)[0];  // Obtain currently known shouts
 
             if (knownShouts != currentShouts) {  // Check if there is an update to the shouts
                 currentShouts = knownShouts;
                 logger::info("Updating Shouts");
-                SendMessage("update shouts\n" + knownShouts);
+                SendMessage(WebSocketMessage::UpdateShouts + knownShouts);
                 fullUpdate = true;
             }  // End Shout Check
 
@@ -402,7 +375,7 @@ void CheckUpdate(bool loop, bool isAsync)
                 std::string locationsMessage = "";
                 std::string currentMarker;
 
-                for (auto playerMapMarker : currentLocations) {
+                for (std::string playerMapMarker : currentLocations) {
                     locationsMessage += playerMapMarker + "\n";
                 }
                 logger::info("{}", locationsMessage);
@@ -441,38 +414,11 @@ void Update(std::string update)
         std::string updatePowers = "";
         std::transform(type.begin(), type.end(), type.begin(), [](unsigned char c) { return std::tolower(c); });  // sets type.ToLower()
 
-        if (type == "werewolf")  // Morph
-            finished = true;
-        else if (type == "file") {
-            logger::info("Updating C++ -> C# File (PlayerInfo.txt)");
-            finished = true;
-        }
-        else if (type == "")
-            logger::info("Updating Everything");
-
-        // Update PlayerInfo File
-        switch (currentMorph) {
-            case Morph::Werewolf:
-                updateFile = "werewolf\ttrue\n";
-                break;
-            case Morph::VampireLord:
-                updateFile = "vampirelord\ttrue\n";
-                break;
-            default:
-                updateFile = "";
-                break;
-        }
-
-        switch (currentMount) {
-            case Mount::Horse:
-                updateFile += "horseriding\ttrue\n";
-                break;
-            case Mount::Dragon:
-                updateFile += "dragonriding\ttrue\n";
-                break;
-        }
-
-        if (currentVocalPTS) updateFile += "VOX_VocalPushToSpeak\t" + std::to_string(currentVocalPTS) + "\n ";
+        
+        if (currentPushToSpeakType == 3)
+            updateFile += "VOX_VocalPushToSpeak\t" + std::to_string(true) + "\n";
+        else
+            updateFile += "VOX_VocalPushToSpeak\t" + std::to_string(false) + "\n";
 
         if (VOX_AutoCastShouts->value == 1)
             updateFile += "VOX_AutoCastShouts\ttrue\n";
@@ -587,15 +533,8 @@ void ProcessReceivedMessage(const string& command)
         switch (PlayerMorph()) {
             case 0:
                 if (currentCommand.Morph != "none") {
-                    switch (PlayerMount()) {
-                        case 0:  // No mount, meaning the player is either Werewolf or Vampire Lord
-                            logger::info("Command Ignored. Mismatched Morph. (Current: none) (Command: {})", currentCommand.Morph);
-                            return;
-
-                        case 1:  // Horse
-                        case 2:  // Dragons
-                            break;
-                    }
+                    logger::info("Command Ignored. Mismatched Morph. (Current: none) (Command: {})", currentCommand.Morph);
+                    return;
                 }
                 break;
 
@@ -616,8 +555,6 @@ void ProcessReceivedMessage(const string& command)
 
         logger::info("Executing Command");
 
-        // std::jthread update(ExecuteCommand, currentCommand, true);
-        // update.detach();
         ExecuteCommand(currentCommand);
     }
     catch (exception ex) {
@@ -645,7 +582,7 @@ void ExecuteCommand(Command command)
 
                 RE::SpellItem* item = RE::TESForm::LookupByID<RE::SpellItem>(currentCommand.ID);
 
-                if (item->GetName() == NULL || item->GetName() == "") {
+                if (item->GetName() == nullptr || item->GetName() == "") {
                     logger::info("Spell is NULL");
                     return;
                 }
@@ -746,8 +683,6 @@ void ExecuteCommand(Command command)
                     CastMagic(player, item, ActorSlot::Voice, currentCommand.Hand);
                 else
                     EquipToActor(player, item, ActorSlot::Voice);
-
-                // Keybind
             }
 
             // Setting
@@ -889,7 +824,8 @@ void ExecuteCommand(Command command)
                 if (currentCommand.Morph != "horseriding") {
                     if (currentCommand.KeybindDuration >= 0) {
                         PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
+                        if (currentCommand.ID != 63)
+                            SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));  // The if-statement is there to prevent the "quick save" keybind from showing
                     }
                     else
                         switch (currentCommand.KeybindDuration) {
@@ -975,9 +911,13 @@ void ExecuteCommand(Command command)
                             break;
 
                         default:  // Not a command for controlling the horse
-                            if (currentCommand.KeybindDuration >= 0)
+                            if (currentCommand.KeybindDuration >= 0) {
                                 PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                            else
+                                if (currentCommand.ID != 63)
+                                    SendNotification("Keybind Press: " +
+                                                     std::to_string(currentCommand.ID));  // The if-statement is there to prevent the "quick save" keybind from showing
+                            }
+                            else {
                                 switch (currentCommand.KeybindDuration) {
                                     case -1:
                                         SendKeyDown(currentCommand.ID);
@@ -992,6 +932,7 @@ void ExecuteCommand(Command command)
                                         SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
                                         break;
                                 }
+                            }
                     }
                 }
             }
@@ -1000,19 +941,19 @@ void ExecuteCommand(Command command)
             else if (currentCommand.Type == "console") {
                 try {
                     SendNotification("Console: " + currentCommand.Name);
-                    std::string command = currentCommand.Name;
+                    std::string name = currentCommand.Name;
                     std::string line = "";
                     std::string count = "";
                     std::vector<std::string> list;
 
-                    for (int i = 0; i < command.length(); i++) {
-                        for (line = ""; i < command.length() && command[i] != '+' && command[i] != '*'; i++) {
-                            line += command[i];
+                    for (int i = 0; i < name.length(); i++) {
+                        for (line = ""; i < name.length() && name[i] != '+' && name[i] != '*'; i++) {
+                            line += name[i];
                         }
 
-                        if (command[i] == '*') {
-                            for (i++, count = ""; i < command.length() && command[i] != '+'; i++) {
-                                count += command[i];
+                        if (name[i] == '*') {
+                            for (i++, count = ""; i < name.length() && name[i] != '+'; i++) {
+                                count += name[i];
                             }
 
                             for (int j = std::stoi(count); j > 0; j--) {
@@ -1080,14 +1021,34 @@ void Anim::Events::AnimationEvent(const char* holder, const char* name)
         case "weaponDraw"_h:
             logger::debug("Weapon has been drawn!!");
             break;
+
         case "weaponSheathe"_h:
             logger::debug("Weapon has been sheathed!!");
             break;
+
         case "MountEnd"_h:
-            logger::debug("Player is now mounted!!");
+
+            switch (PlayerMount())
+            {
+                case 1:
+                    logger::debug("Player has mounted a Horse!!");
+                    SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "mount\thorse");
+                    break;
+
+                case 2:
+                    logger::debug("Player has mounted a Dragon!!");
+                    SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "mount\tdragon");
+                    break;
+            }
+            
+            SendMessage(WebSocketMessage::InitializeUpdate);
+
             break;
+
         case "StopHorseCamera"_h:
             logger::debug("Player is now dismounted!!");
+            SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "mount\tnone");
+            SendMessage(WebSocketMessage::InitializeUpdate);
             // Stop all residual movement from horse controls
             SendKeyUp(17);  // Direction (N)
             SendKeyUp(32);  // Direction (E)
@@ -1096,6 +1057,7 @@ void Anim::Events::AnimationEvent(const char* holder, const char* name)
             SendKeyUp(30);  // Direction (W)
             SendKeyUp(42);  // Sprint    (Shift)
             break;
+
         default:
             return;
     }
@@ -1136,7 +1098,30 @@ void SpellLearnedEvent::EventHandler::SpellLearned(const RE::SpellItem* const sp
 // Executes when player's morph changes
 void MorphEvents::EventHandler::MorphChanged()
 {
-    logger::debug("Player morph changed!!");
+    // Werewolf
+    if (IsPlayerWerewolf())
+    {
+        logger::debug("Player Morphed into Werewolf");
+        SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\werewolf");
+    }
+
+    // Vampire Lord
+    else if (IsPlayerVampireLord())
+    {
+        logger::debug("Player Morphed into Vampire Lord");
+        SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\tvampirelord");
+    }
+
+    // "Normal" player morph
+    else
+    {
+        logger::debug("Player Reverted their Morph");
+        SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\tnone");
+    }
+
+    SendMessage(WebSocketMessage::InitializeUpdate);
+    
+    std::this_thread::sleep_for(std::chrono::seconds(1));  // Delay update one second to allow everything to update. This prevents stacking updates on C#
     CheckUpdate();  // Call method to check for game data updates
 }
 
@@ -1193,9 +1178,9 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
             menuName = RE::MapMenu::MENU_NAME;
 
             if (event->opening)
-                SendMessage("enable location commands");
+                SendMessage(WebSocketMessage::EnableLocationCommands);
             else
-                SendMessage("disable location commands");
+                SendMessage(WebSocketMessage::DisableLocationCommands);
             break;
 
         case MenuType::Skills:
@@ -1264,8 +1249,6 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
 
 #pragma region Flatrim Device Input Processing
 
-bool pushToSpeakListening = false;
-
 // Executes when "Flatrim" (non-VR Skyrim) input device events are received
 void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode)
 {
@@ -1328,7 +1311,6 @@ SKSEPluginLoad(const SKSE::LoadInterface* skse)
         SetupLog();  // Set up the debug logger
 
         SKSE::GetMessagingInterface()->RegisterListener(OnMessage);  // Listen for game messages (usually "Is Game Loaded" comes first) and execute OnMessage method in response
-        logger::info("Voxima finished loading");                     // Temporary debug line so I can see the program started
         return true;
     }
     catch (exception ex) {
@@ -1337,12 +1319,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* skse)
     }
 }  // End SKSEPluginLoad
 
-// Notes
-/*
-(1) I may be able to change this an event that is triggered, so if VOX_Enabled is 0, the loop will break. If VOX_Enabled is set to 1, the function is
-called again, starting the loop
 
-*/
 
 #pragma region Archive
 
