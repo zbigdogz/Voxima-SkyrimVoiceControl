@@ -39,6 +39,7 @@ void InitialUpdate();
 void CheckUpdate(bool loop = false, bool isAsync = false);
 void Update(std::string update = "");
 void ExecuteCommand(Command command);
+void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonId, PapyrusVR::VRDevice deviceId);
 #pragma endregion
 
 #pragma region Global Variables
@@ -1301,6 +1302,68 @@ void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEve
 
 #pragma endregion "Flatrim" device input triggers for speech recognition listening
 
+#pragma region VR Device Input Processing
+
+bool vrPushToSpeakListening = false;
+
+// Legacy API event handlers
+void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonId, PapyrusVR::VRDevice deviceId)
+{
+    if (VOX_PushToSpeakType->value == 0 ||
+        buttonId != VOX_PushToSpeakKeyCode->value)  // Check if PushToSpeak is disabled OR triggering buttonId does NOT match target input value from VOX MCM
+        return;                                     // Exit this method
+
+    if (VOX_PushToSpeakType->value == 1)  // VOX_PushToSpeakType mode requires trigger to be held
+    {
+        if (type == PapyrusVR::VREventType_Pressed)
+        {
+            logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
+            if (vrPushToSpeakListening == false)
+            {
+                vrPushToSpeakListening = true;
+                SendMessage(WebSocketMessage::EnableRecognition);
+                SendNotification("SkyrimVR Input Pressed - Start Listening!");
+            }
+        }
+        else if (type == PapyrusVR::VREventType_Released)
+        {
+            logger::debug("VR Button release deviceId: %d buttonId: %d", deviceId, buttonId);
+            if (vrPushToSpeakListening == true)
+            {
+                vrPushToSpeakListening = false;
+                SendMessage(WebSocketMessage::DisableRecognition);
+                SendNotification("SkyrimVR Input Released - Stop Listening!");
+            }
+        }
+    }
+    else if (VOX_PushToSpeakType->value == 2)  // VOX_PushToSpeakType mode has trigger acting as a toggle
+    {
+        if (type == PapyrusVR::VREventType_Released)
+        {
+            logger::debug("VR Button release deviceId: %d buttonId: %d", deviceId, buttonId);
+            if (vrPushToSpeakListening == false)
+            {
+                SendMessage(WebSocketMessage::EnableRecognition);
+                SendNotification("SkyrimVR Input Released - Start Listening!");
+            }
+            else
+            {
+                SendMessage(WebSocketMessage::DisableRecognition);
+                SendNotification("SkyrimVR Input Released - Stop Listening!");
+            }
+            vrPushToSpeakListening = !vrPushToSpeakListening;
+        }
+    }
+
+    //// Use button presses here
+    // if (type == PapyrusVR::VREventType_Pressed) {
+    //     logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
+    // } else if (type == PapyrusVR::VREventType_Released) {
+    //     logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
+    // }
+}
+
+#pragma endregion SkyrimVR device input triggers for speech recognition listening
 
 // Initializes Plugin, Speech Recognition, Websocket, and data tracker
 SKSEPluginLoad(const SKSE::LoadInterface* skse)
