@@ -1138,13 +1138,15 @@ static void SendKeyUp(int keycode)
 static bool IsKeyDown(int keyCode)
 {
     int mouseOffset = 256;
-    //int vrLeftOffset = null;
-    //int vrRightOffset = null;
+    int vrRightOffset = 410;
+    int vrLeftOffset = 474;
     //int gamepadOffset = null;
 
     // Mouse and keyboard input check
     bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed((uint32_t)keyCode);
     bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed((uint32_t)keyCode - mouseOffset);
+    bool isVrRightDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed((uint32_t)keyCode - vrRightOffset);
+    bool isVrLeftDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed((uint32_t)keyCode - vrLeftOffset);
 
     //// VR controller input check
     // bool isLeftVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(VOX->value - vrLeftOffset);
@@ -1153,7 +1155,7 @@ static bool IsKeyDown(int keyCode)
     //// Gamepad input check
     // bool isGamepadKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetGamepad()->IsPressed(VOX_PushToSpeak->value - gamepadOffset);
 
-    return (isKeyboardKeyDown || isMouseKeyDown);
+    return (isKeyboardKeyDown || isMouseKeyDown || isVrRightDown || isVrLeftDown);
 }
 #pragma endregion Control whether a key is down for Keyboard, Mouse, Gamepad, or VR 
 
