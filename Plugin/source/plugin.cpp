@@ -1269,9 +1269,8 @@ void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEve
         [3] = Vocal
     */
 
-    if (VOX_PushToSpeakType->value == 0 || VOX_PushToSpeakType->value == 3 ||
-        keyCode != VOX_PushToSpeakKeyCode->value)  // Check if PushToSpeak is disabled OR triggering keyCode does NOT match target input value from VOX MCM
-        return;                                    // Exit this method
+    if (VOX_PushToSpeakType->value == 0 || VOX_PushToSpeakType->value == 3 || keyCode != VOX_PushToSpeakKeyCode->value)  // Check if PushToSpeak is disabled OR triggering keyCode does NOT match target input value from VOX MCM
+        return; // Exit this method
 
     if (VOX_PushToSpeakType->value == 1) {  // Button must be Held
         thread([button]() {                 // Create new thread for execution (passing in button)
@@ -1280,8 +1279,7 @@ void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEve
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
             //SendNotification("Flatrim Input released - Stop Listening!");
             SendMessage(WebSocketMessage::DisableRecognition);
-        })
-            .detach();
+        }).detach();
     }
     else if (VOX_PushToSpeakType->value == 2) {  // Button toggles
         thread([button]() {                      // Create new thread for execution (passing in button)
@@ -1296,8 +1294,7 @@ void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEve
                 SendMessage(WebSocketMessage::DisableRecognition);
             }
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
-        })
-            .detach();
+        }).detach();
     }
 }
 
