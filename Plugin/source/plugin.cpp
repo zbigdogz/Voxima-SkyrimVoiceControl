@@ -762,27 +762,42 @@ void ExecuteCommand(Command command)
                     // SendNotification("Opening Level Up");
 #pragma endregion
 
-#pragma region Save /Load Game
+#pragma region Save/Load Game
                 }
                 else if (currentCommand.Name == "quick save") {
+                    // Spoof button input to perform a quick save
+                    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "quicksave", 0, 1.0f, 0.0f);
+                        bsInputEventQueue->PushOntoInputQueue(kEvent);
+                        SendNotification("Created new quick save");
+                    }
 
-                    //This is unsused, as a keybind works much better and more reliable
+                    /*
+                    // This is unsused, as a keybind works much better and more reliable
 
-                    //Get "Quick Save" to work properly. I don't want to need to use keybinds for it. The commented out functionality is inconsistent on Flatrim and crashes VR
+                    // Get "Quick Save" to work properly. I don't want to need to use keybinds for it. The commented out functionality is inconsistent on Flatrim and crashes VR
 
-                    //player->GetCurrentLocation();
-                    //const char* saveGameName = ("Voxima Quick Save - " + (std::string)player->GetCurrentLocation()->GetName()).c_str();
-                    //RE::BGSSaveLoadManager::GetSingleton()->Save(saveGameName);
+                    // player->GetCurrentLocation();
+                    // const char* saveGameName = ("Voxima Quick Save - " + (std::string)player->GetCurrentLocation()->GetName()).c_str();
+                    // RE::BGSSaveLoadManager::GetSingleton()->Save(saveGameName);
 
-                    //PressKey(63); Alternative method of presing "F5"
-                    
+                    // PressKey(63); Alternative method of presing "F5"
 
-                    
-                    //SendNotification("Saving Game");
+                    // SendNotification("Saving Game");
+                    */
                 }
                 else if (currentCommand.Name == "quick load") {
+                    
+                    // Loads most recent save file
                     RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
-                    SendNotification("Loading Game");
+                    SendNotification("Loading most recent save");
+
+                    /* // Spoof button input to load most recent quick save file
+                    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "quickload", 0, 1.0f, 0.0f);
+                        bsInputEventQueue->PushOntoInputQueue(kEvent);
+                        SendNotification("Loading most recent quick save");
+                    } */
                 }
 #pragma endregion
 
@@ -825,8 +840,7 @@ void ExecuteCommand(Command command)
                 if (currentCommand.Morph != "horseriding") {
                     if (currentCommand.KeybindDuration >= 0) {
                         PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                        if (currentCommand.ID != 63)
-                            SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));  // The if-statement is there to prevent the "quick save" keybind from showing
+                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
                     }
                     else
                         switch (currentCommand.KeybindDuration) {
@@ -914,9 +928,7 @@ void ExecuteCommand(Command command)
                         default:  // Not a command for controlling the horse
                             if (currentCommand.KeybindDuration >= 0) {
                                 PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                                if (currentCommand.ID != 63)
-                                    SendNotification("Keybind Press: " +
-                                                     std::to_string(currentCommand.ID));  // The if-statement is there to prevent the "quick save" keybind from showing
+                                SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
                             }
                             else {
                                 switch (currentCommand.KeybindDuration) {
