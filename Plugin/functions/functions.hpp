@@ -1361,6 +1361,49 @@ public:
     uint32_t refHandle;  // 10
 };
 
+// Convert string to title case
+std::string Title_Case(const std::string A)
+{
+    std::string B = "";
+
+    int pos = 0;
+    int pre_pos = 0;
+
+    pos = A.find(' ', pre_pos);
+
+    while (pos != std::string::npos) {
+        std::string sub = "";
+
+        sub = A.substr(pre_pos, (pos - pre_pos));
+
+        if (pre_pos != pos) {
+            sub = A.substr(pre_pos, (pos - pre_pos));
+        }
+        else {
+            sub = A.substr(pre_pos, 1);
+        }
+
+        sub[0] = toupper(sub[0]);
+        B += sub + A[pos];
+
+        if (pos < (A.length() - 1)) {
+            pre_pos = (pos + 1);
+        }
+        else {
+            pre_pos = pos;
+            break;
+        }
+
+        pos = A.find(' ', pre_pos);
+    }
+
+    std::string sub = A.substr(pre_pos, std::string::npos);
+    sub[0] = toupper(sub[0]);
+    B += sub;
+
+    return B;
+}
+
 // Retrieve all map markers in the game (courtesy of Nightfallstorm)
 RE::BSTArray<RE::ObjectRefHandle>* GetPlayerMapMarkers()
 {
@@ -1451,7 +1494,7 @@ void NavigateToLocation(std::string targetLocation)
     RE::TESObjectREFR* mapMarkerRef = IsLocationKnown(targetLocation);
     if (mapMarkerRef != NULL) {
         std::string result = "Navigating to " + targetLocation;
-        SendNotification("Location: " + targetLocation);
+        SendNotification("Location: " + Title_Case(targetLocation));
         logger::info("{}", result);
         FocusOnMapMarker(mapMarkerRef);
     }
@@ -1478,29 +1521,53 @@ void NavigateToPlayer()
     SendNotification("Location: Player"); */
 }
 
-/// *** Work in progress
-// Navigate to actor's custom world map marker
-// void NavigateToCustomMarker() {
-//
-//    //https://discord.com/channels/535508975626747927/535530099475480596/1096307972902244423
-//
-//    /*SendNotification("place marker");
-//
-//    auto PlayerCharacter = RE::PlayerCharacter::GetSingleton();
-//    if (!PlayerCharacter) {
-//        return;
-//    }
-//    auto test = PlayerCharacter->GetPlayerRuntimeData().questTargetsLock*/
-//
-//    //*** actor's custom quest marker = playerMapMarker
-//
-//
-//    /*auto test = actor->HasQuestObject();
-//    auto test3 = actor->GetActorRuntimeData().;
-//    auto yes = test3.
-//    auto test2 = RE::BGSQuestObjective;*/
-//
-//}
+/*
+void NavigateToCurrentQuest()
+{
+    // https://discord.com/channels/535508975626747927/535530099475480596/1096307972902244423
+
+    if (!player) {
+        return;
+    }
+
+    // Doesn't currently work on Clib-NG for VR (5/17/23)
+    RE::BSSpinLockGuard TargetLock{player->GetPlayerRuntimeData().questTargetsLock};
+    for (auto& [quest, targets] : player.questTargets) {
+        if (!quest || !targets) {
+            continue;
+        }
+
+        if (!quest->IsActive()) {
+            continue;
+        }
+
+        for (auto target : *targets) {
+            if (!target) {
+                continue;
+            }
+
+            RE::BSWriteLockGuard AliasLock{quest->aliasAccessLock};
+            // either
+            {
+                auto handle = quest->refAliasMap.find(target->alias);
+                if (handle != quest->refAliasMap.end()) {
+                    handle->second;  // ObjectRefHandle
+                }
+            }
+            // or, I'm not sure
+            {
+                if (quest->aliases.size() < target->alias) {
+                    if (auto baseAlias = quest->aliases[target->alias]) {
+                        auto handle = quest->refAliasMap.find(baseAlias->aliasID);
+                        if (handle != quest->refAliasMap.end()) {
+                            handle->second;  // ObjectRefHandle
+                        }
+                    }
+                }
+            }
+        }
+    }
+} */
 
 // Place custom player marker when looking at map (or open UI dialog to manipulate an existing player marker)
 void PlaceMarker() {

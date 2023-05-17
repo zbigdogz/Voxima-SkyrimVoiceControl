@@ -787,10 +787,9 @@ void ExecuteCommand(Command command)
                     */
                 }
                 else if (currentCommand.Name == "quick load") {
-                    
                     // Loads most recent save file
-                    RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
                     SendNotification("Loading most recent save");
+                    RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
 
                     /* // Spoof button input to load most recent quick save file
                     if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
