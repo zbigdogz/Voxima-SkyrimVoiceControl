@@ -688,8 +688,107 @@ void ExecuteCommand(Command command)
 
             // Setting
             else if (currentCommand.Type == "setting") {
-#pragma region Clear Hands /Voice
-                if (currentCommand.Name == "clear hands") {
+            #pragma region UI and Menu Controls
+
+                #pragma region Map Controls
+                if (currentCommand.Name == "open map") {
+                    MenuInteraction(MenuType::Map, MenuAction::Open);
+                    // SendNotification("Opening Map");
+                }
+                else if (currentCommand.Name == "close map") {
+                    MenuInteraction(MenuType::Map, MenuAction::Close);
+                    // SendNotification("Closing Map");
+                }
+                #pragma endregion
+
+                #pragma region Journal Controls
+                else if (currentCommand.Name == "open journal") {
+                    MenuInteraction(MenuType::Journal, MenuAction::Open);
+                    // SendNotification("Opening Journal");
+                }
+                else if (currentCommand.Name == "close journal") {
+                    MenuInteraction(MenuType::Journal, MenuAction::Close);
+                    // SendNotification("Closing Journal");
+                }
+                #pragma endregion
+
+                #pragma region Inventory Controls
+                else if (currentCommand.Name == "open inventory") {
+                    MenuInteraction(MenuType::Inventory, MenuAction::Open);
+                    // SendNotification("Opening Inventory");
+                }
+                else if (currentCommand.Name == "close inventory") {
+                    MenuInteraction(MenuType::Inventory, MenuAction::Close);
+                    // SendNotification("Closing Inventory");
+                }
+                #pragma endregion
+
+                #pragma region Spellbook Controls
+                else if (currentCommand.Name == "open spellbook") {
+                    MenuInteraction(MenuType::Magic, MenuAction::Open);
+                    // SendNotification("Opening Spellbook");
+                }
+                else if (currentCommand.Name == "close spellbook") {
+                    MenuInteraction(MenuType::Magic, MenuAction::Close);
+                    // SendNotification("Closing Spellbook");
+                }
+                #pragma endregion
+
+                #pragma region Skills Controls
+                else if (currentCommand.Name == "open skills") {
+                    MenuInteraction(MenuType::Skills, MenuAction::Open);
+                    // SendNotification("Opening Skills");
+                }
+                else if (currentCommand.Name == "close skills") {
+                    MenuInteraction(MenuType::Skills, MenuAction::Close);
+                    // SendNotification("Closing Skills");
+                }
+                #pragma endregion
+
+                #pragma region Level Up Controls
+                else if (currentCommand.Name == "open levelup") {
+                    MenuInteraction(MenuType::LevelUp, MenuAction::Open);
+                    // SendNotification("Opening Level Up");
+                }
+                #pragma endregion
+
+                #pragma region Favorites Controls
+                else if (currentCommand.Name == "open favorites") {
+                    MenuInteraction(MenuType::Favorites, MenuAction::Open);
+                    // SendNotification("Opening Favorites");
+                }
+                else if (currentCommand.Name == "close favorites") {
+                    MenuInteraction(MenuType::Favorites, MenuAction::Close);
+                    // SendNotification("Closing Favorites");
+                }
+                #pragma endregion
+
+                #pragma region Wait Controls
+                else if (currentCommand.Name == "open wait") {
+                    MenuInteraction(MenuType::SleepWait, MenuAction::Open);
+                    // SendNotification("Opening Wait");
+                }
+                else if (currentCommand.Name == "close wait") {
+                    MenuInteraction(MenuType::SleepWait, MenuAction::Close);
+                    // SendNotification("Closing Wait");
+                }
+                #pragma endregion
+
+                #pragma region Console Controls
+                else if (currentCommand.Name == "open console") {
+                    MenuInteraction(MenuType::Console, MenuAction::Open);
+                    // SendNotification("Opening Console");
+                }
+                else if (currentCommand.Name == "close console") {
+                    MenuInteraction(MenuType::Console, MenuAction::Close);
+                    // SendNotification("Closing Console");
+                }
+                #pragma endregion
+
+            #pragma endregion
+
+            #pragma region Clear Hands /Voice
+                else if (currentCommand.Name == "clear hands") {
                     logger::info("Clear Hands");
                     UnEquipFromActor(player, ActorSlot::Both);
                     SendNotification("Cleared Hands");
@@ -698,72 +797,10 @@ void ExecuteCommand(Command command)
                     logger::info("Clear Voice");
                     UnEquipFromActor(player, ActorSlot::Voice);
                     SendNotification("Cleared Voice");
-#pragma endregion
+                }
+            #pragma endregion
 
-#pragma region Map Controls
-                }
-                else if (currentCommand.Name == "open map") {
-                    MenuInteraction(MenuType::Map, MenuAction::Open);
-                    // SendNotification("Opening Map");
-                }
-                else if (currentCommand.Name == "close map") {
-                    MenuInteraction(MenuType::Map, MenuAction::Close);
-// SendNotification("Closing Map");
-#pragma endregion
-
-#pragma region Journal Controls
-                }
-                else if (currentCommand.Name == "open journal") {
-                    MenuInteraction(MenuType::Journal, MenuAction::Open);
-                    // SendNotification("Opening Journal");
-                }
-                else if (currentCommand.Name == "close journal") {
-                    MenuInteraction(MenuType::Journal, MenuAction::Close);
-                    // SendNotification("Closing Journal");
-#pragma endregion
-
-#pragma region Inventory Controls
-                }
-                else if (currentCommand.Name == "open inventory") {
-                    MenuInteraction(MenuType::Inventory, MenuAction::Open);
-                    // SendNotification("Opening Inventory");
-                }
-                else if (currentCommand.Name == "close inventory") {
-                    MenuInteraction(MenuType::Inventory, MenuAction::Close);
-                    // SendNotification("Closing Inventory");
-#pragma endregion
-
-#pragma region Spellbook Controls
-                }
-                else if (currentCommand.Name == "open spellbook") {
-                    MenuInteraction(MenuType::Magic, MenuAction::Open);
-                    // SendNotification("Opening Spellbook");
-                }
-                else if (currentCommand.Name == "close spellbook") {
-                    MenuInteraction(MenuType::Magic, MenuAction::Close);
-                    // SendNotification("Closing Spellbook");
-#pragma endregion
-
-#pragma region Skills Controls
-                }
-                else if (currentCommand.Name == "open skills") {
-                    MenuInteraction(MenuType::Skills, MenuAction::Open);
-                    // SendNotification("Opening Skills");
-                }
-                else if (currentCommand.Name == "close skills") {
-                    MenuInteraction(MenuType::Skills, MenuAction::Close);
-                    // SendNotification("Closing Skills");
-#pragma endregion
-
-#pragma region Level Up Controls
-                }
-                else if (currentCommand.Name == "open levelup") {
-                    MenuInteraction(MenuType::LevelUp, MenuAction::Open);
-                    // SendNotification("Opening Level Up");
-#pragma endregion
-
-#pragma region Save/Load Game
-                }
+            #pragma region Save /Load Game
                 else if (currentCommand.Name == "quick save") {
                     // Spoof button input to perform a quick save
                     if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
@@ -798,40 +835,7 @@ void ExecuteCommand(Command command)
                         SendNotification("Loading most recent quick save");
                     } */
                 }
-#pragma endregion
-
-#pragma region Wait Controls
-                else if (currentCommand.Name == "open wait") {
-                    MenuInteraction(MenuType::SleepWait, MenuAction::Open);
-                    // SendNotification("Opening Wait");
-                }
-                else if (currentCommand.Name == "close wait") {
-                    MenuInteraction(MenuType::SleepWait, MenuAction::Close);
-                    // SendNotification("Closing Wait");
-                }
-#pragma endregion
-
-#pragma region Favorites Controls
-                else if (currentCommand.Name == "open favorites") {
-                    MenuInteraction(MenuType::Favorites, MenuAction::Open);
-                    // SendNotification("Opening Favorites");
-                }
-                else if (currentCommand.Name == "close favorites") {
-                    MenuInteraction(MenuType::Favorites, MenuAction::Close);
-                    // SendNotification("Closing Favorites");
-                }
-#pragma endregion
-
-#pragma region Favorites Controls
-                else if (currentCommand.Name == "open console") {
-                    MenuInteraction(MenuType::Console, MenuAction::Open);
-                    // SendNotification("Opening Console");
-                }
-                else if (currentCommand.Name == "close console") {
-                    MenuInteraction(MenuType::Console, MenuAction::Close);
-                    // SendNotification("Closing Console");
-                }
-#pragma endregion
+            #pragma endregion
             }
 
             // Keybind
@@ -1154,7 +1158,7 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
         {"Console", MenuType::Console},      {"FavoritesMenu", MenuType::Favorites}, {"InventoryMenu", MenuType::Inventory},
         {"Journal Menu", MenuType::Journal}, {"LevelUp Menu", MenuType::LevelUp},    {"MagicMenu", MenuType::Magic},
         {"MapMenu", MenuType::Map},          {"StatsMenu", MenuType::Skills},        {"Sleep/Wait Menu", MenuType::SleepWait},
-        {"TweenMenu", MenuType::Tween},
+        {"TweenMenu", MenuType::Tween}
     };
     auto it = table.find(menuName);
     if (it != table.end())  // Check if match was found within enums
@@ -1211,11 +1215,13 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
             logger::error("Error processing menu event - unexpected enum encountered");
             return;
     }
-    // if (event->opening == true) {  // Check if captured event involves menu OPENING
-    //     logger::info("OPEN Menu = {}!!", menuName);
-    // } else {  // Captured event involves menu CLOSING
-    //     logger::debug("CLOSED Menu = {}!!", menuName);
-    // }
+     if (event->opening == true) {  // Check if captured event involves menu OPENING
+        openMenu = menuName;
+         ///logger::info("OPEN Menu = {}!!", menuName);
+     } else {  // Captured event involves menu CLOSING
+        openMenu = "";
+         ///logger::debug("CLOSED Menu = {}!!", menuName);
+     }
     CheckUpdate();  // Call method to check for game data updates
 
     // string menuName = event->menuName.c_str();  // Capture name of closed menu

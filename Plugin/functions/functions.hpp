@@ -17,6 +17,7 @@ RE::TESGlobal* VOX_ShoutKey;             // Determines the shout key that is pre
 RE::TESGlobal* VOX_LongAutoCast;         // Enables or Disables casting spells that have a long casting time (like Flame Thrall)
 RE::TESGlobal* VOX_Sensitivity;          // Determines how sensitive the voice recognition is
 RE::TESGlobal* VOX_KnownShoutWordsOnly;  // Determines if you only get voice commands for shout words that are known, instead of all words after the first is learned
+std::string openMenu;
 #pragma endregion
 
 #pragma region Enumerations and Structs
@@ -91,7 +92,6 @@ static void MoveHorse(MoveType moveType);
 void ExecuteConsoleCommand(std::vector<std::string> command);
 void SendJoystickInput();
 void SendNotification(std::string message);
-void OpenJournal();
 void MenuInteraction(MenuType type, MenuAction action);
 std::string TranslateL33t(std::string string);
 #pragma endregion
@@ -992,8 +992,7 @@ std::vector<std::string> GetShoutList()
                 RE::TESWordOfPower* wordOfPower = shout->variations[j].word;  // Capture shout's word of power at j index
                 if (wordOfPower &&
                     (VOX_KnownShoutWordsOnly->value == 0 ||
-                     wordOfPower->formFlags &
-                         0x10000)) {  // Check if current word of power is "shoutable" by actor (both known AND unlocked) and if actor wants to shout only known words
+                     wordOfPower->formFlags & 0x10000)) {  // Check if current word of power is "shoutable" by actor (both known AND unlocked) and if actor wants to shout only known words
                     const char* wopName = wordOfPower->fullName.c_str();            // Capture name of known word of power (often contains L33T text)
                     std::string wopTranslation = wordOfPower->translation.c_str();  // Capture translation of known word of power
                     /// logger::debug("Shout \"{}\" Word {} = {} ({})", shoutName, j + 1, wopName, wopTranslation);
@@ -1268,6 +1267,20 @@ static bool IsKeyDown(int keyCode)
 #pragma endregion Control whether a key is down for Keyboard, Mouse, Gamepad, or VR 
 
 #pragma region Menu Controls
+// Open Journal menu (courtesy of shad0wshayd3)
+void OpenJournal()
+{
+    // Spoof button input to open journal
+    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "journal", 0, 1.0f, 0.0f);
+        bsInputEventQueue->PushOntoInputQueue(kEvent);
+    }
+
+    /* // Also works
+    REL::Relocation<void (*)(bool)> func{REL::VariantID(52428, 53327, 0x92F0F0)};
+    return func(true); */
+}
+
 // Open or close menu of interest
 void MenuInteraction(MenuType type, MenuAction action)
 {
@@ -1332,24 +1345,17 @@ void MenuInteraction(MenuType type, MenuAction action)
         logger::error("Error processing menu action - unexpected enum encountered");
         return;
     }
-    if (type == MenuType::Journal)  // Check if requested menu is "Journal"
-        OpenJournal();              // Use relocation method to trigger opening of the JournalMenu to the Quests tab
-    else
-        RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);
-}
-
-// Open Journal menu (courtesy of shad0wshayd3)
-void OpenJournal()
-{
-    // Spoof button input to open journal
-    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
-        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "journal", 0, 1.0f, 0.0f);
-        bsInputEventQueue->PushOntoInputQueue(kEvent);
-    }
-
-    /* // Also works
-    REL::Relocation<void (*)(bool)> func{REL::VariantID(52428, 53327, 0x92F0F0)};
-    return func(true); */
+    std::thread([type, menuName, menuAction]() {
+        if (openMenu != "") {
+            /// SendNotification("Auto Close " + openMenu);
+            RE::UIMessageQueue::GetSingleton()->AddMessage(openMenu, RE::UI_MESSAGE_TYPE::kHide, nullptr); // Send message to close the open menu
+            Sleep(250);  // Brief pause to ensure open menu is closed before proceeding
+        }
+        if (type == MenuType::Journal)  // Check if requested menu is "Journal"
+            OpenJournal();              // Open the JournalMenu (Quests tab)
+        else
+            RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);
+    }).detach();
 }
 
 #pragma region Map Info and Manipulation
@@ -1570,7 +1576,7 @@ void NavigateToCurrentQuest()
 } */
 
 // Place custom player marker when looking at map (or open UI dialog to manipulate an existing player marker)
-void PlaceMarker() {
+void PlaceCustomMarker() {
     // Spoof button input to navigate to player's position on world map
     if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
         auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "placePlayerMarker", 0, 1.0f, 0.0f);
