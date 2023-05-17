@@ -1275,10 +1275,10 @@ void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEve
 
     if (VOX_PushToSpeakType->value == 1) {  // Button must be Held
         thread([button]() {                 // Create new thread for execution (passing in button)
-            SendNotification("Flatrim Input Triggered - Start listening!");
+            //SendNotification("Flatrim Input Triggered - Start listening!");
             SendMessage(WebSocketMessage::EnableRecognition);
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
-            SendNotification("Flatrim Input released - Stop Listening!");
+            //SendNotification("Flatrim Input released - Stop Listening!");
             SendMessage(WebSocketMessage::DisableRecognition);
         })
             .detach();
@@ -1287,12 +1287,12 @@ void DeviceInputEvent::DeviceInputHandler::FlatrimInputDeviceEvent(RE::ButtonEve
         thread([button]() {                      // Create new thread for execution (passing in button)
             if (!pushToSpeakListening) {         // Check if recognition app is NOT listening
                 pushToSpeakListening = true;     // Set isRecognitionEnabled flag
-                SendNotification("Flatrim Input Triggered - Start listening!");
+                //SendNotification("Flatrim Input Triggered - Start listening!");
                 SendMessage(WebSocketMessage::EnableRecognition);
             }
             else {
                 pushToSpeakListening = false;  // Reset isRecognitionEnabled flag
-                SendNotification("Flatrim Input released - Stop Listening!");
+                //SendNotification("Flatrim Input released - Stop Listening!");
                 SendMessage(WebSocketMessage::DisableRecognition);
             }
             while (button->IsPressed()) Sleep(250);  // Pause while input trigger is still being pressed
@@ -1335,9 +1335,11 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
 
     //SendNotification(notification);
 
-    if (VOX_PushToSpeakType->value == 0 || VOX_PushToSpeakType->value == 3 || (buttonId + 474 != VOX_PushToSpeakKeyCode->value &&
-        buttonId + 410 != VOX_PushToSpeakKeyCode->value))  // Check if PushToSpeak is disabled OR triggering buttonId does NOT match target input value from VOX MCM
-        return;                                     // Exit this method
+    // Check if PushToSpeak is disabled OR triggering buttonId does NOT match target input value from VOX MCM
+    if (VOX_PushToSpeakType->value == 0 || VOX_PushToSpeakType->value == 3 ||
+        (VOX_PushToSpeakKeyCode->value > 474 && buttonId + 474 != VOX_PushToSpeakKeyCode->value) ||
+        (VOX_PushToSpeakKeyCode->value <= 474 && buttonId + 410 != VOX_PushToSpeakKeyCode->value))
+        return;  // Exit this method
 
     if (VOX_PushToSpeakType->value == 1)  // VOX_PushToSpeakType mode requires trigger to be held
     {
@@ -1348,7 +1350,7 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
             {
                 pushToSpeakListening = true;
                 SendMessage(WebSocketMessage::EnableRecognition);
-                SendNotification("VR Input Pressed - Start Listening!");
+                //SendNotification("VR Input Pressed - Start Listening!");
             }
         }
         else if (type == PapyrusVR::VREventType_Released)
@@ -1358,7 +1360,7 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
             {
                 pushToSpeakListening = false;
                 SendMessage(WebSocketMessage::DisableRecognition);
-                SendNotification("VR Input Released - Stop Listening!");
+                //SendNotification("VR Input Released - Stop Listening!");
             }
         }
     }
@@ -1370,12 +1372,12 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
             if (pushToSpeakListening == false)
             {
                 SendMessage(WebSocketMessage::EnableRecognition);
-                SendNotification("VR Input Released - Start Listening!");
+                //SendNotification("VR Input Released - Start Listening!");
             }
             else
             {
                 SendMessage(WebSocketMessage::DisableRecognition);
-                SendNotification("VR Input Released - Stop Listening!");
+                //SendNotification("VR Input Released - Stop Listening!");
             }
             pushToSpeakListening = !pushToSpeakListening;
         }

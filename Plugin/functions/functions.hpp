@@ -1,4 +1,5 @@
 #include "../functions/logger.hpp"  // SKSE log functions
+#include <windows.h>
 
 RE::TESForm* currentVoice;
 RE::PlayerCharacter* player;
@@ -103,20 +104,32 @@ bool IsGodMode()
     return *singleton;
 }
 
-// Brings the game window to the foreground
-void SetWindowToFront()
+// Brings the game window to the foreground. (0 = Failed)  (1 = Success)
+bool SetWindowToFront()
 {
-    char buffer[MAX_PATH];
-    GetModuleFileNameA(NULL, buffer, MAX_PATH);
+    //Potential Names
+    const char* processNames[] = {"Skyrim Special Edition", "Skyrim VR"};
+    
+    for (const char* name : processNames) {
+        HWND process = FindWindowA(NULL, name);
 
-    if (HWND windowHandle = FindWindow(NULL, (LPWSTR)(wchar_t*)std::wstring(buffer, buffer + strlen(buffer) + 1).c_str())) {
-        ShowWindow(windowHandle, SW_RESTORE);
-        SetForegroundWindow(windowHandle);
-        SetFocus(windowHandle);
+        if (process != NULL) {
+            //If the game is already the active window, move on
+            if (GetFocus() == process) return false;
+
+            //If the game is not focused, re-focus it, allowing for  a delay
+            SetForegroundWindow(process);
+            SetFocus(process);
+
+            return true;
+        }
     }
+
+    logger::error("Could not find process to focus");
+    return false;
 }
 
-// Returns the actor's current mount.  (0 = None)  (1 = Horse)  (2 = Dragon)
+// Returns the player's current mount.  (0 = None)  (1 = Horse)  (2 = Dragon)
 int PlayerMount()
 {
     RE::ActorPtr mount;
@@ -678,7 +691,8 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int modifier
             std::thread castShout(CastVoice, actor, item, modifier);
             castShout.detach();
 
-            //// Directly cast the power. However this bypasses in-game cooldown for powers
+            // Directly cast the power. However this bypasses in-game cooldown for powers
+            //if (actor->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)->CheckCast(item->As<RE::MagicItem>(), false,  )
             // actor->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)
             //     ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
         }
@@ -1102,39 +1116,65 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
 // Briefly Press Key
 void PressKey(int keycode, int milliseconds)
 {
-    SendKeyDown(keycode);
-    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-    SendKeyUp(keycode);
+    std::thread([keycode, milliseconds]() {
+    
+        if (SetWindowToFront()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+
+        INPUT input;
+        ZeroMemory(&input, sizeof(input));
+        input.type = INPUT_KEYBOARD;
+        input.ki.dwFlags = KEYEVENTF_SCANCODE;
+        input.ki.wScan = (WORD)keycode;
+        SendInput(1, &input, sizeof(INPUT));
+
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+        SendKeyUp(keycode);
+
+        input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+        SendInput(1, &input, sizeof(INPUT));
+
+    }).detach();
 }
 
 // Hold Key Down
 static void SendKeyDown(int keycode)
 {
-    SetWindowToFront();
+    std::thread([keycode]() {
+        if (SetWindowToFront()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
 
-    INPUT input;
-    ZeroMemory(&input, sizeof(input));
-    input.type = INPUT_KEYBOARD;
-    input.ki.dwFlags = KEYEVENTF_SCANCODE;
-    input.ki.wScan = (WORD)keycode;
-    SendInput(1, &input, sizeof(INPUT));
+        INPUT input;
+        ZeroMemory(&input, sizeof(input));
+        input.type = INPUT_KEYBOARD;
+        input.ki.dwFlags = KEYEVENTF_SCANCODE;
+        input.ki.wScan = (WORD)keycode;
+        SendInput(1, &input, sizeof(INPUT));
+    }).detach();
 }
 
 // Release a Key
 static void SendKeyUp(int keycode)
 {
-    SetWindowToFront();
+    std::thread([keycode]() {
+        if (SetWindowToFront()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
 
-    INPUT input;
-    ZeroMemory(&input, sizeof(input));
-    input.type = INPUT_KEYBOARD;
-    input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
-    input.ki.wScan = (WORD)keycode;
+        INPUT input;
+        ZeroMemory(&input, sizeof(input));
+        input.type = INPUT_KEYBOARD;
+        input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+        input.ki.wScan = (WORD)keycode;
 
-    SendInput(1, &input, sizeof(INPUT));
+        SendInput(1, &input, sizeof(INPUT));
+    }).detach();
 }
 
-// Returns whether the specified keyboard or mouse key is held down
+// Returns whether the specified keyboard, mouse, or VR key is held down
 static bool IsKeyDown(int keyCode)
 {
     int mouseOffset = 256;
