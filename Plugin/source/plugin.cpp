@@ -688,31 +688,20 @@ void ExecuteCommand(Command command)
 
             // Setting
             else if (currentCommand.Type == "setting") {
-#pragma region Clear Hands /Voice
-                if (currentCommand.Name == "clear hands") {
-                    logger::info("Clear Hands");
-                    UnEquipFromActor(player, ActorSlot::Both);
-                    SendNotification("Cleared Hands");
-                }
-                else if (currentCommand.Name == "clear shout") {
-                    logger::info("Clear Voice");
-                    UnEquipFromActor(player, ActorSlot::Voice);
-                    SendNotification("Cleared Voice");
-#pragma endregion
+            #pragma region UI and Menu Controls
 
-#pragma region Map Controls
-                }
-                else if (currentCommand.Name == "open map") {
+                #pragma region Map Controls
+                if (currentCommand.Name == "open map") {
                     MenuInteraction(MenuType::Map, MenuAction::Open);
                     // SendNotification("Opening Map");
                 }
                 else if (currentCommand.Name == "close map") {
                     MenuInteraction(MenuType::Map, MenuAction::Close);
-// SendNotification("Closing Map");
-#pragma endregion
-
-#pragma region Journal Controls
+                    // SendNotification("Closing Map");
                 }
+                #pragma endregion
+
+                #pragma region Journal Controls
                 else if (currentCommand.Name == "open journal") {
                     MenuInteraction(MenuType::Journal, MenuAction::Open);
                     // SendNotification("Opening Journal");
@@ -720,10 +709,10 @@ void ExecuteCommand(Command command)
                 else if (currentCommand.Name == "close journal") {
                     MenuInteraction(MenuType::Journal, MenuAction::Close);
                     // SendNotification("Closing Journal");
-#pragma endregion
-
-#pragma region Inventory Controls
                 }
+                #pragma endregion
+
+                #pragma region Inventory Controls
                 else if (currentCommand.Name == "open inventory") {
                     MenuInteraction(MenuType::Inventory, MenuAction::Open);
                     // SendNotification("Opening Inventory");
@@ -731,10 +720,10 @@ void ExecuteCommand(Command command)
                 else if (currentCommand.Name == "close inventory") {
                     MenuInteraction(MenuType::Inventory, MenuAction::Close);
                     // SendNotification("Closing Inventory");
-#pragma endregion
-
-#pragma region Spellbook Controls
                 }
+                #pragma endregion
+
+                #pragma region Spellbook Controls
                 else if (currentCommand.Name == "open spellbook") {
                     MenuInteraction(MenuType::Magic, MenuAction::Open);
                     // SendNotification("Opening Spellbook");
@@ -742,10 +731,10 @@ void ExecuteCommand(Command command)
                 else if (currentCommand.Name == "close spellbook") {
                     MenuInteraction(MenuType::Magic, MenuAction::Close);
                     // SendNotification("Closing Spellbook");
-#pragma endregion
-
-#pragma region Skills Controls
                 }
+                #pragma endregion
+
+                #pragma region Skills Controls
                 else if (currentCommand.Name == "open skills") {
                     MenuInteraction(MenuType::Skills, MenuAction::Open);
                     // SendNotification("Opening Skills");
@@ -753,51 +742,17 @@ void ExecuteCommand(Command command)
                 else if (currentCommand.Name == "close skills") {
                     MenuInteraction(MenuType::Skills, MenuAction::Close);
                     // SendNotification("Closing Skills");
-#pragma endregion
-
-#pragma region Level Up Controls
                 }
+                #pragma endregion
+
+                #pragma region Level Up Controls
                 else if (currentCommand.Name == "open levelup") {
                     MenuInteraction(MenuType::LevelUp, MenuAction::Open);
                     // SendNotification("Opening Level Up");
-#pragma endregion
-
-#pragma region Save /Load Game
                 }
-                else if (currentCommand.Name == "quick save") {
+                #pragma endregion
 
-                    //This is unsused, as a keybind works much better and more reliable
-
-                    //Get "Quick Save" to work properly. I don't want to need to use keybinds for it. The commented out functionality is inconsistent on Flatrim and crashes VR
-
-                    //player->GetCurrentLocation();
-                    //const char* saveGameName = ("Voxima Quick Save - " + (std::string)player->GetCurrentLocation()->GetName()).c_str();
-                    //RE::BGSSaveLoadManager::GetSingleton()->Save(saveGameName);
-
-                    //PressKey(63); Alternative method of presing "F5"
-                    
-
-                    
-                    //SendNotification("Saving Game");
-                }
-                else if (currentCommand.Name == "quick load") {
-                    RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
-                    SendNotification("Loading Game");
-                }
-#pragma endregion
-
-#pragma region Wait Controls
-                else if (currentCommand.Name == "open wait") {
-                    MenuInteraction(MenuType::SleepWait, MenuAction::Open);
-                    // SendNotification("Opening Wait");
-                }
-                else if (currentCommand.Name == "close wait") {
-                    MenuInteraction(MenuType::SleepWait, MenuAction::Close);
-                    // SendNotification("Closing Wait");
-                }
-#pragma endregion
-
-#pragma region Favorites Controls
+                #pragma region Favorites Controls
                 else if (currentCommand.Name == "open favorites") {
                     MenuInteraction(MenuType::Favorites, MenuAction::Open);
                     // SendNotification("Opening Favorites");
@@ -806,9 +761,20 @@ void ExecuteCommand(Command command)
                     MenuInteraction(MenuType::Favorites, MenuAction::Close);
                     // SendNotification("Closing Favorites");
                 }
-#pragma endregion
+                #pragma endregion
 
-#pragma region Favorites Controls
+                #pragma region Wait Controls
+                else if (currentCommand.Name == "open wait") {
+                    MenuInteraction(MenuType::SleepWait, MenuAction::Open);
+                    // SendNotification("Opening Wait");
+                }
+                else if (currentCommand.Name == "close wait") {
+                    MenuInteraction(MenuType::SleepWait, MenuAction::Close);
+                    // SendNotification("Closing Wait");
+                }
+                #pragma endregion
+
+                #pragma region Console Controls
                 else if (currentCommand.Name == "open console") {
                     MenuInteraction(MenuType::Console, MenuAction::Open);
                     // SendNotification("Opening Console");
@@ -817,7 +783,59 @@ void ExecuteCommand(Command command)
                     MenuInteraction(MenuType::Console, MenuAction::Close);
                     // SendNotification("Closing Console");
                 }
-#pragma endregion
+                #pragma endregion
+
+            #pragma endregion
+
+            #pragma region Clear Hands /Voice
+                else if (currentCommand.Name == "clear hands") {
+                    logger::info("Clear Hands");
+                    UnEquipFromActor(player, ActorSlot::Both);
+                    SendNotification("Cleared Hands");
+                }
+                else if (currentCommand.Name == "clear shout") {
+                    logger::info("Clear Voice");
+                    UnEquipFromActor(player, ActorSlot::Voice);
+                    SendNotification("Cleared Voice");
+                }
+            #pragma endregion
+
+            #pragma region Save /Load Game
+                else if (currentCommand.Name == "quick save") {
+                    // Spoof button input to perform a quick save
+                    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "quicksave", 0, 1.0f, 0.0f);
+                        bsInputEventQueue->PushOntoInputQueue(kEvent);
+                        SendNotification("Created new quick save");
+                    }
+
+                    /*
+                    // This is unsused, as a keybind works much better and more reliable
+
+                    // Get "Quick Save" to work properly. I don't want to need to use keybinds for it. The commented out functionality is inconsistent on Flatrim and crashes VR
+
+                    // player->GetCurrentLocation();
+                    // const char* saveGameName = ("Voxima Quick Save - " + (std::string)player->GetCurrentLocation()->GetName()).c_str();
+                    // RE::BGSSaveLoadManager::GetSingleton()->Save(saveGameName);
+
+                    // PressKey(63); Alternative method of presing "F5"
+
+                    // SendNotification("Saving Game");
+                    */
+                }
+                else if (currentCommand.Name == "quick load") {
+                    // Loads most recent save file
+                    SendNotification("Loading most recent save");
+                    RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
+
+                    /* // Spoof button input to load most recent quick save file
+                    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "quickload", 0, 1.0f, 0.0f);
+                        bsInputEventQueue->PushOntoInputQueue(kEvent);
+                        SendNotification("Loading most recent quick save");
+                    } */
+                }
+            #pragma endregion
             }
 
             // Keybind
@@ -825,8 +843,7 @@ void ExecuteCommand(Command command)
                 if (currentCommand.Morph != "horseriding") {
                     if (currentCommand.KeybindDuration >= 0) {
                         PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                        if (currentCommand.ID != 63)
-                            SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));  // The if-statement is there to prevent the "quick save" keybind from showing
+                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
                     }
                     else
                         switch (currentCommand.KeybindDuration) {
@@ -914,9 +931,7 @@ void ExecuteCommand(Command command)
                         default:  // Not a command for controlling the horse
                             if (currentCommand.KeybindDuration >= 0) {
                                 PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                                if (currentCommand.ID != 63)
-                                    SendNotification("Keybind Press: " +
-                                                     std::to_string(currentCommand.ID));  // The if-statement is there to prevent the "quick save" keybind from showing
+                                SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
                             }
                             else {
                                 switch (currentCommand.KeybindDuration) {
@@ -1143,7 +1158,7 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
         {"Console", MenuType::Console},      {"FavoritesMenu", MenuType::Favorites}, {"InventoryMenu", MenuType::Inventory},
         {"Journal Menu", MenuType::Journal}, {"LevelUp Menu", MenuType::LevelUp},    {"MagicMenu", MenuType::Magic},
         {"MapMenu", MenuType::Map},          {"StatsMenu", MenuType::Skills},        {"Sleep/Wait Menu", MenuType::SleepWait},
-        {"TweenMenu", MenuType::Tween},
+        {"TweenMenu", MenuType::Tween}
     };
     auto it = table.find(menuName);
     if (it != table.end())  // Check if match was found within enums
@@ -1200,11 +1215,13 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
             logger::error("Error processing menu event - unexpected enum encountered");
             return;
     }
-    // if (event->opening == true) {  // Check if captured event involves menu OPENING
-    //     logger::info("OPEN Menu = {}!!", menuName);
-    // } else {  // Captured event involves menu CLOSING
-    //     logger::debug("CLOSED Menu = {}!!", menuName);
-    // }
+     if (event->opening == true) {  // Check if captured event involves menu OPENING
+        openMenu = menuName;
+         ///logger::info("OPEN Menu = {}!!", menuName);
+     } else {  // Captured event involves menu CLOSING
+        openMenu = "";
+         ///logger::debug("CLOSED Menu = {}!!", menuName);
+     }
     CheckUpdate();  // Call method to check for game data updates
 
     // string menuName = event->menuName.c_str();  // Capture name of closed menu

@@ -1,5 +1,4 @@
 #include "../functions/logger.hpp"  // SKSE log functions
-#include <windows.h>
 
 RE::TESForm* currentVoice;
 RE::PlayerCharacter* player;
@@ -18,6 +17,7 @@ RE::TESGlobal* VOX_ShoutKey;             // Determines the shout key that is pre
 RE::TESGlobal* VOX_LongAutoCast;         // Enables or Disables casting spells that have a long casting time (like Flame Thrall)
 RE::TESGlobal* VOX_Sensitivity;          // Determines how sensitive the voice recognition is
 RE::TESGlobal* VOX_KnownShoutWordsOnly;  // Determines if you only get voice commands for shout words that are known, instead of all words after the first is learned
+std::string openMenu;
 #pragma endregion
 
 #pragma region Enumerations and Structs
@@ -92,7 +92,6 @@ static void MoveHorse(MoveType moveType);
 void ExecuteConsoleCommand(std::vector<std::string> command);
 void SendJoystickInput();
 void SendNotification(std::string message);
-void OpenJournal();
 void MenuInteraction(MenuType type, MenuAction action);
 std::string TranslateL33t(std::string string);
 #pragma endregion
@@ -104,32 +103,20 @@ bool IsGodMode()
     return *singleton;
 }
 
-// Brings the game window to the foreground. (0 = Failed)  (1 = Success)
-bool SetWindowToFront()
+// Brings the game window to the foreground
+void SetWindowToFront()
 {
-    //Potential Names
-    const char* processNames[] = {"Skyrim Special Edition", "Skyrim VR"};
-    
-    for (const char* name : processNames) {
-        HWND process = FindWindowA(NULL, name);
+    char buffer[MAX_PATH];
+    GetModuleFileNameA(NULL, buffer, MAX_PATH);
 
-        if (process != NULL) {
-            //If the game is already the active window, move on
-            if (GetFocus() == process) return false;
-
-            //If the game is not focused, re-focus it, allowing for  a delay
-            SetForegroundWindow(process);
-            SetFocus(process);
-
-            return true;
-        }
+    if (HWND windowHandle = FindWindow(NULL, (LPWSTR)(wchar_t*)std::wstring(buffer, buffer + strlen(buffer) + 1).c_str())) {
+        ShowWindow(windowHandle, SW_RESTORE);
+        SetForegroundWindow(windowHandle);
+        SetFocus(windowHandle);
     }
-
-    logger::error("Could not find process to focus");
-    return false;
 }
 
-// Returns the player's current mount.  (0 = None)  (1 = Horse)  (2 = Dragon)
+// Returns the actor's current mount.  (0 = None)  (1 = Horse)  (2 = Dragon)
 int PlayerMount()
 {
     RE::ActorPtr mount;
@@ -455,10 +442,8 @@ void SendNotification(std::string message)
 bool IsPlayerWerewolf()
 {
     int currentWerewolfState = RE::TESQuest::LookupByEditorID<RE::TESQuest>("PlayerWerewolfQuest")->GetCurrentStageID();
-
-    if (currentWerewolfState > 0 && currentWerewolfState < 100) {
+    if (currentWerewolfState > 0 && currentWerewolfState < 100)
         return true;
-    }
     else
         return false;
 }
@@ -467,10 +452,8 @@ bool IsPlayerWerewolf()
 bool IsPlayerVampireLord()
 {
     int currentVampireLordState = RE::TESQuest::LookupByEditorID<RE::TESQuest>("DLC1PlayerVampireQuest")->GetCurrentStageID();
-
-    if (currentVampireLordState > 0 && currentVampireLordState < 100) {
+    if (currentVampireLordState > 0 && currentVampireLordState < 100)
         return true;
-    }
     else
         return false;
 }
@@ -478,10 +461,12 @@ bool IsPlayerVampireLord()
 // Returns the actor's current morph.  (0 = None)  (1 = Werewolf)  (2 = Vampire Lord)
 int PlayerMorph()
 {
-    if (IsPlayerWerewolf()) return 1;
-    if (IsPlayerVampireLord()) return 2;
-
-    return 0;
+    if (IsPlayerWerewolf())
+        return 1;
+    else if (IsPlayerVampireLord()) 
+        return 2;
+    else
+        return 0;
 }
 
 #pragma endregion Determines the players current morph (None, Werewolf, or Vampire Lord)
@@ -638,63 +623,138 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int modifier
         if (item->As<RE::TESShout>())
         {
             logger::info("Casting Voice");
-            std::string shoutWordName = item->As<RE::TESShout>()->variations[modifier].spell->fullName.c_str();
-
+            std::string shoutWordName = item->As<RE::TESShout>()->variations[modifier].spell->fullName.c_str(); // Capture the target shout words
+            currentVoice = actor->GetActorRuntimeData().selectedPower;  // Capture currently equipped shout/power
+            EquipToActor(actor, item, ActorSlot::Voice, false);         // Equip target shout
             SendNotification("Casting Shout: " + shoutWordName);
+            std::thread castShout(CastVoice, actor, item, modifier);    // Create new thread to cast shout via button spoofing
+            castShout.detach();                                         // Run new thread
 
-            currentVoice = actor->GetActorRuntimeData().selectedPower;  ///*** is this still needed?
-
-            // This is the "old way" involving triggering a virtual keypress. Dovazul and thunderclap expected to work.
+            /* // This is the "legacy method" involving triggering a virtual keypress. Dovazul and thunderclap expected to work.
             EquipToActor(actor, item, ActorSlot::Voice, false);
+            SendNotification("Casting Shout: " + shoutWordName);
             std::thread castShout(CastVoice, actor, item, modifier);
-            castShout.detach();
+            castShout.detach(); */
 
-            // Future Possible Alternatives for shouting
-            /*
-            //// This directly casts the shout, but it doesn't trigger the dovazul voice or thunderclap sound
-            //actor->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)
-            //    ->CastSpellImmediate(item->As<RE::TESShout>()->variations[modifier].spell, false, nullptr, 1.0f, false, 0.0f, actor);
+            /* // Directly casts the shout, but it doesn't trigger the dovazul voice or thunderclap sound
+            actor->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)->CastSpellImmediate(item->As<RE::TESShout>()->variations[modifier].spell, false, nullptr, 1.0f, false, 0.0f, actor); */
 
-            //// Need to enable and fix this up once CharmedBaryon merges recent po3 CommonLib changes. Objective here is to "spoof" input to trigger a shout "natively"
-            //// Spoof button input
-            //// See UserEvents.h for more types of events to spoof
-            //if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
-            //    RE::ConsoleLog::GetSingleton()->Print("*screams*");
+            /* // Spoof button input to cast shout (see UserEvents.h for more types of events to spoof)
+            // https://discord.com/channels/535508975626747927/535530099475480596/1093045153742200895, https://www.creationkit.com/index.php?title=Shout
+            EquipToActor(actor, item, ActorSlot::Voice, false);
+            if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                float holdTime = 0;
+                switch (modifier) {
+                    case 0:
+                        holdTime = 0.075f;
+                        // No Delay
+                        break;
+                    case 1:
+                        holdTime = 0.25f;
+                        break;
 
-            //    static auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", 0, 1.0f, 3.0f);
-            //    bsInputEventQueue->PushOntoInputQueue(kEvent);
-            //}
+                    case 2:
+                        holdTime = 0.75f;
+                        break;
+                }
+                SendNotification(std::to_string(holdTime));
+                auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 1.0f, holdTime);
+                bsInputEventQueue->PushOntoInputQueue(kEvent);
+            } */
 
+            /* // Spoof button input to cast shout (see UserEvents.h for more types of events to spoof)
+            // https://discord.com/channels/535508975626747927/535530099475480596/1093045153742200895, https://www.creationkit.com/index.php?title=Shout
+            EquipToActor(actor, item, ActorSlot::Voice, false);
+            if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                float holdTime = 0;
+                RE::ButtonEvent* endEvent = nullptr;
+                static auto startEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 1.0f, 0.0f);
+                static auto eventMod0 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 0.0f, 0.010f);
+                static auto eventMod1 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 0.0f, 0.075f);
+                static auto eventMod2 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 0.0f, 2.0f);
+                
+                switch (modifier) {
+                    case 0:
+                        endEvent = eventMod0;
+                        break;
+                    case 1:
+                        endEvent = eventMod1;
+                        break;
+                    case 2:
+                        endEvent = eventMod2;
+                        break;
+                }
+                bsInputEventQueue->PushOntoInputQueue(startEvent);
+                bsInputEventQueue->PushOntoInputQueue(endEvent);
+            } */
 
-            //// Spoof button input
-            //static auto event = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", -1, 1 /* Might need tweaking, 0  Might need tweaking );
-            //RE::BSInputEventQueue::GetSingleton()->PushOntoInputQueue(event);
-
-            //// Kinect native input
-            //RE::BSInputEventQueue::GetSingleton()->EnqueueKinectEvent(RE::BSFixedString*::KI"KinectShout", "FUS RO DAH");
-            ///*auto event = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Shout", -1, 1.0f, 0.1f);
-            //RE::BSInputEventQueue::GetSingleton()->PushOntoInputQueue(event);
-
-            //free(event);
-            */
+            /* // This seems to work
+            ///EquipToActor(actor, item, ActorSlot::Voice, false);
+            std::thread([actor, item, modifier]() {
+                // Spoof button input to cast shout (see UserEvents.h for more types of events to spoof)
+                // https://discord.com/channels/535508975626747927/535530099475480596/1093045153742200895
+                if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                    int holdTime = 0;
+                    switch (modifier) {
+                        case 0:
+                            holdTime = 10;
+                            break;
+                        case 1:
+                            holdTime = 75;
+                            break;
+                        case 2:
+                            holdTime = 300;
+                            break;
+                    }
+                    // Here we're attempting to emulate the button "press," pause (indicating "hold"), and "release" sequence
+                    auto kEvent1 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 1.0f, 0.0f);
+                    auto kEvent2 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 0.0f, 0.0f);
+                    bsInputEventQueue->PushOntoInputQueue(kEvent1);
+                    Sleep(holdTime);
+                    bsInputEventQueue->PushOntoInputQueue(kEvent2);
+                }
+            }).detach(); */
         }
         // Power
         else if (item->As<RE::SpellItem>() && hand == ActorSlot::Voice) {
             logger::info("Casting Power");
-            std::string spellName = item->As<RE::MagicItem>()->fullName.c_str();
+            std::string spellName = item->As<RE::MagicItem>()->fullName.c_str(); // Capture the target power name
+            currentVoice = actor->GetActorRuntimeData().selectedPower;  // Capture currently equipped shout/power
+            EquipToActor(actor, item, ActorSlot::Voice, false);         // Equip target power
             SendNotification("Casting Power: " + spellName);
+            std::thread castShout(CastVoice, actor, item, modifier);    // Create new thread to cast power via button spoofing
+            castShout.detach();                                         // Run new thread
 
-            currentVoice = actor->GetActorRuntimeData().selectedPower;  ///*** is this still needed?
-
-            // This is the "old way" involving triggering a virtual keypress.
+            /* // This is the "legacy method" involving triggering a virtual keypress.
             EquipToActor(actor, item, ActorSlot::Voice);
+            SendNotification("Casting Power: " + spellName);
             std::thread castShout(CastVoice, actor, item, modifier);
-            castShout.detach();
+            castShout.detach(); */
 
-            // Directly cast the power. However this bypasses in-game cooldown for powers
-            //if (actor->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)->CheckCast(item->As<RE::MagicItem>(), false,  )
-            // actor->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)
-            //     ->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor);
+            /* // Directly cast the power. However this bypasses in-game cooldown for powers
+            actor->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)->CastSpellImmediate(item->As<RE::MagicItem>(), false, nullptr, 1.0f, false, 0.0f, actor); */
+
+            /* // Spoof pressing the button that triggers Powers (doesn't work as configured currently)
+            EquipToActor(actor, item, ActorSlot::Voice);
+            if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 1.0f, 0.0f);
+                bsInputEventQueue->PushOntoInputQueue(kEvent);
+            } */
+
+            /* EquipToActor(actor, item, ActorSlot::Voice, false);
+            std::thread([actor, item, modifier]() {
+                // Spoof button input to cast shout (see UserEvents.h for more types of events to spoof)
+                // https://discord.com/channels/535508975626747927/535530099475480596/1093045153742200895
+                if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+                    int holdTime = 10;
+                    // Here we're attempting to emulate the button "press," pause (indicating "hold"), and "release" sequence
+                    auto kEvent1 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 1.0f, 0.0f);
+                    auto kEvent2 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 0.0f, 0.0f);
+                    bsInputEventQueue->PushOntoInputQueue(kEvent1);
+                    Sleep(holdTime);
+                    bsInputEventQueue->PushOntoInputQueue(kEvent2);
+                }
+            }).detach(); */
         }
         // Spell
         else if (item->As<RE::SpellItem>()) {
@@ -715,7 +775,6 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int modifier
             RE::BGSPerk* dualDestructionPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153CF);
             RE::BGSPerk* dualIllusionPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153D0);
             RE::BGSPerk* dualRestorationPerk = RE::BGSPerk::LookupByID<RE::BGSPerk>(0x000153D1);
-
 
             if (modifier == 1 && (canCastDual || IsGodMode()))
             {
@@ -760,7 +819,6 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int modifier
                 else
                         actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIER::kDamage, RE::ActorValue::kMagicka, -singleMagickaCost);
                 
-
                 switch (hand) {
                     case ActorSlot::Left:
                         logger::info("Casting Left hand");
@@ -828,6 +886,41 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int modifier
 // Asynconously casts a shout/power from the actor
 void CastVoice(RE::Actor* actor, RE::TESForm* item, int level)
 {
+    // Spoof button input to cast shout/power
+    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+        int holdTime = 10;
+        if (item->As<RE::TESShout>()) {
+            switch (level) {
+                case 0:
+                    // No change to holdTime
+                    break;
+                case 1:
+                    holdTime = 75;
+                    break;
+                case 2:
+                    holdTime = 2000;
+                    break;
+            }
+        }
+        // Spoof the button "press," pause (indicating "hold"), and "release" event sequence
+        auto kEvent1 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 1.0f, 0.0f);
+        auto kEvent2 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 0.0f, 0.0f);
+        bsInputEventQueue->PushOntoInputQueue(kEvent1);
+        Sleep(holdTime);
+        bsInputEventQueue->PushOntoInputQueue(kEvent2);
+        Sleep(500);  // Brief delay to allow the button spoofing to finish
+    }
+    
+    // Re-equip last voice item. Unequip if there was no previous voice item
+    if (!currentVoice)
+        UnEquipFromActor(actor, ActorSlot::Voice);
+    else
+        EquipToActor(actor, currentVoice, ActorSlot::Voice, false);
+}
+
+/* // Asynconously casts a shout/power from the actor
+void CastVoice(RE::Actor* actor, RE::TESForm* item, int level)
+{
     // Get the key the actor designated as the key to press to activate shouts. Not automatic because VR says it's a controller button, which I can't press
     VOX_ShoutKey = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_ShoutKey");
 
@@ -875,7 +968,8 @@ void CastVoice(RE::Actor* actor, RE::TESForm* item, int level)
         UnEquipFromActor(actor, ActorSlot::Voice);
     else
         EquipToActor(actor, currentVoice, ActorSlot::Voice);
-}
+} */
+
 #pragma endregion Equipping, Unequipping, and Casting and items and magic
 
 #pragma region Get Actor Items/Magic
@@ -898,8 +992,7 @@ std::vector<std::string> GetShoutList()
                 RE::TESWordOfPower* wordOfPower = shout->variations[j].word;  // Capture shout's word of power at j index
                 if (wordOfPower &&
                     (VOX_KnownShoutWordsOnly->value == 0 ||
-                     wordOfPower->formFlags &
-                         0x10000)) {  // Check if current word of power is "shoutable" by actor (both known AND unlocked) and if actor wants to shout only known words
+                     wordOfPower->formFlags & 0x10000)) {  // Check if current word of power is "shoutable" by actor (both known AND unlocked) and if actor wants to shout only known words
                     const char* wopName = wordOfPower->fullName.c_str();            // Capture name of known word of power (often contains L33T text)
                     std::string wopTranslation = wordOfPower->translation.c_str();  // Capture translation of known word of power
                     /// logger::debug("Shout \"{}\" Word {} = {} ({})", shoutName, j + 1, wopName, wopTranslation);
@@ -1116,65 +1209,39 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
 // Briefly Press Key
 void PressKey(int keycode, int milliseconds)
 {
-    std::thread([keycode, milliseconds]() {
-    
-        if (SetWindowToFront()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        }
-
-        INPUT input;
-        ZeroMemory(&input, sizeof(input));
-        input.type = INPUT_KEYBOARD;
-        input.ki.dwFlags = KEYEVENTF_SCANCODE;
-        input.ki.wScan = (WORD)keycode;
-        SendInput(1, &input, sizeof(INPUT));
-
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
-        SendKeyUp(keycode);
-
-        input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
-        SendInput(1, &input, sizeof(INPUT));
-
-    }).detach();
+    SendKeyDown(keycode);
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    SendKeyUp(keycode);
 }
 
 // Hold Key Down
 static void SendKeyDown(int keycode)
 {
-    std::thread([keycode]() {
-        if (SetWindowToFront()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        }
+    SetWindowToFront();
 
-        INPUT input;
-        ZeroMemory(&input, sizeof(input));
-        input.type = INPUT_KEYBOARD;
-        input.ki.dwFlags = KEYEVENTF_SCANCODE;
-        input.ki.wScan = (WORD)keycode;
-        SendInput(1, &input, sizeof(INPUT));
-    }).detach();
+    INPUT input;
+    ZeroMemory(&input, sizeof(input));
+    input.type = INPUT_KEYBOARD;
+    input.ki.dwFlags = KEYEVENTF_SCANCODE;
+    input.ki.wScan = (WORD)keycode;
+    SendInput(1, &input, sizeof(INPUT));
 }
 
 // Release a Key
 static void SendKeyUp(int keycode)
 {
-    std::thread([keycode]() {
-        if (SetWindowToFront()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        }
+    SetWindowToFront();
 
-        INPUT input;
-        ZeroMemory(&input, sizeof(input));
-        input.type = INPUT_KEYBOARD;
-        input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
-        input.ki.wScan = (WORD)keycode;
+    INPUT input;
+    ZeroMemory(&input, sizeof(input));
+    input.type = INPUT_KEYBOARD;
+    input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+    input.ki.wScan = (WORD)keycode;
 
-        SendInput(1, &input, sizeof(INPUT));
-    }).detach();
+    SendInput(1, &input, sizeof(INPUT));
 }
 
-// Returns whether the specified keyboard, mouse, or VR key is held down
+// Returns whether the specified keyboard or mouse key is held down
 static bool IsKeyDown(int keyCode)
 {
     int mouseOffset = 256;
@@ -1200,15 +1267,29 @@ static bool IsKeyDown(int keyCode)
 #pragma endregion Control whether a key is down for Keyboard, Mouse, Gamepad, or VR 
 
 #pragma region Menu Controls
+// Open Journal menu (courtesy of shad0wshayd3)
+void OpenJournal()
+{
+    // Spoof button input to open journal
+    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "journal", 0, 1.0f, 0.0f);
+        bsInputEventQueue->PushOntoInputQueue(kEvent);
+    }
+
+    /* // Also works
+    REL::Relocation<void (*)(bool)> func{REL::VariantID(52428, 53327, 0x92F0F0)};
+    return func(true); */
+}
+
 // Open or close menu of interest
 void MenuInteraction(MenuType type, MenuAction action)
 {
     RE::BSFixedString menuName;
-    RE::UI_MESSAGE_TYPE menuAction;
+    RE::UI_MESSAGE_TYPE menuAction = RE::UI_MESSAGE_TYPE::kHide;
     if (action == MenuAction::Open)
         menuAction = RE::UI_MESSAGE_TYPE::kShow;
-    else if (action == MenuAction::Close)
-        menuAction = RE::UI_MESSAGE_TYPE::kHide;
+    /*else if (action == MenuAction::Close)
+        menuAction = RE::UI_MESSAGE_TYPE::kHide;*/
     switch (type) {  // Check if triggering menu is of interest
         case MenuType::Console:
             menuName = RE::Console::MENU_NAME;
@@ -1264,20 +1345,20 @@ void MenuInteraction(MenuType type, MenuAction action)
         logger::error("Error processing menu action - unexpected enum encountered");
         return;
     }
-    if (type == MenuType::Journal)  // Check if requested menu is "Journal"
-        OpenJournal();              // Use relocation method to trigger opening of the JournalMenu to the Quests tab
-    else
-        RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);
+    std::thread([type, menuName, menuAction]() {
+        if (openMenu != "") {
+            /// SendNotification("Auto Close " + openMenu);
+            RE::UIMessageQueue::GetSingleton()->AddMessage(openMenu, RE::UI_MESSAGE_TYPE::kHide, nullptr); // Send message to close the open menu
+            Sleep(250);  // Brief pause to ensure open menu is closed before proceeding
+        }
+        if (type == MenuType::Journal)  // Check if requested menu is "Journal"
+            OpenJournal();              // Open the JournalMenu (Quests tab)
+        else
+            RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);
+    }).detach();
 }
 
-// Open Journal menu (courtesy of shad0wshayd3)
-void OpenJournal()
-{
-    REL::Relocation<void (*)(bool)> func{REL::VariantID(52428, 53327, 0x92F0F0)};
-    return func(true);
-}
-
-#pragma region Map Info& Manipulation
+#pragma region Map Info and Manipulation
 
 // Extend IUIMessageData and add refHandle member
 class RefHandleUIData : public RE::IUIMessageData
@@ -1285,6 +1366,49 @@ class RefHandleUIData : public RE::IUIMessageData
 public:
     uint32_t refHandle;  // 10
 };
+
+// Convert string to title case
+std::string Title_Case(const std::string A)
+{
+    std::string B = "";
+
+    int pos = 0;
+    int pre_pos = 0;
+
+    pos = A.find(' ', pre_pos);
+
+    while (pos != std::string::npos) {
+        std::string sub = "";
+
+        sub = A.substr(pre_pos, (pos - pre_pos));
+
+        if (pre_pos != pos) {
+            sub = A.substr(pre_pos, (pos - pre_pos));
+        }
+        else {
+            sub = A.substr(pre_pos, 1);
+        }
+
+        sub[0] = toupper(sub[0]);
+        B += sub + A[pos];
+
+        if (pos < (A.length() - 1)) {
+            pre_pos = (pos + 1);
+        }
+        else {
+            pre_pos = pos;
+            break;
+        }
+
+        pos = A.find(' ', pre_pos);
+    }
+
+    std::string sub = A.substr(pre_pos, std::string::npos);
+    sub[0] = toupper(sub[0]);
+    B += sub;
+
+    return B;
+}
 
 // Retrieve all map markers in the game (courtesy of Nightfallstorm)
 RE::BSTArray<RE::ObjectRefHandle>* GetPlayerMapMarkers()
@@ -1376,7 +1500,7 @@ void NavigateToLocation(std::string targetLocation)
     RE::TESObjectREFR* mapMarkerRef = IsLocationKnown(targetLocation);
     if (mapMarkerRef != NULL) {
         std::string result = "Navigating to " + targetLocation;
-        SendNotification("Location: " + targetLocation);
+        SendNotification("Location: " + Title_Case(targetLocation));
         logger::info("{}", result);
         FocusOnMapMarker(mapMarkerRef);
     }
@@ -1387,38 +1511,81 @@ void NavigateToLocation(std::string targetLocation)
     }
 }
 
-// Navigate to actor's position on world map
+// Navigate to player's position on world map
 void NavigateToPlayer()
 {
+    // Spoof button input to navigate to player's position on world map
+    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "playerPosition", 0, 1.0f, 0.0f);
+        bsInputEventQueue->PushOntoInputQueue(kEvent);
+        SendNotification("Location: Player");
+    }
+
+    /* // Also works
     auto playerRef = static_cast<RE::TESObjectREFR*>(player);
     FocusOnMapMarker(playerRef);
-    SendNotification("Location: Player");
+    SendNotification("Location: Player"); */
 }
 
-/// *** Work in progress
-// Navigate to actor's custom world map marker
-// void NavigateToCustomMarker() {
-//
-//    //https://discord.com/channels/535508975626747927/535530099475480596/1096307972902244423
-//
-//    /*SendNotification("place marker");
-//
-//    auto PlayerCharacter = RE::PlayerCharacter::GetSingleton();
-//    if (!PlayerCharacter) {
-//        return;
-//    }
-//    auto test = PlayerCharacter->GetPlayerRuntimeData().questTargetsLock*/
-//
-//    //*** actor's custom quest marker = playerMapMarker
-//
-//
-//    /*auto test = actor->HasQuestObject();
-//    auto test3 = actor->GetActorRuntimeData().;
-//    auto yes = test3.
-//    auto test2 = RE::BGSQuestObjective;*/
-//
-//}
+/*
+void NavigateToCurrentQuest()
+{
+    // https://discord.com/channels/535508975626747927/535530099475480596/1096307972902244423
 
+    if (!player) {
+        return;
+    }
+
+    // Doesn't currently work on Clib-NG for VR (5/17/23)
+    RE::BSSpinLockGuard TargetLock{player->GetPlayerRuntimeData().questTargetsLock};
+    for (auto& [quest, targets] : player.questTargets) {
+        if (!quest || !targets) {
+            continue;
+        }
+
+        if (!quest->IsActive()) {
+            continue;
+        }
+
+        for (auto target : *targets) {
+            if (!target) {
+                continue;
+            }
+
+            RE::BSWriteLockGuard AliasLock{quest->aliasAccessLock};
+            // either
+            {
+                auto handle = quest->refAliasMap.find(target->alias);
+                if (handle != quest->refAliasMap.end()) {
+                    handle->second;  // ObjectRefHandle
+                }
+            }
+            // or, I'm not sure
+            {
+                if (quest->aliases.size() < target->alias) {
+                    if (auto baseAlias = quest->aliases[target->alias]) {
+                        auto handle = quest->refAliasMap.find(baseAlias->aliasID);
+                        if (handle != quest->refAliasMap.end()) {
+                            handle->second;  // ObjectRefHandle
+                        }
+                    }
+                }
+            }
+        }
+    }
+} */
+
+// Place custom player marker when looking at map (or open UI dialog to manipulate an existing player marker)
+void PlaceCustomMarker() {
+    // Spoof button input to navigate to player's position on world map
+    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
+        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "placePlayerMarker", 0, 1.0f, 0.0f);
+        bsInputEventQueue->PushOntoInputQueue(kEvent);
+        SendNotification("Place player marker");
+    }
+}
+
+/*
 // void PlaceMarker() {
 //     REL::Relocation<void (*)()> func{RELOCATION_ID(52226, 53113)};
 //     return func();
@@ -1429,6 +1596,7 @@ void NavigateToPlayer()
 //     REL::Relocation<func_t> func{RELOCATION_ID(52226, 53113)};
 //     return func();
 // }
+*/
 
 #pragma endregion Control and interact with the map and map navigation
 
