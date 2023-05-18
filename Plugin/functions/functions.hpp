@@ -1345,16 +1345,41 @@ void MenuInteraction(MenuType type, MenuAction action)
         logger::error("Error processing menu action - unexpected enum encountered");
         return;
     }
-    std::thread([type, menuName, menuAction]() {
-        if (openMenu != "") {
-            /// SendNotification("Auto Close " + openMenu);
-            RE::UIMessageQueue::GetSingleton()->AddMessage(openMenu, RE::UI_MESSAGE_TYPE::kHide, nullptr); // Send message to close the open menu
-            Sleep(250);  // Brief pause to ensure open menu is closed before proceeding
+    else if (action == MenuAction::Open && openMenu == std::string(menuName.c_str())) {  // Check if action is to open a menu AND the target menu is already open
+        SendNotification("Menu already open");
+        return;
+    }
+    else if (RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) == true) { // Check if LevelUp menu is currently open
+        SendNotification("Menu already open");
+        return;
+    }
+    std::thread([action, type, menuName, menuAction]() {
+        if (action == MenuAction::Open && openMenu != "") { // Check if action is to open a menu AND the open menu does not match the requested menu
+            auto* ui = RE::UI::GetSingleton();
+            if (openMenu == RE::MapMenu::MENU_NAME && menuName == RE::JournalMenu::MENU_NAME) {  // Check if map is currently open and Journal was requested to open
+                /// SendNotification("Open Journal");
+                OpenJournal();  // Open the JournalMenu (Quests tab)
+                return;
+            }
+            else if (ui->IsMenuOpen(RE::JournalMenu::MENU_NAME) == true && ui->IsMenuOpen(RE::MapMenu::MENU_NAME) == true) { // Check if journal and map are both open
+                /// SendNotification("Auto Close Journal and Map");
+                RE::UIMessageQueue::GetSingleton()->AddMessage(RE::JournalMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);  // Send message to close the Journal
+                Sleep(150); // Brief pause to ensure open menu is closed before proceeding
+                RE::UIMessageQueue::GetSingleton()->AddMessage(RE::MapMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);  // Send message to close the Map
+                Sleep(150); // Brief pause to ensure open menu is closed before proceeding
+            }
+            else {
+                /// SendNotification("Auto Close " + openMenu);
+                RE::UIMessageQueue::GetSingleton()->AddMessage(openMenu, RE::UI_MESSAGE_TYPE::kHide, nullptr);  // Send message to close the open menu
+                Sleep(150);  // Brief pause to ensure open menu is closed before proceeding
+            }
         }
-        if (type == MenuType::Journal)  // Check if requested menu is "Journal"
-            OpenJournal();              // Open the JournalMenu (Quests tab)
+        if (action == MenuAction::Open && menuName == RE::JournalMenu::MENU_NAME) {  // Check if Journal was requested to open
+            /// SendNotification("Open Journal");
+            OpenJournal(); // Open the JournalMenu (Quests tab)
+        }
         else
-            RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);
+            RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr); // Send message to open/close the target menu
     }).detach();
 }
 
