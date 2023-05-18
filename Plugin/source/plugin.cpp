@@ -1257,10 +1257,6 @@ void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationNa
 {
     logger::debug("{} discovered", locationName);
     CheckUpdate();
-
-    ///*** do something with locationName or call GetKnownLocations()
-
-    // do other stuff
 }
 
 #pragma endregion All tracked game events that trigger an UpdateCheck
@@ -1423,8 +1419,6 @@ SKSEPluginLoad(const SKSE::LoadInterface* skse)
         return false;
     }
 }  // End SKSEPluginLoad
-
-
 
 #pragma region Archive
 
