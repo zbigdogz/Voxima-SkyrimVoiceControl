@@ -3850,7 +3850,7 @@ namespace Voxima {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to k w aa.
+        ///   Looks up a localized string similar to k aa.
         /// </summary>
         public static string qah {
             get {

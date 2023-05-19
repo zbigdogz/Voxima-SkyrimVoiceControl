@@ -152,6 +152,7 @@
   </data>
   <data name="ah" xml:space="preserve">
     <value>aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="ahkrin" xml:space="preserve">
     <value>aa k r iy n</value>
@@ -216,9 +217,11 @@
   </data>
   <data name="aus" xml:space="preserve">
     <value>a aw s</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="bah" xml:space="preserve">
     <value>b aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="bahlaan" xml:space="preserve">
     <value>b aa l aa n</value>
@@ -323,6 +326,7 @@
   </data>
   <data name="dah" xml:space="preserve">
     <value>d aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="dahmaan" xml:space="preserve">
     <value>d aa m aa n</value>
@@ -360,9 +364,11 @@
   </data>
   <data name="diin" xml:space="preserve">
     <value>d iy n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="diiv" xml:space="preserve">
     <value>d iy v</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="diivon" xml:space="preserve">
     <value>d iy v ow n</value>
@@ -397,6 +403,7 @@
   </data>
   <data name="dov" xml:space="preserve">
     <value>d ow v</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="dovah" xml:space="preserve">
     <value>d ow v ax</value>
@@ -422,6 +429,7 @@
   </data>
   <data name="drem" xml:space="preserve">
     <value>d r eh m</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="drey" xml:space="preserve">
     <value>d r ey</value>
@@ -444,9 +452,11 @@
   </data>
   <data name="dun" xml:space="preserve">
     <value>d uw n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="dur" xml:space="preserve">
     <value>d er</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="dwiin" xml:space="preserve">
     <value>d w iy n</value>
@@ -483,6 +493,7 @@
   </data>
   <data name="faas" xml:space="preserve">
     <value>f aa s</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="faasnu" xml:space="preserve">
     <value>f aa s n uw</value>
@@ -508,6 +519,7 @@
   </data>
   <data name="feim" xml:space="preserve">
     <value>f ay m</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="fel" xml:space="preserve">
     <value>f eh l</value>
@@ -536,6 +548,7 @@
   </data>
   <data name="fo" xml:space="preserve">
     <value>f ow</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="fod" xml:space="preserve">
     <value>f ow d</value>
@@ -564,6 +577,7 @@
   </data>
   <data name="frul" xml:space="preserve">
     <value>f r uw l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="ful" xml:space="preserve">
     <value>f uw l</value>
@@ -579,6 +593,7 @@
   </data>
   <data name="fus" xml:space="preserve">
     <value>f uw s</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="gaaf" xml:space="preserve">
     <value>g aa f</value>
@@ -589,9 +604,11 @@
   </data>
   <data name="gaan" xml:space="preserve">
     <value>g aa n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="gaar" xml:space="preserve">
     <value>g aa r</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="gahrot" xml:space="preserve">
     <value>g aa r ow t</value>
@@ -616,6 +633,7 @@
   </data>
   <data name="gol" xml:space="preserve">
     <value>g ow l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="golah" xml:space="preserve">
     <value>g ow l ax</value>
@@ -640,6 +658,7 @@
   </data>
   <data name="grah" xml:space="preserve">
     <value>g r aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="grah-zeymahzin" xml:space="preserve">
     <value>g r aa z ey m aa z iy n</value>
@@ -668,25 +687,29 @@
   </data>
   <data name="gron" xml:space="preserve">
     <value>g r ow n</value>
-    <comment>g r aa n</comment>
+    <comment>Vanilla Shout, g r aa n</comment>
   </data>
   <data name="gruth" xml:space="preserve">
     <value>g r uw th</value>
   </data>
   <data name="gut" xml:space="preserve">
     <value>g uw t</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="haal" xml:space="preserve">
     <value>h aa l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="haalvut" xml:space="preserve">
     <value>h aa l v uw t</value>
   </data>
   <data name="haas" xml:space="preserve">
     <value>h aa s</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="hah" xml:space="preserve">
     <value>h aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="hahdrim" xml:space="preserve">
     <value>h aa d r iy m</value>
@@ -757,6 +780,7 @@
   </data>
   <data name="hun" xml:space="preserve">
     <value>h uw n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="hungaar" xml:space="preserve">
     <value>h uw n g aa </value>
@@ -767,6 +791,7 @@
   </data>
   <data name="iiz" xml:space="preserve">
     <value>iy z</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="inhus" xml:space="preserve">
     <value>iy n _ h uw s</value>
@@ -776,7 +801,7 @@
   </data>
   <data name="joor" xml:space="preserve">
     <value>zh ao r</value>
-    <comment>zh er</comment>
+    <comment>Vanilla Shout, zh er</comment>
   </data>
   <data name="jot" xml:space="preserve">
     <value>zh ow t</value>
@@ -796,9 +821,11 @@
   </data>
   <data name="kaal" xml:space="preserve">
     <value>k aa l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="kaan" xml:space="preserve">
     <value>k aa n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="kaaz" xml:space="preserve">
     <value>k aa z</value>
@@ -821,6 +848,7 @@
   </data>
   <data name="kest" xml:space="preserve">
     <value>k eh s t</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="key" xml:space="preserve">
     <value>k ey</value>
@@ -851,6 +879,7 @@
   </data>
   <data name="klo" xml:space="preserve">
     <value>k l ow</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="klov" xml:space="preserve">
     <value>k l ow v</value>
@@ -882,7 +911,7 @@
   </data>
   <data name="koor" xml:space="preserve">
     <value>k ao r</value>
-    <comment>k er</comment>
+    <comment>Vanilla Shout, k er</comment>
   </data>
   <data name="kopraan" xml:space="preserve">
     <value>k ow _ p r aa n</value>
@@ -905,6 +934,7 @@
   </data>
   <data name="krah" xml:space="preserve">
     <value>k r aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="kras" xml:space="preserve">
     <value>k r ae s</value>
@@ -937,6 +967,7 @@
   </data>
   <data name="krii" xml:space="preserve">
     <value>k r iy</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="kriid" xml:space="preserve">
     <value>k r iy d</value>
@@ -998,12 +1029,14 @@
   </data>
   <data name="laas" xml:space="preserve">
     <value>l aa s</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="laat" xml:space="preserve">
     <value>l aa t</value>
   </data>
   <data name="lah" xml:space="preserve">
     <value>l aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="lahney" xml:space="preserve">
     <value>l aa n ey</value>
@@ -1039,6 +1072,7 @@
   </data>
   <data name="lok" xml:space="preserve">
     <value>l ow k</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="lon" xml:space="preserve">
     <value>l ow n</value>
@@ -1069,12 +1103,14 @@
   </data>
   <data name="lun" xml:space="preserve">
     <value>l uw n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="luv" xml:space="preserve">
     <value>l uw v</value>
   </data>
   <data name="maar" xml:space="preserve">
     <value>m aa r</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="mah" xml:space="preserve">
     <value>m aa</value>
@@ -1098,12 +1134,14 @@
   </data>
   <data name="mey" xml:space="preserve">
     <value>m ey</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="meyz" xml:space="preserve">
     <value>m ey z</value>
   </data>
   <data name="mid" xml:space="preserve">
     <value>m iy d</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="middovah" xml:space="preserve">
     <value>m iy d _ d ow v ax</value>
@@ -1139,6 +1177,7 @@
   </data>
   <data name="mir" xml:space="preserve">
     <value>m iy r</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="miraad" xml:space="preserve">
     <value>m iy r _ aa d</value>
@@ -1177,6 +1216,7 @@
   </data>
   <data name="mul" xml:space="preserve">
     <value>m uw l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="mulaag" xml:space="preserve">
     <value>m uw l aa g</value>
@@ -1211,6 +1251,7 @@
   </data>
   <data name="nah" xml:space="preserve">
     <value>n aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="nahgahdinok" xml:space="preserve">
     <value>n aa g ax _ d iy n ow k</value>
@@ -1240,6 +1281,7 @@
   </data>
   <data name="neh" xml:space="preserve">
     <value>n eh</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="ney" xml:space="preserve">
     <value>n ey</value>
@@ -1274,6 +1316,7 @@
   </data>
   <data name="nir" xml:space="preserve">
     <value>n iy r</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="nis" xml:space="preserve">
     <value>n iy s</value>
@@ -1295,6 +1338,7 @@
   </data>
   <data name="nos" xml:space="preserve">
     <value>n ow s</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="nu" xml:space="preserve">
     <value>n uw</value>
@@ -1305,6 +1349,7 @@
   </data>
   <data name="nus" xml:space="preserve">
     <value>n uw s</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="nust" xml:space="preserve">
     <value>n uw s t</value>
@@ -1322,6 +1367,7 @@
   </data>
   <data name="od" xml:space="preserve">
     <value>ow d</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="odus" xml:space="preserve">
     <value>ow d uw s</value>
@@ -1374,6 +1420,7 @@
   </data>
   <data name="ov" xml:space="preserve">
     <value>ow v</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="ozinvey" xml:space="preserve">
     <value>ow z iy n v ey</value>
@@ -1436,8 +1483,8 @@
     <value>p r uw z ax</value>
   </data>
   <data name="qah" xml:space="preserve">
-    <value>k w aa</value>
-    <comment>k aa</comment>
+    <value>k aa</value>
+    <comment>Vanilla Shout, k w aa</comment>
   </data>
   <data name="qahnaar" xml:space="preserve">
     <value>k w ax _ n aa r</value>
@@ -1462,6 +1509,7 @@
   </data>
   <data name="qo" xml:space="preserve">
     <value>k w ow</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="qolaas" xml:space="preserve">
     <value>k w ow _ l aa s</value>
@@ -1477,6 +1525,7 @@
   </data>
   <data name="raan" xml:space="preserve">
     <value>r aa n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="rah" xml:space="preserve">
     <value>r aa</value>
@@ -1514,6 +1563,7 @@
   </data>
   <data name="rii" xml:space="preserve">
     <value>r iy</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="riik" xml:space="preserve">
     <value>r iy k</value>
@@ -1523,6 +1573,7 @@
   </data>
   <data name="ro" xml:space="preserve">
     <value>r ow</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="rok" xml:space="preserve">
     <value>r ow k</value>
@@ -1557,6 +1608,7 @@
   </data>
   <data name="ru" xml:space="preserve">
     <value>r uw</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="rul" xml:space="preserve">
     <value>r uw l</value>
@@ -1617,9 +1669,11 @@
   </data>
   <data name="shaan" xml:space="preserve">
     <value>sh aa n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="shul" xml:space="preserve">
     <value>sh uw l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="siigonis" xml:space="preserve">
     <value>s iy g ow n iy s</value>
@@ -1658,6 +1712,7 @@
   </data>
   <data name="slen" xml:space="preserve">
     <value>s l eh n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="smoliin" xml:space="preserve">
     <value>s m ow l iy iy n</value>
@@ -1711,6 +1766,7 @@
   </data>
   <data name="strun" xml:space="preserve">
     <value>s t r uw n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="strundu'ul" xml:space="preserve">
     <value>s t r uw n _ d uw l</value>
@@ -1721,6 +1777,7 @@
   </data>
   <data name="su" xml:space="preserve">
     <value>s uw</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="su'um" xml:space="preserve">
     <value>s uw m s uw uh m</value>
@@ -1756,6 +1813,7 @@
   </data>
   <data name="tah" xml:space="preserve">
     <value>t aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="tahrodiis" xml:space="preserve">
     <value>t ax _ r ow d iy s</value>
@@ -1778,6 +1836,7 @@
   </data>
   <data name="tiid" xml:space="preserve">
     <value>t iy d</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="tiid-ahraan" xml:space="preserve">
     <value>t iy d ax _ r aa n</value>
@@ -1799,6 +1858,7 @@
   </data>
   <data name="toor" xml:space="preserve">
     <value>t ao r</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="tovit" xml:space="preserve">
     <value>t ow v iy t</value>
@@ -1824,6 +1884,7 @@
   </data>
   <data name="ul" xml:space="preserve">
     <value>uw l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="ulse" xml:space="preserve">
     <value>uw l s ax</value>
@@ -1857,9 +1918,11 @@
   </data>
   <data name="vaaz" xml:space="preserve">
     <value>v aa z</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="vah" xml:space="preserve">
     <value>v aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="vahdin" xml:space="preserve">
     <value>v aa d iy n</value>
@@ -1889,6 +1952,7 @@
   </data>
   <data name="ven" xml:space="preserve">
     <value>v eh n</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="vennesetiid" xml:space="preserve">
     <value>v eh n n ax s eh _ t iy d</value>
@@ -1907,18 +1971,21 @@
   </data>
   <data name="viik" xml:space="preserve">
     <value>v iy k</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="viin" xml:space="preserve">
     <value>v iy n</value>
   </data>
   <data name="viing" xml:space="preserve">
     <value>v iy ng</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="viintaas" xml:space="preserve">
     <value>v iy n t aa s</value>
   </data>
   <data name="viir" xml:space="preserve">
     <value>v iy r</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="vith" xml:space="preserve">
     <value>v iy th</value>
@@ -2009,6 +2076,7 @@
   </data>
   <data name="vur" xml:space="preserve">
     <value>v er</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="vus" xml:space="preserve">
     <value>v uw s</value>
@@ -2039,6 +2107,7 @@
   </data>
   <data name="wuld" xml:space="preserve">
     <value>w uw l d</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="wuldsetiid" xml:space="preserve">
     <value>w uw l d s eh _ t iy d</value>
@@ -2054,6 +2123,7 @@
   </data>
   <data name="yah" xml:space="preserve">
     <value>y aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="yol" xml:space="preserve">
     <value>y ow l</value>
@@ -2078,6 +2148,7 @@
   </data>
   <data name="zah" xml:space="preserve">
     <value>z aa</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="zahkrii" xml:space="preserve">
     <value>z aa k r iy</value>
@@ -2100,6 +2171,7 @@
   </data>
   <data name="zii" xml:space="preserve">
     <value>z iy</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="zin" xml:space="preserve">
     <value>z iy n</value>
@@ -2119,10 +2191,11 @@
   </data>
   <data name="zol" xml:space="preserve">
     <value>z ow l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="zoor" xml:space="preserve">
     <value>z ao r</value>
-    <comment>z er</comment>
+    <comment>Vanilla Shout, z er</comment>
   </data>
   <data name="zorox" xml:space="preserve">
     <value>z ow _ r ow k s</value>
@@ -2133,8 +2206,10 @@
   </data>
   <data name="zul" xml:space="preserve">
     <value>z uw l</value>
+    <comment>Vanilla Shout</comment>
   </data>
   <data name="zun" xml:space="preserve">
     <value>z uw n</value>
+    <comment>Vanilla Shout</comment>
   </data>
 </root>

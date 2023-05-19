@@ -173,6 +173,37 @@ namespace Voxima
         static bool isRidingHorse = false;
         static bool isRidingDragon = false;
 
+        //All Dovahzul words for Vanilla and DLC shouts. These are used to determine if alternate words need to be given to modded words
+        static string[] allVanillaShouts = new string[] { "raan", "mir", "tah",
+                                                          "laas", "yah", "nir",
+                                                          "mid", "vur", "shaan",
+                                                          "feim", "zii", "gron",
+                                                          "gol", "hah", "dov",
+                                                          "od", "ah", "viing",
+                                                          "hun", "kaal", "zoor",
+                                                          "lok", "vah", "koor",
+                                                          "ven", "gaar", "nos",
+                                                          "zun", "haal", "viik",
+                                                          "faas", "ru", "maar",
+                                                          "mul", "qah", "diiv",
+                                                          "Joor", "zah", "frul",
+                                                          "gaan", "lah", "haas",
+                                                          "su", "grah", "dun",
+                                                          "yol", "toor", "shul",
+                                                          "fo", "krah", "diin",
+                                                          "iiz", "slen", "nus",
+                                                          "kaan", "drem", "ov",
+                                                          "krii", "lun", "aus",
+                                                          "tiid", "klo", "ul",
+                                                          "rii", "vaaz", "zol",
+                                                          "strun", "bah", "qo",
+                                                          "dur", "neh", "viir",
+                                                          "zul", "mey", "gut",
+                                                          "fus", "ro", "dah",
+                                                          "wuld", "nah", "kest"};
+
+        static List<string> allDovahzulCommands = new List<string>();
+
         static DateTime Time = DateTime.Now;
         static int updateNum = 0;
         static bool isUpdating = false;
@@ -918,10 +949,6 @@ namespace Voxima
         {
             try
             {
-                //Check what all "AllItems" is supposed to contain. See if changing the name of it would be a good option. Something more descriptive
-                //Check in-game to see if progressions works
-                //If it does work, and no AllItems changes need to be made, push the changes to Github and look at the to-do list to see what's next. I may need to test Exergist's stuff
-
                 string CurrentCommand = "";
                 List<string> progressionList = new List<string>();
                 Choices Commands;
@@ -1206,7 +1233,8 @@ namespace Voxima
                         }
 
                     }
-                    else if (j < oldList.Length && oldItem != null && oldItem != "")
+
+                    else if (j < oldList.Length && oldItem != null && oldItem != "" && recognizer.Grammars.Contains((Grammar)table[oldItem]))
                     {
                         //Item Removed
                         //They are not the same, but it's in a grammar, so it is a removed spell
@@ -1749,11 +1777,15 @@ namespace Voxima
             string[] info = title.Split('\t');
             string name = info[0];
             string type = "";
+            string from = "";
 
             if (info.Length >= 3)
                 type = info[2];
 
-            if (type == "shout") { };
+            if (info.Length >= 4)
+                from = info[3];
+
+            if (type == "shout") { }
 
             // Create new List of tasks for populating speech dictionary
             var modifyDictionaryTaskList = new List<Task<(string message, string color)>>();
@@ -1761,35 +1793,59 @@ namespace Voxima
             //Fill in item's title
             foreach (string item in items)
             {
-                //Correct Dovahzul Pronunciations
-                foreach (string dovahzulWord in item.Split(' '))
+                command = item.ToLower();
+
+                //Handle duplicate Dovahzul commands from modded shouts.
+                if ((allDovahzulCommands.Contains(command) || allVanillaShouts.Contains(command)) && from != "skyrim.esm" && from != "dawnguard.esm" && from != "dragonborn.esm")
                 {
-                    string phonemes = dovahzulPhonemes.GetString(dovahzulWord);
+                    if (!allDovahzulCommands.Contains("aav" + command))
+                    {
+                        command = "aav" + command;
+                    }
+                    else if (!allDovahzulCommands.Contains("gein" + command))
+                    {
+                        command = "gein" + command;
+                    }
+                    else
+                    {
+                        Log.Debug("ERROR: Cannot have more than 3 identical Dovahzul commands: " + item);
+                    }
+                }
+
+                //Correct Dovahzul Pronunciations
+                foreach (string dovahzulWord in command.Split(' '))
+                {
+                    string phonemes;
+
+                    //Get the phonemes of the hsout, accounting for if it has "aav" or "gein"
+                    if (dovahzulWord.StartsWith("aav") && dovahzulWord != "aav")
+                        phonemes = dovahzulPhonemes.GetString("aav") + " " + dovahzulPhonemes.GetString(dovahzulWord.Remove(0, 3));
+
+                    else if (dovahzulWord.StartsWith("gein") && dovahzulWord != "gein")
+                        phonemes = dovahzulPhonemes.GetString("gein") + " " + dovahzulPhonemes.GetString(dovahzulWord.Remove(0, 4));
+
+                    else
+                        phonemes = dovahzulPhonemes.GetString(dovahzulWord);
+
+                    //Add Phonemes to dictionary
                     if (phonemes != null && !trainedWords.Contains(dovahzulWord))
                     {
-                        string word1 = dovahzulWord.ToLower();
-                        //string word2 = dictionaryInterface.FirstLetterToUppercase(word1);
-
                         // Create a new task to add dictionary data for dictionaryItem
-                        var task = dictionaryInterface.AddDictionaryDataAsync(word1, phonemes, SpeechPartOfSpeech.SPSUnknown.ToString(), false);
+                        var task = dictionaryInterface.AddDictionaryDataAsync(dovahzulWord, phonemes, SpeechPartOfSpeech.SPSUnknown.ToString(), false);
 
                         // Store task in list of tasks
                         modifyDictionaryTaskList.Add(task);
 
                         // Add Dovahzul word to list of trainedWords
-                        trainedWords.Add(word1);
+                        trainedWords.Add(dovahzulWord);
 
-                        //// Create a new task to add dictionary data for dictionaryItem
-                        //var task2 = dictionaryInterface.AddDictionaryDataAsync(word2, phonemes, SpeechPartOfSpeech.SPSUnknown.ToString(), false);
-
-                        //// Store task in list of tasks
-                        //modifyDictionaryTaskList.Add(task2);
-
-                        //// Add Dovahzul word to list of trainedWords
-                        //trainedWords.Add(word2);
+                        //If this command has not been recorded, record it (this is NOT the single Dovahzul word. It is the whole command)
+                        if (!allDovahzulCommands.Contains(command))
+                        {
+                            allDovahzulCommands.Add(command);
+                        }
                     }
                 }
-                command = item;
 
                 commands.Add(command);
 
@@ -2298,37 +2354,40 @@ namespace Voxima
             {
                 Log.Debug($"Received from client: Enable Location Commands", Log.LogType.Info);
 
-                foreach (string location in KnownLocations)
+                if (KnownLocations != null)
                 {
-                    if (location == null)
-                        break;
-
-                    if (LocationsGrammars.Contains(location.ToLower()))
+                    foreach (string location in KnownLocations)
                     {
-                        if (!recognizer.Grammars.Contains((Grammar)LocationsGrammars[location.ToLower()]))
-                            recognizer.LoadGrammar((Grammar)LocationsGrammars[location.ToLower()]);
-                        else
-                            Log.Debug($"Multiple locations have the name \"{location.ToLower()}\"", Log.LogType.Error);
-                    }
-                    else
-                    {
-                        Choices commands = new Choices();
-                        Grammar grammar;
-                        commands.Add(location.ToLower());
+                        if (location == null)
+                            break;
 
-                        foreach (string item in locationCommands)
+                        if (LocationsGrammars.Contains(location.ToLower()))
                         {
-                            if (item == null)
-                                break;
+                            if (!recognizer.Grammars.Contains((Grammar)LocationsGrammars[location.ToLower()]))
+                                recognizer.LoadGrammar((Grammar)LocationsGrammars[location.ToLower()]);
+                            else
+                                Log.Debug($"Multiple locations have the name \"{location.ToLower()}\"", Log.LogType.Error);
+                        }
+                        else
+                        {
+                            Choices commands = new Choices();
+                            Grammar grammar;
+                            commands.Add(location.ToLower());
 
-                            commands.Add(item + " " + location.ToLower());
+                            foreach (string item in locationCommands)
+                            {
+                                if (item == null)
+                                    break;
+
+                                commands.Add(item + " " + location.ToLower());
+                            }
+
+                            grammar = new Grammar(commands);
+                            grammar.Name = $"{location.ToLower()}\tlocation";
+                            LocationsGrammars.Add(location.ToLower(), grammar);
                         }
 
-                        grammar = new Grammar(commands);
-                        grammar.Name = $"{location.ToLower()}\tlocation";
-                        LocationsGrammars.Add(location.ToLower(), grammar);
                     }
-
                 }
 
             }
