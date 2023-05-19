@@ -688,7 +688,8 @@ void ExecuteCommand(Command command)
             }
 
             // Setting
-            else if (currentCommand.Type == "setting") {
+            else if (currentCommand.Type == "setting")
+            {
             #pragma region UI and Menu Controls
 
                 #pragma region Map Controls
@@ -837,6 +838,7 @@ void ExecuteCommand(Command command)
             }
 
             // Keybind
+            #pragma region Keybinds
             else if (currentCommand.Type == "keybind") {
                 if (currentCommand.Morph != "horseriding") {
                     if (currentCommand.KeybindDuration >= 0) {
@@ -950,8 +952,10 @@ void ExecuteCommand(Command command)
                     }
                 }
             }
+            #pragma endregion
 
             // Console
+            #pragma region Console Commands
             else if (currentCommand.Type == "console") {
                 try {
                     SendNotification("Console: " + currentCommand.Name);
@@ -987,13 +991,20 @@ void ExecuteCommand(Command command)
                     logger::error("Invalid Console Command: {}\n{}", currentCommand.Name, ex.what());
                 }
             }
+#pragma endregion
 
             // Locations
-            else if (currentCommand.Type == "location") {
+            else if (currentCommand.Type == "location")
+            {
                 if (currentCommand.Name == "playerlocation")
                     NavigateToPlayer();
                 else
                     NavigateToLocation(currentCommand.Name);
+
+                // Locations
+            }
+            else if (currentCommand.Type == "placemapmarker") {
+                PlaceCustomMarker();
 
             }  // End type check
         });    // End Task
@@ -1341,8 +1352,6 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
             break;
     }
 
-    //SendNotification(notification);
-
     // Check if PushToSpeak is disabled OR triggering buttonId does NOT match target input value from VOX MCM
     if (VOX_PushToSpeakType->value == 0 || VOX_PushToSpeakType->value == 3 ||
         (VOX_PushToSpeakKeyCode->value > 474 && buttonId + 474 != VOX_PushToSpeakKeyCode->value) ||
@@ -1390,13 +1399,6 @@ void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonI
             pushToSpeakListening = !pushToSpeakListening;
         }
     }
-
-    //// Use button presses here
-    // if (type == PapyrusVR::VREventType_Pressed) {
-    //     logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
-    // } else if (type == PapyrusVR::VREventType_Released) {
-    //     logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
-    // }
 }
 
 #pragma endregion device input triggers for speech recognition listening

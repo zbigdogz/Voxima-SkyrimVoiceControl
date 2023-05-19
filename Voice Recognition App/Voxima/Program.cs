@@ -168,6 +168,7 @@ namespace Voxima
         static List<string> powerCast = new List<string>();
         static List<string> locationCommands = new List<string>();
         static List<string> currentLocationCommands = new List<string>();
+        static List<string> customPlayerMarkerCommands = new List<string>();
 
         static string Morph = "none";
         static bool isRidingHorse = false;
@@ -731,6 +732,7 @@ namespace Voxima
 
                 //Get "Current Location" commands
                 Choices commands = new Choices();
+                #region Fill Current Location Commands
                 foreach (string item in currentLocationCommands)
                 {
                     if (item == null)
@@ -747,6 +749,27 @@ namespace Voxima
                     if (!LocationsGrammars.Contains("playerlocation"))
                         LocationsGrammars.Add("playerlocation", grammar);
                 }
+                #endregion
+
+                #region Fill Place Map Marker Commands
+                commands = new Choices();
+                foreach (string item in customPlayerMarkerCommands)
+                {
+                    if (item == null)
+                        break;
+
+                    commands.Add(item);
+                }
+
+                if (currentLocationCommands.Count != 0)
+                {
+                    Grammar grammar = new Grammar(commands);
+                    grammar.Name = $"placemapmarker\tplacemapmarker";
+
+                    if (!LocationsGrammars.Contains("placemapmarker"))
+                        LocationsGrammars.Add("placemapmarker", grammar);
+                }
+                #endregion
 
 
                 //Create/Fill Conflicts progressions file
@@ -895,10 +918,11 @@ namespace Voxima
                                     case "power - cast": powerCast.Add(command); isCommand = false; break;
                                     case "location prefixes": locationCommands.Add(command); isCommand = false; break;
                                     case "current location commands": currentLocationCommands.Add(command); isCommand = false; break;
+                                    case "place map marker": customPlayerMarkerCommands.Add(command); isCommand = false; break;
                                     default: isCommand = true; CommandList.Add(command); break;
                                 }
                             }//End Foreach
-
+                            
                             //See why all of the commands for the "hand - left" and similar command types are getting added to AllItems. They should NOT be getting added to that
                             if (!isCommand)
                                 continue;
@@ -2356,6 +2380,12 @@ namespace Voxima
             {
                 Log.Debug($"Received from client: Enable Location Commands", Log.LogType.Info);
 
+                if (LocationsGrammars.Contains("placemapmarker") &&
+                    !recognizer.Grammars.Contains((Grammar)LocationsGrammars["placemapmarker"]))
+                {
+                    recognizer.LoadGrammar((Grammar)LocationsGrammars["placemapmarker"]);
+                }
+
                 if (KnownLocations != null)
                 {
                     foreach (string location in KnownLocations)
@@ -2396,6 +2426,12 @@ namespace Voxima
             else if (message.StartsWith("disable location commands"))
             {
                 Log.Debug($"Received from client: Disable Location Commands", Log.LogType.Info);
+
+                if (LocationsGrammars.Contains("placemapmarker") &&
+                    recognizer.Grammars.Contains((Grammar)LocationsGrammars["placemapmarker"]))
+                {
+                    recognizer.UnloadGrammar((Grammar)LocationsGrammars["placemapmarker"]);
+                }
 
                 foreach (string location in KnownLocations)
                 {
@@ -2743,6 +2779,14 @@ namespace Voxima
                 {
                     from = "Skyrim.esm";
                     type = "location";
+
+                    id = "0";
+
+                }
+                else if (Title.EndsWith("placemapmarker"))
+                {
+                    from = "Skyrim.esm";
+                    type = "placemapmarker";
 
                     id = "0";
 

@@ -1606,7 +1606,7 @@ void PlaceCustomMarker() {
     if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
         auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "placePlayerMarker", 0, 1.0f, 0.0f);
         bsInputEventQueue->PushOntoInputQueue(kEvent);
-        SendNotification("Place player marker");
+        SendNotification("Player Marker Placed");
     }
 }
 
