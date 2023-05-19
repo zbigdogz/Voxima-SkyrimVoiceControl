@@ -861,6 +861,8 @@ namespace Voxima
 
                 foreach (string currentLocation in Location)
                 {
+                    if (currentLocation.ToLower().EndsWith("_template"))
+                        continue;
 
                     if (Type != "console")
                     {

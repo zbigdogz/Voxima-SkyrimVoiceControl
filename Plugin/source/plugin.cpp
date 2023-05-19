@@ -12,6 +12,7 @@
 #include "../functions/functions.hpp"              // Miscellaneous custom functions
 #include "../functions/vrinput.hpp"                // VR controller input capture functionality
 #include "../functions/websocket.hpp"              // Websocket functionality
+#include "../functions/SkyrimMessageBox.hpp"       // Miscellaneous custom functions
 #include "../events/animation-events.hpp"          // Animation event hooking and processing
 #include "../events/spell-learned-event.hpp"       // Spell learn event hooking and processing
 #include "../events/morph-changed-event.hpp"       // Player morph event hooking and processing
@@ -806,27 +807,24 @@ void ExecuteCommand(Command command)
                     if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
                         auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "quicksave", 0, 1.0f, 0.0f);
                         bsInputEventQueue->PushOntoInputQueue(kEvent);
-                        SendNotification("Created new quick save");
                     }
-
-                    /*
-                    // This is unsused, as a keybind works much better and more reliable
-
-                    // Get "Quick Save" to work properly. I don't want to need to use keybinds for it. The commented out functionality is inconsistent on Flatrim and crashes VR
-
-                    // player->GetCurrentLocation();
-                    // const char* saveGameName = ("Voxima Quick Save - " + (std::string)player->GetCurrentLocation()->GetName()).c_str();
-                    // RE::BGSSaveLoadManager::GetSingleton()->Save(saveGameName);
-
-                    // PressKey(63); Alternative method of presing "F5"
-
-                    // SendNotification("Saving Game");
-                    */
                 }
                 else if (currentCommand.Name == "quick load") {
                     // Loads most recent save file
-                    SendNotification("Loading most recent save");
-                    RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
+                    SkyrimMessageBox::Show("Do you want to load your last save game?", {"Yes", "No"}, [](unsigned int result) {
+                        switch (result)
+                        {
+                            case 0: 
+                                RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
+                                //No notificaiton is needed, as the game already says "quicksaving..."
+                                break;
+
+                            case 1:
+                                SendNotification("Load Game Aborted");
+                                break;
+                        }
+                    
+                    });
 
                     /* // Spoof button input to load most recent quick save file
                     if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
