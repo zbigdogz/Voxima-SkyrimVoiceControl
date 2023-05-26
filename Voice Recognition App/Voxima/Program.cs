@@ -209,14 +209,23 @@ namespace Voxima
         {
             "horse - forward",
             "horse - stop",
-            "horse - sprint",
-            "horse - stop sprinting",
             "horse - jump",
             "horse - 90 left",
             "horse - 45 left",
             "horse - 90 right",
             "horse - 45 right",
-            "horse - turn around"
+            "horse - turn around",
+            "horse - sprint",
+            "horse - stop sprint",
+            "horse - run",
+            "horse - stop run",
+            "horse - walk",
+            "horse - stop walk",
+            "horse - rear up",
+            "horse - backwards",
+            "horse - faster",
+            "horse - slower",
+            "horse - dismount"
         };
 
         static List<string> allDovahzulCommands = new List<string>();
@@ -287,14 +296,6 @@ namespace Voxima
             VSettingsAddress = @"Data\SKSE\Plugins\VOX\Commands\Special\Settings";     //Voiced Settings
             if (!System.IO.File.Exists(VSettingsAddress))
                 System.IO.Directory.CreateDirectory(VSettingsAddress);
-
-            GameInfoAddress = @"Data\SKSE\Plugins\VOX\Game Information";     //Voiced Settings
-            if (!System.IO.File.Exists(GameInfoAddress))
-                System.IO.Directory.CreateDirectory(GameInfoAddress);
-
-            PlayerInfoAddress = @"Data\SKSE\Plugins\VOX\Game Information\PlayerInfo.txt";
-            if (!System.IO.File.Exists(PlayerInfoAddress))
-                System.IO.File.WriteAllText(PlayerInfoAddress, "");
 
             if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX\Commands"))
                 System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX\Commands");
@@ -1496,6 +1497,8 @@ namespace Voxima
                                                                         "open inventory\tsetting", "close inventory\tsetting",
                                                                       };
 
+                bool isValidCommand;
+
                 //Load Special Grammars
                 foreach (Grammar grammar in SettingGrammars)
                 {
@@ -1503,12 +1506,13 @@ namespace Voxima
                     if (grammar == null)
                         break;
 
-                    if (VocalPushToSpeak || (!VocalPushToSpeak &&
-                        grammar.Name != "vocal command toggle - enable\tsetting" &&
-                        grammar.Name != "vocal command toggle - disable\tsetting") &&
-                        !(Morph == "none" && grammar.Name == "werewolf shout\tsetting") &&
-                        !(Morph == "werewolf" && disallowedWerewolfSettings.Contains(grammar.Name)) &&
-                        !(Morph == "vampirelord" && disallowedVampireLordSettings.Contains(grammar.Name)) && !(isRidingHorse && allHorseControlCommands.Contains(grammar.Name)))
+                    isValidCommand = VocalPushToSpeak || (grammar.Name != "vocal command toggle - enable\tsetting" && grammar.Name != "vocal command toggle - disable\tsetting");
+                    isValidCommand = isValidCommand && !(Morph == "none" && grammar.Name == "werewolf shout\tsetting");
+                    isValidCommand = isValidCommand && !(Morph == "werewolf" && disallowedWerewolfSettings.Contains(grammar.Name));
+                    isValidCommand = isValidCommand && !(Morph == "vampirelord" && disallowedVampireLordSettings.Contains(grammar.Name));
+                    isValidCommand = isValidCommand && (isRidingHorse || !allHorseControlCommands.Contains(grammar.Name.Remove(grammar.Name.IndexOf('\t'))));
+
+                    if (isValidCommand)
                     {
                         recognizer.LoadGrammar(grammar);
                     }
@@ -2495,9 +2499,14 @@ namespace Voxima
                 try
                 {
                     recognizer.SetInputToDefaultAudioDevice();
-                }catch (Exception) { }
+                }
+                catch (Exception) { }
 
-                recognizer.RecognizeAsync(RecognizeMode.Multiple);
+                try
+                {
+                    recognizer.RecognizeAsync(RecognizeMode.Multiple);
+                }
+                catch (Exception) { }
 
             }
             else if (message.StartsWith("initialize update"))

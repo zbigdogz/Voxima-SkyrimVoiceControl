@@ -901,8 +901,15 @@ void ExecuteCommand(Command command)
             #pragma region Rear Up
             else if (currentCommand.Name == "horse - rear up") {
                 RE::ActorPtr horse;
-                bool move = false;
+
+                if (player == nullptr) return;
+
                 (void)player->GetMount(horse);
+
+                if (horse == nullptr) {
+                    SendNotification("No Mount Detected");
+                    return;
+                }
 
                 if (!horse->IsMoving())
                     MoveHorse(MoveType::MoveJump);
