@@ -1,14 +1,18 @@
-namespace LoadGameEvent {
+namespace LoadGameEvent
+{
     using EventResult = RE::BSEventNotifyControl;
 
-    class EventHandler : public RE::BSTEventSink<RE::TESLoadGameEvent> {
+    class EventHandler : public RE::BSTEventSink<RE::TESLoadGameEvent>
+    {
     public:
-        static EventHandler* GetSingleton() {
+        static EventHandler* GetSingleton()
+        {
             static EventHandler singleton;
             return std::addressof(singleton);
         }
 
-        static void Register() {
+        static void Register()
+        {
             auto scriptEventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
             scriptEventSourceHolder->GetEventSource<RE::TESLoadGameEvent>()->AddEventSink(EventHandler::GetSingleton());
             /// logger::info("Registered {}", typeid(RE::TESLoadGameEvent).name());
@@ -30,8 +34,10 @@ namespace LoadGameEvent {
         EventHandler& operator=(EventHandler&&) = delete;
     };
 
-    EventResult EventHandler::ProcessEvent(const RE::TESLoadGameEvent* a_event, RE::BSTEventSource<RE::TESLoadGameEvent>*) {
-        if (a_event) {
+    EventResult EventHandler::ProcessEvent(const RE::TESLoadGameEvent* a_event, RE::BSTEventSource<RE::TESLoadGameEvent>*)
+    {
+        if (a_event)
+        {
             /// logger::debug("Game loaded!");
             GameLoaded();
         }

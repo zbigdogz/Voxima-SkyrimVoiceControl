@@ -1,18 +1,21 @@
-namespace DeviceInputEvent {
+namespace DeviceInputEvent
+{
 
     using Event = RE::InputEvent*;
     using EventType = RE::INPUT_EVENT_TYPE;
-	using DeviceType = RE::INPUT_DEVICE;
+    using DeviceType = RE::INPUT_DEVICE;
 
-    class DeviceInputHandler : public RE::BSTEventSink<Event> {
+    class DeviceInputHandler : public RE::BSTEventSink<Event>
+    {
         using InputSource = RE::BSTEventSource<Event>;
 
-        public:
-        static DeviceInputHandler* GetSingleton() {
+    public:
+        static DeviceInputHandler* GetSingleton()
+        {
             static DeviceInputHandler singleton;
             return &singleton;
         }
-        
+
         static const int kKeyboardOffset = 0;
         static const int kMouseOffset = 256;
         static const int kGamepadOffset = 266;
@@ -20,30 +23,38 @@ namespace DeviceInputEvent {
         static enum InputDeviceType { Keyboard, Mouse, Gamepad };
 
         // Register for device input events
-        static void Register() {
+        static void Register()
+        {
             static RE::BSInputDeviceManager* inputDeviceManager = nullptr;
-            if (!inputDeviceManager) {
+            if (!inputDeviceManager)
+            {
                 inputDeviceManager = RE::BSInputDeviceManager::GetSingleton();
             }
-            if (inputDeviceManager && inputDeviceManager->sinks.size() >= 3) {
+            if (inputDeviceManager && inputDeviceManager->sinks.size() >= 3)
+            {
                 auto mySingle = DeviceInputHandler::GetSingleton();
 
                 inputDeviceManager->AddEventSink(mySingle);
                 logger::info("Registered for device input events");
             }
-        } 
+        }
 
         // Process device input events
-        auto ProcessEvent(const Event* a_event, InputSource* a_eventSource) -> RE::BSEventNotifyControl override {
+        auto ProcessEvent(const Event* a_event, InputSource* a_eventSource) -> RE::BSEventNotifyControl override
+        {
             /// logger::debug("Device input event!");
-            if (a_event) {
-                for (auto event = *a_event; event; event = event->next) {
+            if (a_event)
+            {
+                for (auto event = *a_event; event; event = event->next)
+                {
                     if (event->eventType != RE::INPUT_EVENT_TYPE::kButton) continue;
                     InputDeviceType deviceType;
                     auto button = static_cast<RE::ButtonEvent*>(event);
-                    if (button->IsDown()) {
+                    if (button->IsDown())
+                    {
                         auto key = button->idCode;
-                        switch (button->device.get()) {
+                        switch (button->device.get())
+                        {
                             case DeviceType::kMouse:
                                 deviceType = InputDeviceType::Mouse;
                                 key += kMouseOffset;
@@ -69,11 +80,13 @@ namespace DeviceInputEvent {
         }
 
         // Calculate equivalent keycode for gamepad button
-        static std::uint32_t GetGamepadIndex(RE::BSWin32GamepadDevice::Key a_key) {
+        static std::uint32_t GetGamepadIndex(RE::BSWin32GamepadDevice::Key a_key)
+        {
             using Key = RE::BSWin32GamepadDevice::Key;
 
             std::uint32_t index;
-            switch (a_key) {
+            switch (a_key)
+            {
                 case Key::kUp:
                     index = 0;
                     break;
@@ -131,7 +144,7 @@ namespace DeviceInputEvent {
 
         // Respond to input device events
         static void FlatrimInputDeviceEvent(RE::ButtonEvent* button, uint32_t keyCode);
-        
+
     protected:
         DeviceInputHandler() = default;
         DeviceInputHandler(const DeviceInputHandler&) = delete;
@@ -165,6 +178,6 @@ void DeviceInputEvent::EventHandler::FlatrimInputDeviceEvent(RE::ButtonEvent* bu
 
 // OnDeviceInputEvent tracking functionality modified from source by Noah Boddie (shared directly via Discord)
 // Additional OnDeviceInputEvent tracking code modified from "Precision" by ersh1 (MIT License)
-    // Links ==> https://github.com/ersh1/Precision; https://www.nexusmods.com/skyrimspecialedition/mods/72347
+// Links ==> https://github.com/ersh1/Precision; https://www.nexusmods.com/skyrimspecialedition/mods/72347
 
 #pragma endregion

@@ -1,8 +1,11 @@
-namespace Anim {
+namespace Anim
+{
 
-    class Events {
+    class Events
+    {
     public:
-        static Events* GetSingleton() {
+        static Events* GetSingleton()
+        {
             static Events singleton;
             return &singleton;
         }
@@ -16,7 +19,8 @@ namespace Anim {
                                                        RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_src);
 
         static void AnimationEvent(const char* holder, const char* name);
-        void AddEventSink() {
+        void AddEventSink()
+        {
             REL::Relocation<uintptr_t> PCProcessAnimGraphEventVtbl{RE::VTABLE_PlayerCharacter[2]};
             _PCProcessEvent = PCProcessAnimGraphEventVtbl.write_vfunc(0x1, &PCProcessEvent);
         }
@@ -32,25 +36,29 @@ namespace Anim {
     };
 
     RE::BSEventNotifyControl Anim::Events::PCProcessEvent(RE::BSTEventSink<RE::BSAnimationGraphEvent>* a_this, RE::BSAnimationGraphEvent& a_event,
-                                                          RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_src) {
+                                                          RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_src)
+    {
         ProcessEvent(a_this, a_event, a_src);
         return _PCProcessEvent(a_this, a_event, a_src);
     }
 
     RE::BSEventNotifyControl Anim::Events::ProcessEvent(RE::BSTEventSink<RE::BSAnimationGraphEvent>* a_this, RE::BSAnimationGraphEvent& a_event,
-                                                        RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_src) {
-        if (a_event.tag != NULL && a_event.holder != NULL) {
+                                                        RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_src)
+    {
+        if (a_event.tag != NULL && a_event.holder != NULL)
+        {
             if (a_event.holder->IsPlayerRef()) AnimationEvent("Player", a_event.tag.c_str());
         }
         return RE::BSEventNotifyControl::kContinue;
     }
 }
 
-void InitializeAnimationHooking() {
-    ///logger::debug("Initializing trampoline...");
+void InitializeAnimationHooking()
+{
+    /// logger::debug("Initializing trampoline...");
     auto& trampoline = SKSE::GetTrampoline();
     trampoline.create(14);
-    ///logger::debug("Trampoline initialized");
+    /// logger::debug("Trampoline initialized");
     Anim::Events::GetSingleton()->AddEventSink();
     const auto a_events = Anim::Events::GetSingleton();
     /// a_events->enabled = true;

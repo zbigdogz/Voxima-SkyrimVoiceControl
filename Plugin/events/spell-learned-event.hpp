@@ -1,15 +1,20 @@
-namespace SpellLearnedEvent {
+namespace SpellLearnedEvent
+{
     using EventResult = RE::BSEventNotifyControl;
 
-    class EventHandler : public RE::BSTEventSink<RE::SpellsLearned::Event> {
+    class EventHandler : public RE::BSTEventSink<RE::SpellsLearned::Event>
+    {
     public:
-        static EventHandler* GetSingleton() {
+        static EventHandler* GetSingleton()
+        {
             static EventHandler singleton;
             return &singleton;
         }
 
-        static void Register() {
-            if (const auto event = RE::SpellsLearned::GetEventSource(); event) {
+        static void Register()
+        {
+            if (const auto event = RE::SpellsLearned::GetEventSource(); event)
+            {
                 event->AddEventSink<RE::SpellsLearned::Event>(GetSingleton());
                 /// logger::info("Registered {} handler", typeid(RE::SpellsLearned::Event).name());
                 logger::info("Registered for spell learn events");
@@ -31,8 +36,10 @@ namespace SpellLearnedEvent {
         EventHandler& operator=(EventHandler&&) = delete;
     };
 
-    EventResult EventHandler::ProcessEvent(const RE::SpellsLearned::Event* a_event, RE::BSTEventSource<RE::SpellsLearned::Event>*) {
-        if (a_event) {
+    EventResult EventHandler::ProcessEvent(const RE::SpellsLearned::Event* a_event, RE::BSTEventSource<RE::SpellsLearned::Event>*)
+    {
+        if (a_event)
+        {
             /// logger::debug("Spell learned event!");
             SpellLearned(a_event->spell);
         }

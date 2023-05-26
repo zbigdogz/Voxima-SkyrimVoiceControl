@@ -15,9 +15,11 @@ void OnPapyrusVRMessage(SKSE::MessagingInterface::Message* message)
     }
 }
 
-std::string GetButtonName(vr::EVRButtonId buttonId) {
+std::string GetButtonName(vr::EVRButtonId buttonId)
+{
     std::string name = "";
-    switch (buttonId) {
+    switch (buttonId)
+    {
         case vr::k_EButton_System:
             name = "System button was pressed";
             break;
@@ -69,7 +71,8 @@ std::string GetButtonName(vr::EVRButtonId buttonId) {
 
 // New RAW API event handlers
 bool OnControllerStateChanged(vr::TrackedDeviceIndex_t unControllerDeviceIndex, const vr::VRControllerState_t* pControllerState, uint32_t unControllerStateSize,
-                              vr::VRControllerState_t* pOutputControllerState) {
+                              vr::VRControllerState_t* pOutputControllerState)
+{
     // static uint64_t lastButtonPressedData[PapyrusVR::VRDevice_LeftController + 1] = {0};  // should be size 3 array at least for all 3 vr devices
     // static_assert(PapyrusVR::VRDevice_LeftController + 1 >= 3, "lastButtonPressedData array size too small!");
 
@@ -95,10 +98,11 @@ bool OnControllerStateChanged(vr::TrackedDeviceIndex_t unControllerDeviceIndex, 
     // logger::debug("VR controller state changed!!");
 
     // vr::TrackedDeviceIndex_t leftcontroller = g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::ETrackedControllerRole::TrackedControllerRole_LeftHand);
-    // vr::TrackedDeviceIndex_t rightcontroller = g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::ETrackedControllerRole::TrackedControllerRole_RightHand);
+    // vr::TrackedDeviceIndex_t rightcontroller =
+    // g_VRSystem->GetTrackedDeviceIndexForControllerRole(vr::ETrackedControllerRole::TrackedControllerRole_RightHand);
 
-    //// NOTE: DO NOT check the packetNum on ControllerState, it seems to cause problems (maybe it should only be checked per controllers?) - at any rate, it seems to change every
-    //// frame anyway.
+    //// NOTE: DO NOT check the packetNum on ControllerState, it seems to cause problems (maybe it should only be checked per controllers?) - at any rate, it
+    ///seems to change every / frame anyway.
 
     // PapyrusVR::VRDevice deviceId = PapyrusVR::VRDevice_Unknown;
 
@@ -127,7 +131,8 @@ bool OnControllerStateChanged(vr::TrackedDeviceIndex_t unControllerDeviceIndex, 
     //
     //    //// We get the activate button from config now so, getting it by function.
     //    //const auto buttonId = g_quickslotMgr->GetActivateButton();
-    //    //const uint64_t buttonMask = vr::ButtonMaskFromId((vr::EVRButtonId)buttonId);  // annoying issue where PapyrusVR and openvr enums are not type-compatible..
+    //    //const uint64_t buttonMask = vr::ButtonMaskFromId((vr::EVRButtonId)buttonId);  // annoying issue where PapyrusVR and openvr enums are not
+    //    type-compatible..
 
     //    //// right now only check for trigger press.  In future support input binding?
     //    //if (pControllerState->ulButtonPressed & buttonMask && !(lastButtonPressedData[deviceId] & buttonMask)) {
@@ -157,58 +162,59 @@ bool OnControllerStateChanged(vr::TrackedDeviceIndex_t unControllerDeviceIndex, 
 }
 
 //// Legacy API event handlers
-//void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonId, PapyrusVR::VRDevice deviceId) {
+// void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonId, PapyrusVR::VRDevice deviceId) {
 //
-//    if (VOX_PushToSpeakType->value == 0 || buttonId != VOX_PushToSpeakKeyCode->value)  // Check if PushToSpeak is disabled OR triggering buttonId does NOT match target input value from VOX MCM
-//        return; // Exit this method
+//     if (VOX_PushToSpeakType->value == 0 || buttonId != VOX_PushToSpeakKeyCode->value)  // Check if PushToSpeak is disabled OR triggering buttonId does NOT
+//     match target input value from VOX MCM
+//         return; // Exit this method
 //
-//    if (VOX_PushToSpeakType->value == 1) // VOX_PushToSpeakType mode requires trigger to be held
-//    {
-//        if (type == PapyrusVR::VREventType_Pressed)
-//        {
-//            logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
-//            if (vrPushToSpeakListening == false)
-//            {
-//                vrPushToSpeakListening = true;
-//                SendMessage(WebSocketMessage::EnableRecognition);
-//                SendNotification("SkyrimVR Input Pressed - Start Listening!");
-//            }
-//        }
-//        else if (type == PapyrusVR::VREventType_Released)
-//        {
-//            logger::debug("VR Button release deviceId: %d buttonId: %d", deviceId, buttonId);
-//            if (vrPushToSpeakListening == true)
-//            {
-//                vrPushToSpeakListening = false;
-//                SendMessage(WebSocketMessage::DisableRecognition);
-//                SendNotification("SkyrimVR Input Released - Stop Listening!");
-//            }
-//        }
-//    }
-//    else if (VOX_PushToSpeakType->value == 2) // VOX_PushToSpeakType mode has trigger acting as a toggle
-//    {
-//        if (type == PapyrusVR::VREventType_Released)
-//        {
-//            logger::debug("VR Button release deviceId: %d buttonId: %d", deviceId, buttonId);
-//            if (vrPushToSpeakListening == false)
-//            {
-//                SendMessage(WebSocketMessage::EnableRecognition);
-//                SendNotification("SkyrimVR Input Released - Start Listening!");
-//            }
-//            else
-//            {
-//                SendMessage(WebSocketMessage::DisableRecognition);
-//                SendNotification("SkyrimVR Input Released - Stop Listening!");
-//            }
-//            vrPushToSpeakListening = !vrPushToSpeakListening;
-//        }
-//    }    
+//     if (VOX_PushToSpeakType->value == 1) // VOX_PushToSpeakType mode requires trigger to be held
+//     {
+//         if (type == PapyrusVR::VREventType_Pressed)
+//         {
+//             logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
+//             if (vrPushToSpeakListening == false)
+//             {
+//                 vrPushToSpeakListening = true;
+//                 SendMessage(WebSocketMessage::EnableRecognition);
+//                 SendNotification("SkyrimVR Input Pressed - Start Listening!");
+//             }
+//         }
+//         else if (type == PapyrusVR::VREventType_Released)
+//         {
+//             logger::debug("VR Button release deviceId: %d buttonId: %d", deviceId, buttonId);
+//             if (vrPushToSpeakListening == true)
+//             {
+//                 vrPushToSpeakListening = false;
+//                 SendMessage(WebSocketMessage::DisableRecognition);
+//                 SendNotification("SkyrimVR Input Released - Stop Listening!");
+//             }
+//         }
+//     }
+//     else if (VOX_PushToSpeakType->value == 2) // VOX_PushToSpeakType mode has trigger acting as a toggle
+//     {
+//         if (type == PapyrusVR::VREventType_Released)
+//         {
+//             logger::debug("VR Button release deviceId: %d buttonId: %d", deviceId, buttonId);
+//             if (vrPushToSpeakListening == false)
+//             {
+//                 SendMessage(WebSocketMessage::EnableRecognition);
+//                 SendNotification("SkyrimVR Input Released - Start Listening!");
+//             }
+//             else
+//             {
+//                 SendMessage(WebSocketMessage::DisableRecognition);
+//                 SendNotification("SkyrimVR Input Released - Stop Listening!");
+//             }
+//             vrPushToSpeakListening = !vrPushToSpeakListening;
+//         }
+//     }
 //
-//    //// Use button presses here
-//    //if (type == PapyrusVR::VREventType_Pressed) {
-//    //    logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
-//    //} else if (type == PapyrusVR::VREventType_Released) {
-//    //    logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
-//    //}
+//     //// Use button presses here
+//     //if (type == PapyrusVR::VREventType_Pressed) {
+//     //    logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
+//     //} else if (type == PapyrusVR::VREventType_Released) {
+//     //    logger::debug("VR Button press deviceId: %d buttonId: %d", deviceId, buttonId);
+//     //}
 //
-//}
+// }

@@ -1,16 +1,20 @@
-namespace MenuOpenCloseEvent {
+namespace MenuOpenCloseEvent
+{
     using EventResult = RE::BSEventNotifyControl;
 
-    class EventHandler : public RE::BSTEventSink<RE::MenuOpenCloseEvent> {
+    class EventHandler : public RE::BSTEventSink<RE::MenuOpenCloseEvent>
+    {
     public:
-        static EventHandler* GetSingleton() {
+        static EventHandler* GetSingleton()
+        {
             static EventHandler singleton;
             return std::addressof(singleton);
         }
 
-        static void Register() {
+        static void Register()
+        {
             auto* eventSink = EventHandler::GetSingleton();
-            ///auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
+            /// auto* eventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
             RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(eventSink);
             logger::info("Registered for menu open/close events");
         }
@@ -30,7 +34,8 @@ namespace MenuOpenCloseEvent {
         EventHandler& operator=(EventHandler&&) = delete;
     };
 
-    EventResult EventHandler::ProcessEvent(const RE::MenuOpenCloseEvent* a_event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) {
+    EventResult EventHandler::ProcessEvent(const RE::MenuOpenCloseEvent* a_event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
+    {
         /// logger::debug("Menu open/close event!");
         MenuOpenClose(a_event);
         return EventResult::kContinue;

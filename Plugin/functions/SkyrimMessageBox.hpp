@@ -25,7 +25,7 @@ public:
     }
 };
 
-//Credit
+// Credit
 /*
     Full credit to MrowrPurr for this entire function. I did not write any of it
 */

@@ -7,10 +7,14 @@
 
 // VR input callbacks
 // last argument is ptr to VRControllerState that the mod authors can modify and use to block inputs
-typedef bool (*GetControllerState_CB)(vr::TrackedDeviceIndex_t unControllerDeviceIndex, const vr::VRControllerState_t* pControllerState, uint32_t unControllerStateSize, vr::VRControllerState_t* pOutputControllerState);
-typedef vr::EVRCompositorError (*WaitGetPoses_CB)(VR_ARRAY_COUNT(unRenderPoseArrayCount) vr::TrackedDevicePose_t* pRenderPoseArray, uint32_t unRenderPoseArrayCount, VR_ARRAY_COUNT(unGamePoseArrayCount) vr::TrackedDevicePose_t* pGamePoseArray, uint32_t unGamePoseArrayCount);
+typedef bool (*GetControllerState_CB)(vr::TrackedDeviceIndex_t unControllerDeviceIndex, const vr::VRControllerState_t* pControllerState,
+                                      uint32_t unControllerStateSize, vr::VRControllerState_t* pOutputControllerState);
+typedef vr::EVRCompositorError (*WaitGetPoses_CB)(VR_ARRAY_COUNT(unRenderPoseArrayCount) vr::TrackedDevicePose_t* pRenderPoseArray,
+                                                  uint32_t unRenderPoseArrayCount, VR_ARRAY_COUNT(unGamePoseArrayCount) vr::TrackedDevicePose_t* pGamePoseArray,
+                                                  uint32_t unGamePoseArrayCount);
 
-class OpenVRHookManagerAPI {
+class OpenVRHookManagerAPI
+{
 public:
     virtual bool IsInitialized() = 0;
 
@@ -24,17 +28,26 @@ public:
 };
 
 // Request OpenVRHookManagerAPI object from dll if it is available, otherwise return null.  Use to initialize raw OpenVR hooking
-inline OpenVRHookManagerAPI* RequestOpenVRHookManagerObject() {
+inline OpenVRHookManagerAPI* RequestOpenVRHookManagerObject()
+{
     typedef OpenVRHookManagerAPI* (*GetVRHookMgrFuncPtr_t)();
     HMODULE skyrimVRToolsModule = LoadLibraryA("skyrimvrtools.dll");
-    if (skyrimVRToolsModule != nullptr) {
+    if (skyrimVRToolsModule != nullptr)
+    {
         GetVRHookMgrFuncPtr_t vrHookGetFunc = (GetVRHookMgrFuncPtr_t)GetProcAddress(skyrimVRToolsModule, "GetVRHookManager");
-        if (vrHookGetFunc) {
+        if (vrHookGetFunc)
+        {
             return vrHookGetFunc();
-        } else {
-            logger::error("Failed to get address of function GetVRHookmanager from skyrimvrtools.dll in RequestOpenVRHookManagerObject().  Is your skyrimvrtools.dll out of date?");
         }
-    } else {
+        else
+        {
+            logger::error(
+                "Failed to get address of function GetVRHookmanager from skyrimvrtools.dll in RequestOpenVRHookManagerObject().  Is your skyrimvrtools.dll out "
+                "of date?");
+        }
+    }
+    else
+    {
         logger::error("Failed to load skyrimvrtools.dll in RequestOpenVRHookManagerObject()");
     }
 

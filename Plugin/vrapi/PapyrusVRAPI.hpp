@@ -8,7 +8,8 @@
 
 static const uint32_t kPapyrusVR_Message_Init = 40008;
 
-struct PapyrusVRAPI {
+struct PapyrusVRAPI
+{
     // Functions
     // std::function<void(OnPoseUpdateCallback)> RegisterPoseUpdateListener; Discontinued
     std::function<PapyrusVR::VRManagerAPI*(void)> GetVRManager;

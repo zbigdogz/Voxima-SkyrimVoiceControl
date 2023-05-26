@@ -50,10 +50,6 @@ namespace Voxima
 
 
         //Addresses;
-
-        static string PlayerInfoAddress;
-
-        static string GameInfoAddress;
         static string SpellsAddress;
         static string ShoutsAddress;
         static string PowersAddress;
@@ -76,18 +72,11 @@ namespace Voxima
 
 
         static string DragonKeybindsAddress;
-
         static string HorseKeybindsAddress;
-
         static string ActivityDebugAddress;
         static string SettingsAddress;
-
         static string ConflictsAddress;
         static string SavedConflictsAddress;
-
-        //Log
-        static string PreviousLog = "";
-        static string CurrentLog = "";
 
         //Files
         static string[] SpellFiles;
@@ -99,35 +88,11 @@ namespace Voxima
         static string[] VSettingFiles;
         static string[] ConsoleCommandFiles;
 
-        static string[] WerewolfKeybindFiles;
         static string[] VampireLordSpellFiles;
         static string[] VampireLordPowerFiles;
-        static string[] VampireLordKeybindFiles;
         static string[] VampireLordProgressionFiles;
 
         static string[] DragonKeybindFiles;
-
-        static string[] HorseKeybindFiles;
-
-        //.ini Lists in Files
-        static readonly int MaxNumFiles = 50;
-
-        static List<string> SpellList = new List<string>();
-        static List<string> ShoutList = new List<string>();
-        static List<string> PowerList = new List<string>();
-        static List<string> KeybindList = new List<string>();
-        static List<string> ProgressionList = new List<string>();
-        static List<string> VSettingList = new List<string>();
-        static List<string> ConsoleCommandList = new List<string>();
-
-        static List<string> WerewolfKeybindList = new List<string>();
-        static List<string> VampireLordSpellList = new List<string>();
-        static List<string> VampireLordPowerList = new List<string>();
-        static List<string> VampireLordKeybindList = new List<string>();
-        static List<string> VampireLordProgressionList = new List<string>();
-
-        static List<string> DragonKeybindList = new List<string>();
-        static List<string> HorseKeybindList = new List<string>();
 
         //Settings
         static string DefaultHand = "";
@@ -529,16 +494,11 @@ namespace Voxima
                 VSettingFiles = Directory.GetFiles(VSettingsAddress);
                 ConsoleCommandFiles = Directory.GetFiles(ConsoleCommandsAddress);
 
-                WerewolfKeybindFiles = Directory.GetFiles(WerewolfKeybindsAddress);
-
                 VampireLordSpellFiles = Directory.GetFiles(VampireLordSpellsAddress);
                 VampireLordPowerFiles = Directory.GetFiles(VampireLordPowersAddress);
-                VampireLordKeybindFiles = Directory.GetFiles(VampireLordKeybindsAddress);
                 VampireLordProgressionFiles = Directory.GetFiles(VampireLordProgressionsAddress);
 
                 DragonKeybindFiles = Directory.GetFiles(DragonKeybindsAddress);
-
-                HorseKeybindFiles = Directory.GetFiles(HorseKeybindsAddress);
 
                 //----------Initialization Finished----------\\
 
@@ -605,8 +565,6 @@ namespace Voxima
 
                 #region Application Setup
 
-                //Fill Global Variables
-                PreviousLog = System.IO.File.ReadAllText(ActivityDebugAddress);
                 //Load Settings
                 string SettingsList = System.IO.File.ReadAllText(SettingsAddress);
                 string SettingName;

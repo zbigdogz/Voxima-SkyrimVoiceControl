@@ -1,15 +1,20 @@
-namespace LocationDiscoveredEvent {
+namespace LocationDiscoveredEvent
+{
     using EventResult = RE::BSEventNotifyControl;
 
-    class EventHandler : public RE::BSTEventSink<RE::LocationDiscovery::Event> {
+    class EventHandler : public RE::BSTEventSink<RE::LocationDiscovery::Event>
+    {
     public:
-        static EventHandler* GetSingleton() {
+        static EventHandler* GetSingleton()
+        {
             static EventHandler singleton;
             return &singleton;
         }
 
-        static void Register() {
-            if (const auto event = RE::LocationDiscovery::GetEventSource(); event) {
+        static void Register()
+        {
+            if (const auto event = RE::LocationDiscovery::GetEventSource(); event)
+            {
                 event->AddEventSink<RE::LocationDiscovery::Event>(GetSingleton());
                 /// logger::info("Registered {} handler", typeid(RE::LocationDiscovery::Event).name());
                 logger::info("Registered for location discovery events");
@@ -31,8 +36,10 @@ namespace LocationDiscoveredEvent {
         EventHandler& operator=(EventHandler&&) = delete;
     };
 
-    EventResult EventHandler::ProcessEvent(const RE::LocationDiscovery::Event* a_event, RE::BSTEventSource<RE::LocationDiscovery::Event>*) {
-        if (a_event) {
+    EventResult EventHandler::ProcessEvent(const RE::LocationDiscovery::Event* a_event, RE::BSTEventSource<RE::LocationDiscovery::Event>*)
+    {
+        if (a_event)
+        {
             /// logger::debug("Location discovered event!");
             LocationDiscovered(a_event->mapMarkerData->locationName.GetFullName());
         }

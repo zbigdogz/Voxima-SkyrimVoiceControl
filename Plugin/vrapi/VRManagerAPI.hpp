@@ -1,13 +1,15 @@
 #include "OpenVRTypes.hpp"
 #include "PapyrusVRTypes.hpp"
 
-namespace PapyrusVR {
+namespace PapyrusVR
+{
     typedef void (*OnVRButtonEvent)(VREventType, EVRButtonId, VRDevice);
     typedef void (*OnVROverlapEvent)(VROverlapEvent, uint32_t, VRDevice);
     typedef void (*OnVRUpdateEvent)(float);
     typedef void (*OnVRHapticEvent)(uint32_t, uint32_t, VRDevice);
 
-    class VRManagerAPI {
+    class VRManagerAPI
+    {
     public:
         virtual bool IsInitialized() = 0;
 

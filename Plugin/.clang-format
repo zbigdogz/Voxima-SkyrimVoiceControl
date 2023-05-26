@@ -38,6 +38,7 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   AfterEnum: false
+  AfterControlStatement: true
 
 SortIncludes: false
 ...

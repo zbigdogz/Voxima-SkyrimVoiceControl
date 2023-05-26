@@ -1,7 +1,9 @@
 #pragma once
 
-namespace PapyrusVR {
-    typedef struct Vector3 {
+namespace PapyrusVR
+{
+    typedef struct Vector3
+    {
         float x;
         float y;
         float z;
@@ -10,7 +12,8 @@ namespace PapyrusVR {
 
         Vector3() = default;
 
-        inline Vector3(float aX, float aY, float aZ) {
+        inline Vector3(float aX, float aY, float aZ)
+        {
             x = aX;
             y = aY;
             z = aZ;
@@ -22,19 +25,22 @@ namespace PapyrusVR {
     Vector3 operator-(Vector3 const& lhs, Vector3 const& rhs);
     Vector3 operator+(Vector3 const& lhs, Vector3 const& rhs);
 
-    typedef struct Quaternion {
+    typedef struct Quaternion
+    {
         float x;
         float y;
         float z;
         float w;
     } Quaternion;
 
-    typedef struct Matrix33 {
+    typedef struct Matrix33
+    {
         float m[3][3];
 
         Matrix33() = default;
 
-        inline Matrix33(float x00, float x01, float x02, float x10, float x11, float x12, float x20, float x21, float x22) {
+        inline Matrix33(float x00, float x01, float x02, float x10, float x11, float x12, float x20, float x21, float x22)
+        {
             m[0][0] = x00;
             m[1][0] = x10;
             m[2][0] = x20;
@@ -51,12 +57,14 @@ namespace PapyrusVR {
         Matrix33 operator*(Matrix33 const& rhs) const;
     } Matrix33;
 
-    typedef struct Matrix34 {
+    typedef struct Matrix34
+    {
         float m[3][4];
 
         Matrix34() = default;
 
-        inline Matrix34(float x00, float x01, float x02, float x03, float x10, float x11, float x12, float x13, float x20, float x21, float x22, float x23) {
+        inline Matrix34(float x00, float x01, float x02, float x03, float x10, float x11, float x12, float x13, float x20, float x21, float x22, float x23)
+        {
             m[0][0] = x00;
             m[1][0] = x10;
             m[2][0] = x20;
@@ -85,7 +93,8 @@ namespace PapyrusVR {
     Matrix33 Matrix33FromTransform(Matrix34 const* matrix);
     Matrix34 Matrix34FromRotation(Matrix33 const* matrix);
 
-    typedef struct Matrix44 {
+    typedef struct Matrix44
+    {
         float m[4][4];
     } Matrix44;
 

@@ -1,21 +1,26 @@
-namespace MorphEvents {
+namespace MorphEvents
+{
     using EventResult = RE::BSEventNotifyControl;
 
-    class EventHandler : public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
+    class EventHandler : public RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent>
+    {
     public:
-        static EventHandler* GetSingleton() {
+        static EventHandler* GetSingleton()
+        {
             static EventHandler singleton;
             return std::addressof(singleton);
         }
 
-        static void Register() {
+        static void Register()
+        {
             auto scriptEventSourceHolder = RE::ScriptEventSourceHolder::GetSingleton();
             scriptEventSourceHolder->GetEventSource<RE::TESSwitchRaceCompleteEvent>()->AddEventSink(EventHandler::GetSingleton());
             /// logger::info("Registered {}", typeid(RE::TESSwitchRaceCompleteEvent).name());
             logger::info("Registered for morph change events");
         }
 
-        virtual EventResult ProcessEvent(const RE::TESSwitchRaceCompleteEvent* a_event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>* a_eventSource) override;
+        virtual EventResult ProcessEvent(const RE::TESSwitchRaceCompleteEvent* a_event,
+                                         RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>* a_eventSource) override;
 
         // Respond to captured morph change events
         static void MorphChanged();
@@ -30,8 +35,10 @@ namespace MorphEvents {
         EventHandler& operator=(EventHandler&&) = delete;
     };
 
-    EventResult EventHandler::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* a_event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
-        if (a_event) {
+    EventResult EventHandler::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* a_event, RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*)
+    {
+        if (a_event)
+        {
             /// logger::debug("Morph change event!");
             MorphChanged();
         }
