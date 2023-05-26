@@ -25,8 +25,8 @@ enum ActorSlot { Left, Right, Both, Voice, None };
 enum MagicType { null, Spell, Power, Shout };
 enum MenuType { Console, Favorites, Inventory, Journal, LevelUp, Magic, Map, Skills, SleepWait, Tween };
 enum MenuAction { Open, Close };
-enum MoveType { MoveForward, MoveLeft, MoveRight, MoveBackward, TurnLeft, TurnRight, MoveJump, MoveSprint, StopSprint, StopMoving }; //Horse Controls
-
+enum MoveType { MoveForward, MoveLeft, MoveRight, TurnAround, TurnLeft, TurnRight, MoveJump, MoveWalk, MoveRun, MoveSprint, StopSprint, StopMoving }; //Horse Controls
+   
 //Pre-made messages that the App is prepared to recieve
 struct WebSocketMessage
 {
@@ -84,13 +84,17 @@ bool CastMagic(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, int level);
 static std::string* GetActorMagic(RE::Actor* player, MagicType type1, MagicType type2 = MagicType::null, MagicType type3 = MagicType::null);
 void EquipToActor(RE::Actor* actor, RE::TESForm* item, ActorSlot hand, bool notification = true);
 void UnEquipFromActor(RE::Actor* actor, ActorSlot hand);
+static int ToSkyrimKeyCode(std::string keyString);
+bool IsKeyDown(int keyCode);
 static void SendKeyDown(int keycode);
 static void SendKeyUp(int keycode);
-void PressKey(int keycode, int duration = 0);
-static bool IsKeyDown(int keyCode);
+void PressKey(int keycode, int milliseconds = 0);
+void ToggleKey(int keycode, int milliseconds = 0);
 static void MoveHorse(MoveType moveType);
 void ExecuteConsoleCommand(std::vector<std::string> command);
 void SendJoystickInput();
+static void MovePlayerHorse(RE::ActorPtr horse, int angle = -1);
+static bool IsActorWalking(RE::ActorPtr actor);
 void SendNotification(std::string message);
 void MenuInteraction(MenuType type, MenuAction action);
 std::string TranslateL33t(std::string string);
@@ -184,14 +188,65 @@ void ExecuteConsoleCommand(std::vector<std::string> command)
             // Check for special commands
             if (item.starts_with("wait")) {
                 if (item.ends_with('m')) {
-                    std::this_thread::sleep_for(std::chrono::minutes(std::stoi(item.replace(0, 4, "").replace(item.length() - 1, item.length() - 1, ""))));
+                    std::this_thread::sleep_for(std::chrono::minutes(std::stoi(item.replace(0, 4, "").replace(item.length() - 1, std::string::npos, ""))));
                 }
                 else if (item.ends_with('s')) {
-                    std::this_thread::sleep_for(std::chrono::seconds(std::stoi(item.replace(0, 4, "").replace(item.length() - 1, item.length() - 1, ""))));
+                    std::this_thread::sleep_for(std::chrono::seconds(std::stoi(item.replace(0, 4, "").replace(item.length() - 1, std::string::npos, ""))));
                 }
                 else if (item.ends_with("ms")) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(item.replace(0, 4, "").replace(item.length() - 2, item.length() - 1, ""))));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(item.replace(0, 4, "").replace(item.length() - 2, std::string::npos, ""))));
                 }
+            }
+            else if (item.starts_with("press")) {
+                int key = 0;
+                std::string durationString = "";
+                int duration = 0;
+                int i = 0;
+
+                // Iterate the string in reverse order to find the duration, if it exists
+                for (i = item.length() - 1; i >= 0; --i) {
+                    if (std::isdigit(item[i])) {
+                        // Add the digit character to the beginning of the number string
+                        durationString.insert(0, 1, item[i]);
+                    }
+                    else if (!durationString.empty()) {
+                        // Stop iterating when a non-digit character is encountered after extracting the number
+                        break;
+                    }
+                }
+
+                if (!durationString.empty()) {
+                    // Extract the key portion of the string
+                    std::string keyString = item.substr(6, item.length() - (durationString.length() + 8));
+
+                    if (item.ends_with("ms")) {
+                        duration = std::stoi(durationString);
+                    }
+                    else if (item.ends_with("s")) {
+                        duration = std::stoi(durationString) * 1000;
+                    }
+                    else if (item.ends_with("m")) {
+                        duration = std::stoi(durationString) * 1000 * 60;
+                    }
+                    else {
+                        duration = std::stoi(durationString);
+                    }
+
+                    key = ToSkyrimKeyCode(keyString);
+                }
+                else {
+                    // No duration found, extract the key from the string
+                    std::string keyString = item.substr(6);
+                    key = ToSkyrimKeyCode(keyString);
+                }
+                
+                 PressKey(key, duration);
+            }
+            else if (item.starts_with("hold")) {
+                SendKeyDown(ToSkyrimKeyCode(item.replace(0, 5, "")));
+            }
+            else if (item.starts_with("release")) {
+                SendKeyUp(ToSkyrimKeyCode(item.replace(0, 8, "")));
             }
             else {
                 // logger::info("Executing console command '{}'", item);
@@ -214,211 +269,229 @@ static void MoveHorse(MoveType moveType)
      *   If any user input is recieved, the directino is reset to stationary
      */
 
-    RE::ActorPtr horse;
-    bool move = false;
+    std::thread([moveType]() {
+        int delay = 500;
+        int numIntervals = 50;
+        int attempts = 4;
+        RE::ActorPtr horse;
+        bool move = false;
+        
 
-   (void)player->GetMount(horse);
+        if (player == nullptr) return;
 
-    // VR-specific control
-    if (REL::Module::IsVR()) {
-        // Get Facing
-        float angleZ = horse->GetAngleZ();
+        (void)player->GetMount(horse);
 
-        // Adjust the angle to a 360 degree metric, from a 6.3 degree metric
-        angleZ = (float)(angleZ * 360 / 6.3);
 
-        // Adjust the angle to 8-degrees of freedom, from 360-degrees of freedom
-        angleZ = roundf(angleZ / 45) * 45;
+        if (horse == nullptr) {
+            SendNotification("No Mount Detected");
+            return;
+        }
 
-        // Adjust the horse as needed
-        switch (moveType) {
-            case MoveType::MoveForward:
-                move = true;
-                break;
-
-            case MoveType::MoveLeft:
-                move = true;
-                // Rotate "HorseDirection" by 90 to the left
-                angleZ -= 90;
-                break;
-
-            case MoveType::TurnLeft:
-                move = true;
-                // Rotate "HorseDirection" by 45 to the left
-                angleZ -= 45;
-                break;
-
-            case MoveType::MoveRight:
-                move = true;
-                // Rotate "HorseDirection" by 90 to the right
-                angleZ += 90;
-                break;
-
-            case MoveType::TurnRight:
-                move = true;
-                // Rotate "HorseDirection" by 45 to the right
-                angleZ += 45;
-                break;
-
-            case MoveType::MoveBackward:
-                move = true;
-                // Rotate "HorseDirection" by 180
-                angleZ += 180;
-
-                if (angleZ > 360) angleZ -= 360;
-                break;
-
+        //Movements that are the same in Flatrim and VR
+        switch (moveType)
+        {
             case MoveType::MoveJump:
-                PressKey(57);  // Press "Space Bar"
+                PressKey(ToSkyrimKeyCode("Space"));
                 break;
 
             case MoveType::StopMoving:
-                // Stop all movement
-                SendKeyUp(17);  // Direction (N)
-                SendKeyUp(32);  // Direction (E)
-                SendKeyUp(31);  // Direction (S)
-                SendKeyUp(30);  // Direction (W)
-                SendKeyUp(30);  // Direction (W)
-                SendKeyUp(42);  // Sprint    (Shift)
+                SendKeyUp(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyUp(ToSkyrimKeyCode("D"));  // Direction (E)
+                SendKeyUp(ToSkyrimKeyCode("S"));  // Direction (S)
+                SendKeyUp(ToSkyrimKeyCode("A"));  // Direction (W)
+
+                SendKeyUp(ToSkyrimKeyCode("LAlt"));  // LAlt (Toggles walking/running)
                 break;
 
             case MoveType::MoveSprint:
-                if (!horse->IsRunning()) PressKey(42);  // Press "Left Shift"
+                do {
+                    if (!horse->AsActorState()->IsSprinting()) {
+                        if (!horse->IsMoving()) {
+                            MovePlayerHorse(horse);
+                            Sleep(500);
+                        }
+
+                        if (IsActorWalking(horse)) {
+                            ToggleKey(ToSkyrimKeyCode("LAlt"));
+                            Sleep(500);
+                        }
+
+                        if (!horse->AsActorState()->IsSprinting()) {
+                            PressKey(ToSkyrimKeyCode("LShift"));
+                        }
+                    }
+
+                    for (int i = numIntervals; !horse->AsActorState()->IsSprinting() && i > 0; i--) {
+                        Sleep(delay);
+                    }
+
+                    attempts--;
+                    if (attempts == 0) break;
+                } while (!horse->AsActorState()->IsSprinting());
                 break;
 
             case MoveType::StopSprint:
-                if (horse->IsRunning()) PressKey(42);  // Press "Left Shift"
+                if (horse->AsActorState()->IsSprinting()) PressKey(ToSkyrimKeyCode("LShift"));
                 break;
+
+            case MoveType::MoveRun:
+                do {
+                    // If sprinting
+                    if (horse->AsActorState()->IsSprinting()) {
+                        PressKey(ToSkyrimKeyCode("LShift"));
+                        Sleep(500);
+                    }
+                    // If not moving
+                    else if (!horse->IsMoving()) {
+                        MovePlayerHorse(horse);
+                        Sleep(500);
+                    }
+
+                    if (IsActorWalking(horse)) {
+                        ToggleKey(ToSkyrimKeyCode("LAlt"));
+                    }
+
+                    for (int i = numIntervals; !horse->IsRunning() && i > 0; i--) {
+                        Sleep(delay);
+                    }
+
+                    attempts--;
+                    if (attempts == 0) break;
+                } while (!horse->IsRunning());
+                break;
+
+            case MoveType::MoveWalk:
+                do {
+                    // If they are sprinting, stop sprinting
+                    if (horse->AsActorState()->IsSprinting()) {
+                        PressKey(ToSkyrimKeyCode("LShift"));
+                        Sleep(500);
+                    }
+                    // If they are not moving, make them move
+                    else if (!horse->IsMoving()) {
+                        MovePlayerHorse(horse);
+                        Sleep(500);
+                    }
+
+                    // If they are running, have them walk
+                    if (horse->IsRunning()) {
+                        ToggleKey(ToSkyrimKeyCode("LAlt"));
+                    }
+
+                    for (int i = numIntervals; !IsActorWalking(horse) && i > 0; i--) {
+                        Sleep(delay);
+                    }
+
+                    attempts--;
+                    if (attempts == 0) break;
+                } while (!IsActorWalking(horse));
+                break;
+        
         }
 
-        // Move the horse in desired direction
-        if (move == true) {
-            switch ((int)angleZ) {
-                case 0:
-                case 360:
-                    SendKeyDown(17);  // Direction (N)
-                    SendKeyUp(32);    // Direction (E)
-                    SendKeyUp(31);    // Direction (S)
-                    SendKeyUp(30);    // Direction (W)
+        // VR-specific control
+        if (REL::Module::IsVR()) {
+            // Get Facing
+            float angleZ = horse->GetAngleZ();
+
+            // Adjust the angle to a 360 degree metric, from a 6.3 degree metric
+            angleZ = (float)(angleZ * 360 / 6.3);
+
+            // Adjust the angle to 8-degrees of freedom, from 360-degrees of freedom
+            angleZ = roundf(angleZ / 45) * 45;
+
+            // Adjust the horse as needed
+            switch (moveType) {
+                case MoveType::MoveForward:
+                    move = true;
                     break;
 
-                case 45:
-                    SendKeyDown(17);  // Direction (N)
-                    SendKeyDown(32);  // Direction (E)
-                    SendKeyUp(31);    // Direction (S)
-                    SendKeyUp(30);    // Direction (W)
+                case MoveType::MoveLeft:
+                    move = true;
+                    // Rotate "HorseDirection" by 90 to the left
+                    angleZ -= 90;
                     break;
 
-                case 90:
-                    SendKeyUp(17);    // Direction (N)
-                    SendKeyDown(32);  // Direction (E)
-                    SendKeyUp(31);    // Direction (S)
-                    SendKeyUp(30);    // Direction (W)
+                case MoveType::TurnLeft:
+                    move = true;
+                    // Rotate "HorseDirection" by 45 to the left
+                    angleZ -= 45;
                     break;
 
-                case 135:
-                    SendKeyUp(17);    // Direction (N)
-                    SendKeyDown(32);  // Direction (E)
-                    SendKeyDown(31);  // Direction (S)
-                    SendKeyUp(30);    // Direction (W)
-
+                case MoveType::MoveRight:
+                    move = true;
+                    // Rotate "HorseDirection" by 90 to the right
+                    angleZ += 90;
                     break;
 
-                case 180:
-                    SendKeyUp(17);    // Direction (N)
-                    SendKeyUp(32);    // Direction (E)
-                    SendKeyDown(31);  // Direction (S)
-                    SendKeyUp(30);    // Direction (W)
+                case MoveType::TurnRight:
+                    move = true;
+                    // Rotate "HorseDirection" by 45 to the right
+                    angleZ += 45;
                     break;
 
-                case 225:
-                    SendKeyUp(17);    // Direction (N)
-                    SendKeyUp(32);    // Direction (E)
-                    SendKeyDown(31);  // Direction (S)
-                    SendKeyDown(30);  // Direction (W)
-                    break;
+                case MoveType::TurnAround:
+                    move = true;
+                    // Rotate "HorseDirection" by 180
+                    angleZ += 180;
 
-                case 270:
-                    SendKeyUp(17);    // Direction (N)
-                    SendKeyUp(32);    // Direction (E)
-                    SendKeyUp(31);    // Direction (S)
-                    SendKeyDown(30);  // Direction (W)
-                    break;
-
-                case 315:
-                    SendKeyDown(17);  // Direction (N)
-                    SendKeyUp(32);    // Direction (E)
-                    SendKeyUp(31);    // Direction (S)
-                    SendKeyDown(30);  // Direction (W)
+                    if (angleZ > 360) angleZ -= 360;
                     break;
             }
+
+            // Move the horse in desired direction
+            if (move == true) {
+                MovePlayerHorse(horse, (int)angleZ);
+            }
         }
-    }
-    else {
-        // Player SE or AE
-        switch (moveType) {
-            case MoveType::MoveForward:;
-                SendKeyDown(17);  // Direction (N)
-                SendKeyUp(32);    // Direction (E)
-                SendKeyUp(31);    // Direction (S)
-                SendKeyUp(30);    // Direction (W)
-                break;
+        else {
+            // Player SE or AE
+            switch (moveType) {
+                case MoveType::MoveForward:
+                    MovePlayerHorse(horse);
+                    break;
 
-            case MoveType::TurnRight:
-                SendKeyDown(17);  // Direction (N)
-                SendKeyDown(32);  // Direction (E)
-                SendKeyUp(31);    // Direction (S)
-                SendKeyUp(30);    // Direction (W)
-                break;
+                // Disabled, since they don't look good on SE
 
-            case MoveType::MoveRight:
-                SendKeyUp(17);    // Direction (N)
-                SendKeyDown(32);  // Direction (E)
-                SendKeyUp(31);    // Direction (S)
-                SendKeyUp(30);    // Direction (W)
-                break;
-
-            case MoveType::MoveBackward:
-                SendKeyUp(17);    // Direction (N)
-                SendKeyUp(32);    // Direction (E)
-                SendKeyDown(31);  // Direction (S)
-                SendKeyUp(30);    // Direction (W)
-                break;
-
-            case MoveType::MoveLeft:
-                SendKeyUp(17);    // Direction (N)
-                SendKeyUp(32);    // Direction (E)
-                SendKeyUp(31);    // Direction (S)
-                SendKeyDown(30);  // Direction (W)
-                break;
-
-            case MoveType::TurnLeft:
-                SendKeyDown(17);  // Direction (N)
-                SendKeyUp(32);    // Direction (E)
-                SendKeyUp(31);    // Direction (S)
-                SendKeyDown(30);  // Direction (W)
-                break;
-
-            case MoveType::MoveJump:
-                PressKey(57);  // Press "Space Bar"
-                break;
-
-            case MoveType::StopMoving:
-                SendKeyUp(17);  // Direction (N)
-                SendKeyUp(32);  // Direction (E)
-                SendKeyUp(31);  // Direction (S)
-                SendKeyUp(30);  // Direction (W)
-                break;
-
-            case MoveType::MoveSprint:
-                if (!horse->IsRunning()) PressKey(42);  // Press "Left Shift"
-                break;
-
-            case MoveType::StopSprint:
-                if (horse->IsRunning()) PressKey(42);  // Press "Left Shift"
-                break;
+                    /*
+                case MoveType::TurnRight:
+                    SendKeyDown(ToSkyrimKeyCode("W);  // Direction (N)
+                    SendKeyDown(ToSkyrimKeyCode("D);  // Direction (E)
+                    SendKeyUp(ToSkyrimKeyCode("S);    // Direction (S)
+                    SendKeyUp(ToSkyrimKeyCode("A);    // Direction (W)
+                    break;
+                
+                case MoveType::MoveRight:
+                    SendKeyUp(ToSkyrimKeyCode("W);    // Direction (N)
+                    SendKeyDown(ToSkyrimKeyCode("D);  // Direction (E)
+                    SendKeyUp(ToSkyrimKeyCode("S);    // Direction (S)
+                    SendKeyUp(ToSkyrimKeyCode("A);    // Direction (W)
+                    break;
+                
+                case MoveType::TurnAround:
+                    SendKeyUp(ToSkyrimKeyCode("W);    // Direction (N)
+                    SendKeyUp(ToSkyrimKeyCode("D);    // Direction (E)
+                    SendKeyDown(ToSkyrimKeyCode("S);  // Direction (S)
+                    SendKeyUp(ToSkyrimKeyCode("A);    // Direction (W)
+                    break;
+                
+                case MoveType::MoveLeft:
+                    SendKeyUp(ToSkyrimKeyCode("W);    // Direction (N)
+                    SendKeyUp(ToSkyrimKeyCode("D);    // Direction (E)
+                    SendKeyUp(ToSkyrimKeyCode("S);    // Direction (S)
+                    SendKeyDown(ToSkyrimKeyCode("A);  // Direction (W)
+                    break;
+                
+                case MoveType::TurnLeft:
+                    SendKeyDown(ToSkyrimKeyCode("W);  // Direction (N)
+                    SendKeyUp(ToSkyrimKeyCode("D);    // Direction (E)
+                    SendKeyUp(ToSkyrimKeyCode("S);    // Direction (S)
+                    SendKeyDown(ToSkyrimKeyCode("A);  // Direction (W)
+                    break;
+                    */
+            }
         }
-    }
+    }).detach();
 
     /*
      * Potential Alternatives for the future:
@@ -427,6 +500,102 @@ static void MoveHorse(MoveType moveType)
      * of the joystick Maybe a gamepad joystick can be simulated. It's possible that hte game will recognize the VR controllers as joysticks RE the code for WASD to see what
      * exactly is happening when you press those keys. Perhaps I can manually do it, and move in any direction I want
      */
+}
+
+// Moves the player's horse forward (or in the given direction for VR)
+static void MovePlayerHorse(RE::ActorPtr horse, int angle)
+{
+    int newAngle = angle;
+
+    if (REL::Module::IsVR()) {
+
+        //If the angle is not provided, get the current angle
+        if (angle == -1) {
+            // Get Facing
+            newAngle = horse->GetAngleZ();
+
+            // Adjust the angle to a 360 degree metric, from a 6.3 degree metric
+            newAngle = (float)(newAngle * 360 / 6.3);
+
+            // Adjust the angle to 8-degrees of freedom, from 360-degrees of freedom
+            newAngle = roundf(newAngle / 45) * 45;
+        }
+
+        // Move the horse in desired direction
+        switch ((int)newAngle) {
+            case 0:
+            case 360:
+                SendKeyDown(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyUp(ToSkyrimKeyCode("D"));    // Direction (E)
+                SendKeyUp(ToSkyrimKeyCode("S"));    // Direction (S)
+                SendKeyUp(ToSkyrimKeyCode("A"));    // Direction (W)
+                break;
+
+            case 45:
+                SendKeyDown(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyDown(ToSkyrimKeyCode("D"));  // Direction (E)
+                SendKeyUp(ToSkyrimKeyCode("S"));    // Direction (S)
+                SendKeyUp(ToSkyrimKeyCode("A"));    // Direction (W)
+                break;
+
+            case 90:
+                SendKeyUp(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyDown(ToSkyrimKeyCode("D"));  // Direction (E)
+                SendKeyUp(ToSkyrimKeyCode("S"));    // Direction (S)
+                SendKeyUp(ToSkyrimKeyCode("A"));    // Direction (W)
+                break;
+
+            case 135:
+                SendKeyUp(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyDown(ToSkyrimKeyCode("D"));  // Direction (E)
+                SendKeyDown(ToSkyrimKeyCode("S"));  // Direction (S)
+                SendKeyUp(ToSkyrimKeyCode("A"));    // Direction (W)
+                break;
+
+            case 180:
+                SendKeyUp(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyUp(ToSkyrimKeyCode("D"));  // Direction (E)
+                SendKeyDown(ToSkyrimKeyCode("S"));  // Direction (S)
+                SendKeyUp(ToSkyrimKeyCode("A"));    // Direction (W)
+                break;
+
+            case 225:
+                SendKeyUp(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyUp(ToSkyrimKeyCode("D"));  // Direction (E)
+                SendKeyDown(ToSkyrimKeyCode("S"));  // Direction (S)
+                SendKeyDown(ToSkyrimKeyCode("A"));  // Direction (W)
+                break;
+
+            case 270:
+                SendKeyUp(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyUp(ToSkyrimKeyCode("D"));  // Direction (E)
+                SendKeyUp(ToSkyrimKeyCode("S"));  // Direction (S)
+                SendKeyDown(ToSkyrimKeyCode("A"));  // Direction (W)
+                break;
+
+            case 315:
+                SendKeyDown(ToSkyrimKeyCode("W"));  // Direction (N)
+                SendKeyUp(ToSkyrimKeyCode("D"));    // Direction (E)
+                SendKeyUp(ToSkyrimKeyCode("S"));    // Direction (S)
+                SendKeyDown(ToSkyrimKeyCode("A"));  // Direction (W)
+                break;
+        }
+    }
+    else
+    {
+        SendKeyDown(ToSkyrimKeyCode("W"));  // Direction (N)
+        SendKeyUp(ToSkyrimKeyCode("D"));    // Direction (E)
+        SendKeyUp(ToSkyrimKeyCode("S"));    // Direction (S)
+        SendKeyUp(ToSkyrimKeyCode("A"));    // Direction (W)
+    }
+}
+
+// Returns if the actor is currently walking (Actor->IsWalking() returns true always)
+static bool IsActorWalking(RE::ActorPtr actor)
+{
+    //Returns true if the actor is moving, but not running, sprinting, swimming, or in midair
+
+    return actor->IsMoving() && !actor->IsRunning() && !actor->AsActorState()->IsSprinting() && !actor->AsActorState()->IsSwimming() && !actor->IsInMidair();
 }
 
 // Sends a notification to the top left in Skyrim, if the actor has logs enabled
@@ -1206,12 +1375,367 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
 #pragma endregion Gets the players current Spells, Powers, and Shouts
 
 #pragma region Key Output Management
+static int ToSkyrimKeyCode(std::string keyString)
+{
+    // https://www.creationkit.com/index.php?title=Input_Script
+
+
+    std::string keyUpper = keyString;
+    std::transform(keyUpper.begin(), keyUpper.end(), keyUpper.begin(), [](unsigned char c) { return std::toupper(c); });
+
+
+    if (keyUpper == "NONE")
+        return 0;
+
+    else if (keyUpper == "ESCAPE")
+        return 1;
+
+    else if (keyUpper == "1")
+        return 2;
+
+    else if (keyUpper == "2")
+        return 3;
+
+    else if (keyUpper == "3")
+        return 4;
+
+    else if (keyUpper == "4")
+        return 5;
+    
+    else if (keyUpper == "5")
+        return 6;
+    
+    else if (keyUpper == "6")
+        return 7;
+    
+    else if (keyUpper == "7")
+        return 8;
+    
+    else if (keyUpper == "8")
+        return 9;
+    
+    else if (keyUpper == "9")
+        return 10;
+    
+    else if (keyUpper == "0")
+        return 11;
+    
+    else if (keyUpper == "-")
+        return 12;
+    
+    else if (keyUpper == "=")
+        return 13;
+    
+    else if (keyUpper == "BACKSPACE")
+        return 14;
+    
+    else if (keyUpper == "TAB" || keyUpper == "\\t")
+        return 15;
+    
+    else if (keyUpper == "Q")
+        return 16;
+    
+    else if (keyUpper == "W")
+        return 17;
+    
+    else if (keyUpper == "E")
+        return 18;
+    
+    else if (keyUpper == "R")
+        return 19;
+    
+    else if (keyUpper == "T")
+        return 20;
+    
+    else if (keyUpper == "Y")
+        return 21;
+    
+    else if (keyUpper == "U")
+        return 22;
+    
+    else if (keyUpper == "I")
+        return 23;
+    
+    else if (keyUpper == "O")
+        return 24;
+    
+    else if (keyUpper == "P")
+        return 25;
+    
+    else if (keyUpper == "[")
+        return 26;
+    
+    else if (keyUpper == "]")
+        return 27;
+    
+    else if (keyUpper == "ENTER")
+        return 28;
+    
+    else if (keyUpper == "LCTRL")
+        return 29;
+    
+    else if (keyUpper == "A")
+        return 30;
+    
+    else if (keyUpper == "S")
+        return 31;
+    
+    else if (keyUpper == "D")
+        return 32;
+    
+    else if (keyUpper == "F")
+        return 33;
+    
+    else if (keyUpper == "G")
+        return 34;
+    
+    else if (keyUpper == "H")
+        return 35;
+    
+    else if (keyUpper == "J")
+        return 36;
+    
+    else if (keyUpper == "K")
+        return 37;
+    
+    else if (keyUpper == "L")
+        return 38;
+    
+    else if (keyUpper == ";")
+        return 39;
+    
+    else if (keyUpper == "\"")
+        return 40;
+    
+    else if (keyUpper == "~")
+        return 41;
+    
+    else if (keyUpper == "LSHelse ifT")
+        return 42;
+    
+    else if (keyUpper == "\\")
+        return 43;
+    
+    else if (keyUpper == "Z")
+        return 44;
+    
+    else if (keyUpper == "X")
+        return 45;
+    
+    else if (keyUpper == "C")
+        return 46;
+    
+    else if (keyUpper == "V")
+        return 47;
+    
+    else if (keyUpper == "B")
+        return 48;
+    
+    else if (keyUpper == "N")
+        return 49;
+    
+    else if (keyUpper == "M")
+        return 50;
+    
+    else if (keyUpper == ",")
+        return 51;
+    
+    else if (keyUpper == ".")
+        return 52;
+    
+    else if (keyUpper == "/")
+        return 53;
+    
+    else if (keyUpper == "RSHelse ifT")
+        return 54;
+    
+    else if (keyUpper == "LALT")
+        return 56;
+    
+    else if (keyUpper == "SPACE")
+        return 57;
+    
+    else if (keyUpper == "CAPS")
+        return 58;
+    
+    else if (keyUpper == "F1")
+        return 59;
+    
+    else if (keyUpper == "F2")
+        return 60;
+    
+    else if (keyUpper == "F3")
+        return 61;
+    
+    else if (keyUpper == "F4")
+        return 62;
+    
+    else if (keyUpper == "F5")
+        return 63;
+    
+    else if (keyUpper == "F6")
+        return 64;
+    
+    else if (keyUpper == "F7")
+        return 65;
+    
+    else if (keyUpper == "F8")
+        return 66;
+    
+    else if (keyUpper == "F9")
+        return 67;
+    
+    else if (keyUpper == "F10")
+        return 68;
+    
+    else if (keyUpper == "F11")
+        return 87;
+    
+    else if (keyUpper == "F12")
+        return 88;
+    
+    else if (keyUpper == "RCTRL")
+        return 157;
+    
+    else if (keyUpper == "RALT")
+        return 184;
+    
+    else if (keyUpper == "UP")
+        return 200;
+    
+    else if (keyUpper == "LEFT")
+        return 203;
+    
+    else if (keyUpper == "RIGHT")
+        return 205;
+    
+    else if (keyUpper == "END")
+        return 207;
+    
+    else if (keyUpper == "DOWN")
+        return 208;
+    
+    else if (keyUpper == "DELETE")
+        return 211;
+    
+    else if (keyUpper == "MOUSE1")
+        return 256;
+    
+    else if (keyUpper == "MOUSE2")
+        return 257;
+    
+    else if (keyUpper == "MIDDLEMOUSE")
+        return 258;
+    
+    else if (keyUpper == "MOUSE3")
+        return 259;
+    
+    else if (keyUpper == "MOUSE4")
+        return 260;
+    
+    else if (keyUpper == "MOUSE5")
+        return 261;
+    
+    else if (keyUpper == "MOUSE6")
+        return 262;
+    
+    else if (keyUpper == "MOUSE7")
+        return 263;
+    
+    else if (keyUpper == "MOUSEWHEELUP")
+        return 264;
+    
+    else if (keyUpper == "MOUSEWHEELDOWN")
+        return 265;
+    
+    else if (keyUpper == "GAMEPAD DPAD_UP")
+        return 266;
+    
+    else if (keyUpper == "GAMEPAD DPAD_DOWN")
+        return 267;
+    
+    else if (keyUpper == "GAMEPAD DPAD_LEFT")
+        return 268;
+    
+    else if (keyUpper == "GAMEPAD DPAD_RIGHT")
+        return 269;
+    
+    else if (keyUpper == "GAMEPAD START")
+        return 270;
+    
+    else if (keyUpper == "GAMEPAD BACK")
+        return 271;
+    
+    else if (keyUpper == "GAMEPAD LEFT_THUMB")
+        return 272;
+    
+    else if (keyUpper == "GAMEPAD RIGHT_THUMB")
+        return 273;
+    
+    else if (keyUpper == "GAMEPAD LEFT_SHOULDER")
+        return 274;
+    
+    else if (keyUpper == "GAMEPAD RIGHT_SHOULDER")
+        return 275;
+    
+    else if (keyUpper == "GAMEPAD A")
+        return 276;
+    
+    else if (keyUpper == "GAMEPAD B")
+        return 277;
+    
+    else if (keyUpper == "GAMEPAD X")
+        return 278;
+    
+    else if (keyUpper == "GAMEPAD Y")
+        return 279;
+    
+    else if (keyUpper == "GAMEPAD LT")
+        return 280;
+    
+    else if (keyUpper == "GAMEPAD RT")
+        return 281;
+    
+    else if (keyUpper == "ALL")
+        return -1;
+
+    return 0;
+}
+
 // Briefly Press Key
 void PressKey(int keycode, int milliseconds)
 {
     SendKeyDown(keycode);
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
     SendKeyUp(keycode);
+}
+
+// Toggles a Key (Hold down if it's up. Release if it's down)
+void ToggleKey(int keycode, int milliseconds)
+{
+    //"milliseconds" refers to the amount of time before the key is returned to its initial state
+    //by default, it's 0, meaning it will NOT be returned to its original state
+    
+    //If Key is down, send it up
+    if (IsKeyDown(keycode))
+    {
+        SendNotification("Send Up");
+        SendKeyUp(keycode);
+    }
+    //If Key is up, send it down
+    else
+    {
+        SendNotification("Send Down");
+        SendKeyDown(keycode);
+    }
+
+
+    if (milliseconds > 0) {
+        std::thread([keycode, milliseconds]() {
+            Sleep(milliseconds);
+            ToggleKey(keycode);
+        }).detach();
+    }
 }
 
 // Hold Key Down
@@ -1241,29 +1765,53 @@ static void SendKeyUp(int keycode)
     SendInput(1, &input, sizeof(INPUT));
 }
 
-// Returns whether the specified keyboard or mouse key is held down
-static bool IsKeyDown(int keyCode)
+// Returns whether the specified keyboard, mouse, or VR key is held down (only keyboard works. CommonLib issue)
+bool IsKeyDown(int keyCode)
 {
+    uint32_t button = (uint32_t)keyCode;
+
+    int keyboardRange[2] = {0, 255};
+    int mouseRange[2] = {256, 265};
+
     int mouseOffset = 256;
     int vrRightOffset = 410;
     int vrLeftOffset = 474;
-    //int gamepadOffset = null;
+    // int gamepadOffset = null;
 
-    // Mouse and keyboard input check
-    bool isKeyboardKeyDown = RE ::BSInputDeviceManager::GetSingleton()->GetKeyboard()->IsPressed((uint32_t)keyCode);
-    bool isMouseKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetMouse()->IsPressed((uint32_t)keyCode - mouseOffset);
-    bool isVrRightDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed((uint32_t)keyCode - vrRightOffset);
-    bool isVrLeftDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed((uint32_t)keyCode - vrLeftOffset);
+    auto inputManager = RE::BSInputDeviceManager::GetSingleton();
+    RE::BSInputDevice* device = nullptr;
 
-    //// VR controller input check
-    // bool isLeftVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerLeft()->IsPressed(VOX->value - vrLeftOffset);
-    // bool isRightVRControllerKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetVRControllerRight()->IsPressed(VOX_PushToSpeak->value - vrRightOffset);
+    if (button <= keyboardRange[1]) {
+        return (inputManager->GetKeyboard()->curState[button] & 0x80) != 0;
 
-    //// Gamepad input check
-    // bool isGamepadKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetGamepad()->IsPressed(VOX_PushToSpeak->value - gamepadOffset);
+    }
+    else if (button >= mouseRange[0] && button <= mouseRange[1]) {
+        // device = static_cast<RE::BSInputDevice*>(inputManager->GetMouse());
+        // button = button - mouseOffset;
+    }
+    else if (button >= 410 && button <= 473) {
+        // device = static_cast<RE::BSInputDevice*>(inputManager->GetVRControllerLeft());
+        // button = button - vrRightOffset;
+    }
+    else if (button >= 474) {
+        // device = static_cast<RE::BSInputDevice*>(inputManager->GetVRControllerRight());
+        // button = button - vrLeftOffset;
+    }
+    else {
+        logger::error("Keycode not recognized: {}", button);
+        return false;
+    }
 
-    return (isKeyboardKeyDown || isMouseKeyDown || isVrRightDown || isVrLeftDown);
+    //return device->IsPressed(button);
+
+    logger::error("Keycode not recognized. This input device is not support. Please Contact a developer for more information. Button ID: {}", button);
+    return false;   //Temporary line. This can be removed when commonLib updates to fix the issue causing the above line to crash
+
+    // Don't know the offset for this
+    //  bool isGamepadKeyDown = RE::BSInputDeviceManager::GetSingleton()->GetGamepad()->IsPressed((uint32_t)keyCode - gamepadOffset);
 }
+
+
 #pragma endregion Control whether a key is down for Keyboard, Mouse, Gamepad, or VR 
 
 #pragma region Menu Controls
@@ -1631,6 +2179,8 @@ void PlaceCustomMarker() {
 
 #pragma region Potentially Useful Commands for the future
 //RE::PlayerCharacter::GetSingleton()->DrinkPotion
+//RE::TESActor->SetSpeakingDone()
+//LocalMapCamera(float a_zRotation);    //Maybe this can adjust the VR camera for object at the bottom, when you move to them. That way, it won't have mountains blocking them
 
 #pragma endregion
 

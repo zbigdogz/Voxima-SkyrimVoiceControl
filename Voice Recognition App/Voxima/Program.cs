@@ -22,6 +22,8 @@ using System.Speech.Recognition;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Input;
+using System.Windows.Media.Media3D;
 using Utilities;
 using WebSocket;
 using WebsocketPortConfigurator;
@@ -202,6 +204,20 @@ namespace Voxima
                                                           "zul", "mey", "gut",
                                                           "fus", "ro", "dah",
                                                           "wuld", "nah", "kest"};
+
+        static string[] allHorseControlCommands = new string[]
+        {
+            "horse - forward",
+            "horse - stop",
+            "horse - sprint",
+            "horse - stop sprinting",
+            "horse - jump",
+            "horse - 90 left",
+            "horse - 45 left",
+            "horse - 90 right",
+            "horse - 45 right",
+            "horse - turn around"
+        };
 
         static List<string> allDovahzulCommands = new List<string>();
 
@@ -710,25 +726,22 @@ namespace Voxima
 
                 //Get Items
 
-                FindCommands(VSettingFiles, "setting", "setting");                      //Get Command Settings and Start/Stop commands
-                FindCommands(ConsoleCommandFiles, "console", "None");                   //Get Console commands
+                FindCommands(VSettingFiles, "setting", "setting");                        //Get Command Settings and Start/Stop commands
+                FindCommands(ConsoleCommandFiles, "console", "None");                     //Get Console commands
+                                                                                                     
+                FindCommands(VampireLordPowerFiles, "Power", "VampireLord");              //Get Vampire Lord Powers
+                FindCommands(VampireLordSpellFiles, "Spell", "VampireLord");              //Get Vampire Lord Spells
+                                                                                                     
+                FindCommands(PowerFiles, "Power", "None");                                //Get Powers
+                FindCommands(SpellFiles, "Spell", "None");                                //Get Spells
+                                                                                                     
+                FindCommands(ShoutFiles, "Shout", "None");                                //Get Shouts
+                                                                                                     
+                FindCommands(DragonKeybindFiles, "Keybind", "DragonRiding",               //Get Dragon Riding Keybinds
+                FindCommands(KeybindFiles, "Keybind", "None", 0));                     //Get None Keybinds
 
-                FindCommands(VampireLordPowerFiles, "Power", "VampireLord");            //Get Vampire Lord Powers
-                FindCommands(VampireLordSpellFiles, "Spell", "VampireLord");            //Get Vampire Lord Spells
-
-                FindCommands(PowerFiles, "Power", "None");                              //Get Powers
-                FindCommands(SpellFiles, "Spell", "None");                              //Get Spells
-
-                FindCommands(ShoutFiles, "Shout", "None");                              //Get Shouts
-
-                FindCommands(DragonKeybindFiles, "Keybind", "DragonRiding",             //Get Dragon Riding Keybinds
-                FindCommands(KeybindFiles, "Keybind", "None",                           //Get None Keybinds
-                FindCommands(WerewolfKeybindFiles, "Keybind", "Werewolf",               //Get Werewolf Keybinds
-                FindCommands(VampireLordKeybindFiles, "Keybind", "VampireLord",         //Get Vampire Lord Keybinds
-                FindCommands(HorseKeybindFiles, "Keybind", "HorseRiding", 0)))));    //Get Horse Riding Commands
-
-                j = FindProgression(ProgressionFiles, "None",                                //Get Progressions
-                FindProgression(VampireLordProgressionFiles, "VampireLord", 0));          //Get Vampire Lord Progressions
+                j = FindProgression(ProgressionFiles, "None",                                  //Get Progressions
+                FindProgression(VampireLordProgressionFiles, "VampireLord", 0));            //Get Vampire Lord Progressions
 
                 //Get "Current Location" commands
                 Choices commands = new Choices();
@@ -1424,12 +1437,11 @@ namespace Voxima
                             break;
 
                         //Valid Keybinds
-                        if (grammar.Name.StartsWith(Morph.ToLower()) || isRidingDragon && grammar.Name.StartsWith("dragonriding") || isRidingHorse && grammar.Name.StartsWith("horseriding"))
+                        if (grammar.Name.StartsWith(Morph.ToLower()) || isRidingDragon && grammar.Name.StartsWith("dragonriding"))
                         {
                             if (!recognizer.Grammars.Contains(grammar))
                             {
                                 recognizer.LoadGrammar(grammar);
-                                Log.EnabledCommands(grammar.Name);
                                 ItemsAdded++;
                             }
                         }
@@ -1452,7 +1464,9 @@ namespace Voxima
                             break;
 
                         if (!recognizer.Grammars.Contains(grammar))
+                        {
                             recognizer.LoadGrammar(grammar);
+                        }
 
                     }//End foreach Console Grammar
                 }//End Console Grammars not NULL
@@ -1460,7 +1474,7 @@ namespace Voxima
 
                 duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
 
-                //Add Voiced Settings
+                //Unload Special Grammars
                 foreach (Grammar grammar in SettingGrammars)
                 {
                     if (grammar == null)
@@ -1469,18 +1483,32 @@ namespace Voxima
                     if (recognizer.Grammars.Contains(grammar))
                         recognizer.UnloadGrammar(grammar);
                 }
+                //I am here
+                string[] disallowedWerewolfSettings = new string[] { "clear shout\tsetting"   ,
+                                                                     "open map\tsetting"      , "close map\tsetting",
+                                                                     "open spellbook\tsetting", "close spellbook\tsetting",
+                                                                     "open inventory\tsetting", "close inventory\tsetting",
+                                                                     "open favorites\tsetting", "close favorites\tsetting" };
 
+                string[] disallowedVampireLordSettings = new string[] { "clear hands\tsetting"   ,
+                                                                        "werewolf shout\tsetting", 
+                                                                        "open map\tsetting"      , "close map\tsetting",
+                                                                        "open inventory\tsetting", "close inventory\tsetting",
+                                                                      };
+
+                //Load Special Grammars
                 foreach (Grammar grammar in SettingGrammars)
                 {
 
                     if (grammar == null)
                         break;
 
-                    if ((VocalPushToSpeak || !VocalPushToSpeak &&
-                        grammar.Name.ToLower() != "vocal command toggle - enable\tsetting" &&
-                        grammar.Name.ToLower() != "vocal command toggle - disable\tsetting") &&
-                        (Morph != "werewolf" || grammar.Name != "clear shout\tsetting") &&
-                        (Morph != "vampirelord" || grammar.Name != "clear hands\tsetting"))
+                    if (VocalPushToSpeak || (!VocalPushToSpeak &&
+                        grammar.Name != "vocal command toggle - enable\tsetting" &&
+                        grammar.Name != "vocal command toggle - disable\tsetting") &&
+                        !(Morph == "none" && grammar.Name == "werewolf shout\tsetting") &&
+                        !(Morph == "werewolf" && disallowedWerewolfSettings.Contains(grammar.Name)) &&
+                        !(Morph == "vampirelord" && disallowedVampireLordSettings.Contains(grammar.Name)) && !(isRidingHorse && allHorseControlCommands.Contains(grammar.Name)))
                     {
                         recognizer.LoadGrammar(grammar);
                     }
@@ -1514,14 +1542,8 @@ namespace Voxima
                 duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
                 Log.Activity($"Updating Finished - {DateTime.Now.ToLongTimeString()} (Elapsed Time: {duration}s.) ({ItemsAdded} items added. {ItemsRemoved} items removed)\n");
 
-                /*
-                duration = Math.Round((DateTime.Now - MethodStarted).TotalSeconds, 2);
-                Log.Activity("Updating Finished - " + DateTime.Now.ToLongTimeString() + " (Elapsed Time: " + duration + "s. " +
-                    Math.Round((duration - UnloadAllGrammarsDuration) / (ItemsAdded + ItemsNotAdded), 4) + " seconds per item. " +
-                    ItemsAdded + " out of " + (ItemsAdded + ItemsNotAdded) + " added. Unloading commands took " + UnloadAllGrammarsDuration + "s)\n");
-                    */
                 //Sort EnabledCommands List
-                string[] lines = System.IO.File.ReadAllLines(Log.logs.EnabledCommands);
+                string[] lines = File.ReadAllLines(Log.logs.EnabledCommands);
                 Array.Sort(lines);
                 File.WriteAllLines(Log.logs.EnabledCommands, lines);
 
@@ -1754,7 +1776,7 @@ namespace Voxima
                         else
                         {
                             //If the item is from the same mod (has the same "from" value), output an error instead of adding it to the progression
-                            if (((Grammar)AllItems[Morph + " - " + command]).Name == grammar.Name)
+                            if (((Grammar)AllItems[morph + " - " + command]).Name == grammar.Name)
                             {
                                 Log.Activity($"Two or more identical items exist from the same mod. You must change the commands for one of them: \"{name}\t{id}\t{type}\t{from}\"", Log.LogType.Error);
 
@@ -1768,7 +1790,7 @@ namespace Voxima
                             }
                             else
                             {
-                                AllProgressions.Add(command, new List<string>() { ((Grammar)AllItems[Morph + " - " + command]).Name, grammar.Name });
+                                AllProgressions.Add(command, new List<string>() { ((Grammar)AllItems[morph + " - " + command]).Name, grammar.Name });
                                 Log.Activity($"Two or more identical items have the same command for the same morph ({morph}): \"{command}\". Item 1: \"{((Grammar)AllItems[Morph + " - " + command]).Name}\". Item 2: \"{grammar.Name}\"", Log.LogType.Error);
                             }//End if
                         }//End Try/Catch
@@ -2470,7 +2492,10 @@ namespace Voxima
 
                 recognizer.RecognizeAsyncCancel();
 
-                recognizer.SetInputToDefaultAudioDevice();
+                try
+                {
+                    recognizer.SetInputToDefaultAudioDevice();
+                }catch (Exception) { }
 
                 recognizer.RecognizeAsync(RecognizeMode.Multiple);
 
@@ -2893,7 +2918,6 @@ namespace Voxima
                 }
                 else if (type.ToLower() == "console")
                 {
-
                     Text = name.Trim(' ').Replace(" +", "+").Replace("+ ", "+").Replace(" =", "=").Replace("= ", "=").Replace("* ", "*").Replace(" *", "*").ToLower() + '\n' +
                            Convert.ToInt64(id, 16) + '\n' +
                            "0" + '\n' +

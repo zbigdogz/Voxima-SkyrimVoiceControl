@@ -206,8 +206,6 @@ void InitialUpdate()
         currentAutoCastShouts = VOX_AutoCastShouts->value;
         currentAutoCastPowers = VOX_AutoCastPowers->value;
 
-
-
         //Initialise player-based variables
         switch (PlayerMount()) {
             case 0:
@@ -232,7 +230,7 @@ void InitialUpdate()
 
             case 1:
                 logger::debug("Player started as a werewolf!!");
-                SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\werewolf");
+                SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\twerewolf");
                 break;
 
             case 2:
@@ -574,6 +572,7 @@ void ExecuteCommand(Command command)
             Command currentCommand = command;  // Passed-in "command" argument cannot be modified, so transfer contents to modifiable currentCommand
 
             // Spell
+            #pragma region Spell
             if (currentCommand.Type == "spell") {
                 id = std::format("{:X}", currentCommand.ID, nullptr, 16);
 
@@ -637,8 +636,10 @@ void ExecuteCommand(Command command)
 
                 // Clear Hands
             }
+            #pragma endregion
 
             // Power
+            #pragma region Power
             else if (currentCommand.Type == "power") {
                 id = std::format("{:X}", currentCommand.ID, nullptr, 16);
 
@@ -661,8 +662,10 @@ void ExecuteCommand(Command command)
                 else
                     EquipToActor(player, item, ActorSlot::Voice);
             }
+            #pragma endregion
 
             // Shout
+            #pragma region Shout
             else if (currentCommand.Type == "shout") {
                 id = std::format("{:X}", currentCommand.ID, nullptr, 16);
 
@@ -686,6 +689,7 @@ void ExecuteCommand(Command command)
                 else
                     EquipToActor(player, item, ActorSlot::Voice);
             }
+            #pragma endregion
 
             // Setting
             else if (currentCommand.Type == "setting")
@@ -727,22 +731,33 @@ void ExecuteCommand(Command command)
 
                 #pragma region Spellbook Controls
                 else if (currentCommand.Name == "open spellbook") {
-                    MenuInteraction(MenuType::Magic, MenuAction::Open);
+                    if (PlayerMorph() != 2)
+                        MenuInteraction(MenuType::Magic, MenuAction::Open);
+                    else
+                        MenuInteraction(MenuType::Favorites, MenuAction::Open);
+
                     // SendNotification("Opening Spellbook");
                 }
                 else if (currentCommand.Name == "close spellbook") {
-                    MenuInteraction(MenuType::Magic, MenuAction::Close);
+                    if (PlayerMorph() != 2)
+                        MenuInteraction(MenuType::Magic, MenuAction::Close);
+                    else
+                        MenuInteraction(MenuType::Favorites, MenuAction::Close);
+
                     // SendNotification("Closing Spellbook");
                 }
                 #pragma endregion
 
                 #pragma region Skills Controls
                 else if (currentCommand.Name == "open skills") {
-                    MenuInteraction(MenuType::Skills, MenuAction::Open);
+                        MenuInteraction(MenuType::Skills, MenuAction::Open);
+
                     // SendNotification("Opening Skills");
                 }
                 else if (currentCommand.Name == "close skills") {
-                    MenuInteraction(MenuType::Skills, MenuAction::Close);
+                    if (PlayerMorph() != 2)
+                        MenuInteraction(MenuType::Skills, MenuAction::Close);
+
                     // SendNotification("Closing Skills");
                 }
                 #pragma endregion
@@ -787,6 +802,191 @@ void ExecuteCommand(Command command)
                 }
                 #pragma endregion
 
+            #pragma endregion
+            
+            #pragma region Werewolf Shout
+            else if (currentCommand.Name == "werewolf shout") {
+                if (PlayerMorph() == 1) {
+                    CastVoice(player, nullptr, 0);
+                }
+            }
+
+            #pragma endregion
+
+            #pragma region Horse Controls
+            #pragma region Move Forward /Stop
+            else if (currentCommand.Name == "horse - forward") {
+                MoveHorse(MoveType::MoveForward);
+            }
+            else if (currentCommand.Name == "horse - stop") {
+                MoveHorse(MoveType::StopMoving);
+            }
+            #pragma endregion
+
+            #pragma region Sprinting
+            else if (currentCommand.Name == "horse - sprint") {
+                MoveHorse(MoveType::MoveSprint);
+            }
+            else if (currentCommand.Name == "horse - stop sprint") {
+                MoveHorse(MoveType::StopSprint);
+            }
+            #pragma endregion
+
+            #pragma region Run
+            else if (currentCommand.Name == "horse - run") {
+                MoveHorse(MoveType::MoveRun);
+            }
+            else if (currentCommand.Name == "horse - stop run") {
+                MoveHorse(MoveType::MoveWalk);
+            }
+            #pragma endregion
+
+            #pragma region Walk
+            else if (currentCommand.Name == "horse - walk") {
+                MoveHorse(MoveType::MoveWalk);
+            }
+            else if (currentCommand.Name == "horse - stop walk") {
+                RE::ActorPtr horse;
+
+                if (player == nullptr) return;
+
+                (void)player->GetMount(horse);
+
+                if (horse == nullptr) {
+                    SendNotification("No Mount Detected");
+                    return;
+                }
+
+                if (IsActorWalking(horse))
+                    MoveHorse(MoveType::StopMoving);
+            }   
+            #pragma endregion
+
+            #pragma region Turning Left/Right
+            else if (currentCommand.Name == "horse - 90 left") {
+                MoveHorse(MoveType::MoveLeft);
+            }
+            else if (currentCommand.Name == "horse - 45 left") {
+                MoveHorse(MoveType::TurnLeft);
+            }
+            else if (currentCommand.Name == "horse - 90 right") {
+                MoveHorse(MoveType::MoveRight);
+            }
+            else if (currentCommand.Name == "horse - 45 right") {
+                MoveHorse(MoveType::TurnRight);
+            }
+            else if (currentCommand.Name == "horse - turn around") {
+                MoveHorse(MoveType::TurnAround);
+            }
+            #pragma endregion
+
+            #pragma region Jumping
+            else if (currentCommand.Name == "horse - jump") {
+                RE::ActorPtr horse;
+
+                if (player == nullptr) return;
+
+                (void)player->GetMount(horse);
+
+                if (horse == nullptr) {
+                    SendNotification("No Mount Detected");
+                    return;
+                }
+
+                if (horse->IsMoving())
+                    MoveHorse(MoveType::MoveJump);
+            }
+            #pragma endregion
+
+            #pragma region Rear Up
+            else if (currentCommand.Name == "horse - rear up") {
+                RE::ActorPtr horse;
+                bool move = false;
+                (void)player->GetMount(horse);
+
+                if (!horse->IsMoving())
+                    MoveHorse(MoveType::MoveJump);
+            }
+#pragma endregion
+
+            #pragma region Faster
+            else if (currentCommand.Name == "horse - faster") {
+                RE::ActorPtr horse;
+
+                if (player == nullptr) return;
+
+                (void)player->GetMount(horse);
+
+                if (horse == nullptr) {
+                    SendNotification("No Mount Detected");
+                    return;
+                }
+
+
+                if (IsActorWalking(horse))
+                        MoveHorse(MoveType::MoveRun);
+
+                else if (horse->IsRunning())
+                        MoveHorse(MoveType::MoveSprint);
+            }
+#pragma endregion
+
+            #pragma region Slower
+            else if (currentCommand.Name == "horse - slower") {
+                RE::ActorPtr horse;
+
+                if (player == nullptr) return;
+
+                (void)player->GetMount(horse);
+
+                if (horse == nullptr) {
+                        SendNotification("No Mount Detected");
+                        return;
+                }
+
+
+                if (IsActorWalking(horse))
+                        MoveHorse(MoveType::StopMoving);
+
+                else if (horse->IsRunning())
+                        MoveHorse(MoveType::MoveWalk);
+
+                else if (horse->AsActorState()->IsSprinting())
+                        MoveHorse(MoveType::MoveRun);
+            }
+            #pragma endregion
+
+            #pragma region Dismount
+            else if (currentCommand.Name == "horse - dismount") {
+
+                //Stop the horse
+                MoveHorse(MoveType::StopMoving);
+
+                // Press "E" to Dismount
+                PressKey(ToSkyrimKeyCode("E"));
+            }
+            #pragma endregion
+
+            #pragma region Backwards (Multipurpose)
+            else if (currentCommand.Name == "horse - backwards") {
+                RE::ActorPtr horse;
+
+                if (player == nullptr) return;
+
+                (void)player->GetMount(horse);
+
+                if (horse == nullptr) {
+                        SendNotification("No Mount Detected");
+                        return;
+                }
+
+
+                if (horse->IsMoving())
+                    MoveHorse(MoveType::TurnAround);    // If the horse is moving, turn them around
+                else
+                    MoveHorse(MoveType::MoveJump);      // If the horse is not moving, meaning it won't jump when "Space" is pressed, Rear the horse
+            }
+            #pragma endregion
             #pragma endregion
 
             #pragma region Clear Hands /Voice
@@ -840,115 +1040,24 @@ void ExecuteCommand(Command command)
             // Keybind
             #pragma region Keybinds
             else if (currentCommand.Type == "keybind") {
-                if (currentCommand.Morph != "horseriding") {
-                    if (currentCommand.KeybindDuration >= 0) {
-                        PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
-                    }
-                    else
-                        switch (currentCommand.KeybindDuration) {
-                            case -1:
-                                SendKeyDown(currentCommand.ID);
-                                SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
-                                break;
-                            case -2:
-                                SendKeyUp(currentCommand.ID);
-                                SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
-                                break;
-                            default:
-                                SendNotification("ERROR: Invalid key duration: " + std::to_string(currentCommand.ID));
-                                logger::error("Invalid key duration: {}", currentCommand.ID);
-                                break;
-                        }
+                if (currentCommand.KeybindDuration >= 0) {
+                    PressKey(currentCommand.ID, currentCommand.KeybindDuration);
+                    SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
                 }
                 else {
-                    // Command is likely meant for a horse
-
-                    // RE::BSInputDeviceManager* gamepad = RE::BSInputDeviceManager::GetSingleton();
-                    // gamepad->GetGamepadHandler()->Initialize();
-
-                    switch (currentCommand.ID) {
-                        // W
-                        case 17:
-                            if (currentCommand.KeybindDuration == -1) {
-                                MoveHorse(MoveType::MoveForward);
-                                SendNotification("Horse: Move Forward");
-                            }
-                            else {
-                                MoveHorse(MoveType::StopMoving);
-                                SendNotification("Horse: Stop Moving");
-                            }
+                    switch (currentCommand.KeybindDuration) {
+                        case -1:
+                            SendKeyDown(currentCommand.ID);
+                            SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
                             break;
-
-                            // A
-                        case 30:
-                            if (currentCommand.KeybindDuration == 0) {
-                                MoveHorse(MoveType::MoveLeft);
-                                SendNotification("Horse: Move Left");
-                            }
-                            else {
-                                MoveHorse(MoveType::TurnLeft);
-                                SendNotification("Horse: Turn Left");
-                            }
+                        case -2:
+                            SendKeyUp(currentCommand.ID);
+                            SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
                             break;
-
-                            // S
-                        case 31:
-                            MoveHorse(MoveType::MoveBackward);
-                            SendNotification("Horse: Turn Around");
+                        default:
+                            SendNotification("ERROR: Invalid key duration: " + std::to_string(currentCommand.ID));
+                            logger::error("Invalid key duration: {}", currentCommand.ID);
                             break;
-
-                            // D
-                        case 32:
-                            if (currentCommand.KeybindDuration == 0) {
-                                MoveHorse(MoveType::MoveRight);
-                                SendNotification("Horse: Move Right");
-                            }
-                            else
-                                MoveHorse(MoveType::TurnRight);
-                            SendNotification("Horse: Turn Right");
-                            {}
-                            break;
-
-                            // Space
-                        case 57:
-                            MoveHorse(MoveType::MoveJump);
-                            SendNotification("Horse: Jump");
-                            break;
-
-                            // Shift
-                        case 42:
-                            if (currentCommand.KeybindDuration == 0) {
-                                MoveHorse(MoveType::MoveSprint);
-                                SendNotification("Horse: Sprint");
-                            }
-                            else {
-                                MoveHorse(MoveType::StopSprint);
-                                SendNotification("Horse: Stop Sprinting");
-                            }
-                            break;
-
-                        default:  // Not a command for controlling the horse
-                            if (currentCommand.KeybindDuration >= 0) {
-                                PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                                SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
-                            }
-                            else {
-                                switch (currentCommand.KeybindDuration) {
-                                    case -1:
-                                        SendKeyDown(currentCommand.ID);
-                                        SendNotification("Keybind Hold: " + std::to_string(currentCommand.ID));
-                                        break;
-                                    case -2:
-                                        SendKeyUp(currentCommand.ID);
-                                        SendNotification("Keybind Release: " + std::to_string(currentCommand.ID));
-                                        break;
-                                    default:
-                                        PressKey(currentCommand.ID, currentCommand.KeybindDuration);
-                                        SendNotification("Keybind Press: " + std::to_string(currentCommand.ID));
-                                        break;
-                                }
-                            }
                     }
                 }
             }
@@ -994,6 +1103,7 @@ void ExecuteCommand(Command command)
 #pragma endregion
 
             // Locations
+            #pragma region Location & Map Marker
             else if (currentCommand.Type == "location")
             {
                 if (currentCommand.Name == "playerlocation")
@@ -1007,6 +1117,7 @@ void ExecuteCommand(Command command)
                 PlaceCustomMarker();
 
             }  // End type check
+            #pragma endregion
         });    // End Task
     }
 }
@@ -1075,12 +1186,12 @@ void Anim::Events::AnimationEvent(const char* holder, const char* name)
             SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "mount\tnone");
             SendMessage(WebSocketMessage::InitializeUpdate);
             // Stop all residual movement from horse controls
-            SendKeyUp(17);  // Direction (N)
-            SendKeyUp(32);  // Direction (E)
-            SendKeyUp(31);  // Direction (S)
-            SendKeyUp(30);  // Direction (W)
-            SendKeyUp(30);  // Direction (W)
-            SendKeyUp(42);  // Sprint    (Shift)
+            SendKeyUp(ToSkyrimKeyCode("W"));  // Direction (N)
+            SendKeyUp(ToSkyrimKeyCode("D"));  // Direction (E)
+            SendKeyUp(ToSkyrimKeyCode("S"));  // Direction (S)
+            SendKeyUp(ToSkyrimKeyCode("A"));  // Direction (W)
+
+            SendKeyUp(ToSkyrimKeyCode("LAlt"));  // LAlt (Toggles walking/running)
             break;
 
         default:
@@ -1127,7 +1238,7 @@ void MorphEvents::EventHandler::MorphChanged()
     if (IsPlayerWerewolf())
     {
         logger::debug("Player Morphed into Werewolf");
-        SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\werewolf");
+        SendMessage(WebSocketMessage::UpdateConfiguration + (std::string) "morph\twerewolf");
     }
 
     // Vampire Lord
