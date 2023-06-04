@@ -37,19 +37,22 @@ namespace Voxima
         #region Fields
 
         static SpeechRecognitionEngine recognizer = new SpeechRecognitionEngine(System.Globalization.CultureInfo.CurrentCulture);
-        static string ip = "localhost"; // Define websocket server target IP address (use localhost in this case, which is 127.0.0.1)
-        static int defaultWebsocketPort = 19223; // Define default target websocket port
+        static DictionaryInterface dictionaryInterface;
+        static readonly ResourceManager dovahzulPhonemes = new ResourceManager("Voxima.DovahzulPhonemes", Assembly.GetExecutingAssembly());
+        readonly static List<string> trainedWords = new List<string>();
+        static readonly System.Threading.EventWaitHandle waitHandle = new System.Threading.AutoResetEvent(false);
+
+        //WebSocket
+        readonly static string ip = "localhost"; // Define websocket server target IP address (use localhost in this case, which is 127.0.0.1)
+        readonly static int defaultWebsocketPort = 19223; // Define default target websocket port
         static int websocketPort = -1;
         static FileSystemWatcher portConfigWatcher;
         //static bool runApplication = true;
         static ObservableConcurrentQueue<string> observableConcurrentQueue;
-        static DictionaryInterface dictionaryInterface;
-        static readonly System.Threading.EventWaitHandle waitHandle = new System.Threading.AutoResetEvent(false);
-        static readonly ResourceManager dovahzulPhonemes = new ResourceManager("Voxima.DovahzulPhonemes", Assembly.GetExecutingAssembly());
-        static List<string> trainedWords = new List<string>();
-
+        static WebSocketServer server;
 
         //Addresses;
+        #region Addresses
         static string SpellsAddress;
         static string ShoutsAddress;
         static string PowersAddress;
@@ -57,28 +60,32 @@ namespace Voxima
         static string ProgressionsAddress;
         static string VSettingsAddress;
         static string ConsoleCommandsAddress;
-        static string RunCheck; //The presence of this file means this program has run before
-        static string oldPapyrusCheck;
 
         //Media Addresses
         static System.Media.SoundPlayer sound_start_listening;
         static System.Media.SoundPlayer sound_stop_listening;
 
+        //Morph Addresses
         static string WerewolfKeybindsAddress;
         static string VampireLordSpellsAddress;
         static string VampireLordPowersAddress;
         static string VampireLordKeybindsAddress;
         static string VampireLordProgressionsAddress;
 
-
+        //Mount Addresses
         static string DragonKeybindsAddress;
         static string HorseKeybindsAddress;
+
+        //Misc Addresses
         static string ActivityDebugAddress;
         static string SettingsAddress;
         static string ConflictsAddress;
         static string SavedConflictsAddress;
+        static string RunCheck; //The presence of this file means this program has run before (used for training confirmation)
+        static string oldPapyrusCheck;
+        #endregion
 
-        //Files
+        //Files for custom commands
         static string[] SpellFiles;
         static string[] ShoutFiles;
         static string[] PowerFiles;
@@ -100,23 +107,36 @@ namespace Voxima
         static string StartWithComputer = "";
         static float Sensitivity = 0.1F;
         static string RequireHandSelector = "";
-        static bool AutoCastPowers = false;
-        static bool AutoCastShouts = false;
+        static bool AutoCastPowers = true;
+        static bool AutoCastShouts = true;
         static bool VocalPushToSpeak = false;     //Adjusted in-game through the MCM
         static bool VocalPushToSpeak_Val = true;     //Stored Value
 
-        static List<Grammar> SettingGrammars = new List<Grammar>();
-        static List<Grammar> KeybindGrammars = new List<Grammar>();
-        static List<Grammar> ConsoleGrammars = new List<Grammar>();
-        static Hashtable LocationsGrammars = new Hashtable();
-        static Hashtable AllItems = new Hashtable();
-        static Hashtable AllConflicts = new Hashtable();
-        static string DuplicatesText = "";
-        static Hashtable AllIDs = new Hashtable();
-        static Hashtable AllVampireLordIDs = new Hashtable();
-        static Hashtable AllWerewolfIDs = new Hashtable();
-        static Hashtable AllProgressions = new Hashtable();
-        static Hashtable AllProgressionItems = new Hashtable();
+        //Lists and Hashtables
+        readonly static List<Grammar> SettingGrammars = new List<Grammar>();
+        readonly static List<Grammar> KeybindGrammars = new List<Grammar>();
+        readonly static List<Grammar> ConsoleGrammars = new List<Grammar>();
+        readonly static List<string> handLeft = new List<string>();
+        readonly static List<string> handRight = new List<string>();
+        readonly static List<string> handBoth = new List<string>();
+        readonly static List<string> handCast = new List<string>();
+        readonly static List<string> handPerk = new List<string>();
+        readonly static List<string> powerCast = new List<string>();
+        readonly static List<string> locationCommands = new List<string>();
+        readonly static List<string> currentLocationCommands = new List<string>();
+        readonly static List<string> customPlayerMarkerCommands = new List<string>();
+        readonly static List<string> allDovahzulCommands = new List<string>();
+        readonly static List<string> customShouts = new List<string>(); //A list of shouts that have custom commands set for them
+        readonly static Hashtable LocationsGrammars = new Hashtable();
+        readonly static Hashtable AllItems = new Hashtable();
+        readonly static Hashtable AllConflicts = new Hashtable();
+        readonly static Hashtable AllIDs = new Hashtable();
+        readonly static Hashtable AllVampireLordIDs = new Hashtable();
+        readonly static Hashtable AllWerewolfIDs = new Hashtable();
+        readonly static Hashtable AllProgressions = new Hashtable();
+        readonly static Hashtable AllProgressionItems = new Hashtable();
+
+        //The Player's Current Information
         static string[] KnownSpells;
         static string[] KnownShouts;
         static string[] KnownPowers;
@@ -124,25 +144,23 @@ namespace Voxima
         static string[] CurrentSpells = new string[1] { null };
         static string[] CurrentShouts = new string[1] { null };
         static string[] CurrentPowers = new string[1] { null };
-        static string CurrentMorph = "";
-        static DictationGrammar FullDictation = new DictationGrammar();
+        static string currentMorph = "";
 
-        static List<string> handLeft = new List<string>();
-        static List<string> handRight = new List<string>();
-        static List<string> handBoth = new List<string>();
-        static List<string> handCast = new List<string>();
-        static List<string> handPerk = new List<string>();
-        static List<string> powerCast = new List<string>();
-        static List<string> locationCommands = new List<string>();
-        static List<string> currentLocationCommands = new List<string>();
-        static List<string> customPlayerMarkerCommands = new List<string>();
+        readonly static DictationGrammar FullDictation = new DictationGrammar();
 
         static string Morph = "none";
         static bool isRidingHorse = false;
         static bool isRidingDragon = false;
 
+        static int updateNum = 0;
+        static bool isUpdating = false;
+
+        static int commandNum = 1;
+
+        //Dovahzul and Horse Commands
+        #region Preset Command Titles
         //All Dovahzul words for Vanilla and DLC shouts. These are used to determine if alternate words need to be given to modded words
-        static string[] allVanillaShouts = new string[] { "raan", "mir", "tah",
+        readonly static string[] allVanillaShouts = new string[] { "raan", "mir", "tah",
                                                           "laas", "yah", "nir",
                                                           "mid", "vur", "shaan",
                                                           "feim", "zii", "gron",
@@ -170,7 +188,7 @@ namespace Voxima
                                                           "fus", "ro", "dah",
                                                           "wuld", "nah", "kest"};
 
-        static string[] allHorseControlCommands = new string[]
+        readonly static string[] allHorseControlCommands = new string[]
         {
             "horse - forward",
             "horse - stop",
@@ -192,21 +210,12 @@ namespace Voxima
             "horse - slower",
             "horse - dismount"
         };
-
-        static List<string> allDovahzulCommands = new List<string>();
-
-        static DateTime Time = DateTime.Now;
-        static int updateNum = 0;
-        static bool isUpdating = false;
-
-        static int commandNum = 1;
-
-        static WebSocketServer server;
+        #endregion
 
 
         #endregion Fields
 
-        static void Main(string[] args)
+        static void Main()
         {
 
             #region Debugger Attachment
@@ -217,9 +226,7 @@ namespace Voxima
 
             #region Directory and File Setup
 
-            //Initialize the Global Variables\\
             //Addresses
-
             if (!System.IO.File.Exists(@"Data\SKSE\Plugins\VOX"))
                 System.IO.Directory.CreateDirectory(@"Data\SKSE\Plugins\VOX");
 
@@ -715,8 +722,10 @@ namespace Voxima
 
                 if (currentLocationCommands.Count != 0)
                 {
-                    Grammar grammar = new Grammar(commands);
-                    grammar.Name = $"playerlocation\tlocation";
+                    Grammar grammar = new Grammar(commands)
+                    {
+                        Name = $"playerlocation\tlocation"
+                    };
 
                     if (!LocationsGrammars.Contains("playerlocation"))
                         LocationsGrammars.Add("playerlocation", grammar);
@@ -735,8 +744,10 @@ namespace Voxima
 
                 if (currentLocationCommands.Count != 0)
                 {
-                    Grammar grammar = new Grammar(commands);
-                    grammar.Name = $"placemapmarker\tplacemapmarker";
+                    Grammar grammar = new Grammar(commands)
+                    {
+                        Name = $"placemapmarker\tplacemapmarker"
+                    };
 
                     if (!LocationsGrammars.Contains("placemapmarker"))
                         LocationsGrammars.Add("placemapmarker", grammar);
@@ -761,8 +772,8 @@ namespace Voxima
                 ProgressionFiles = new string[1];
                 ProgressionFiles[0] = ConflictsAddress;
 
-                if (DuplicatesText != "")
-                    Log.Activity("\nThe following items are duplicate entires or conflicting commands within the same mod:\n" + DuplicatesText + "\nPlease report this list so that I may fix it. These items may not work properly or at all until they are fixed\n");
+                //if (DuplicatesText != "")
+                //    Log.Activity("\nThe following items are duplicate entires or conflicting commands within the same mod:\n" + DuplicatesText + "\nPlease report this list so that I may fix it. These items may not work properly or at all until they are fixed\n");
 
                 FindProgression(ProgressionFiles, "None", j);
 
@@ -824,22 +835,22 @@ namespace Voxima
         /// <summary>
         /// Gets and Creates individual item grammars from text files
         /// </summary>
-        static int FindCommands(string[] Location, string Type, string Morph, int k = 0)
+        static int FindCommands(string[] Location, string type, string morph, int k = 0)
         {
             /*//debug1//*/
             try
             {
                 /*//debug2//*/
-                string CurrentCommand = "";
-                List<string> CommandList = new List<string>();
-                Morph = Morph.ToLower();
-                Type = Type.ToLower();
-                Choices Commands = new Choices();
+                string currentCommand = "";
+                List<string> commandList = new List<string>();
+                morph = morph.ToLower();
+                type = type.ToLower();
+                Choices commands = new Choices();
                 Grammar grammar = new Grammar(new Choices("NA"));
                 bool isCommand = false;
                 Hashtable table;
 
-                switch (Morph)
+                switch (morph)
                 {
                     case "vampirelord":
                         table = AllVampireLordIDs;
@@ -856,23 +867,26 @@ namespace Voxima
 
                 foreach (string currentLocation in Location)
                 {
-                    if (currentLocation.ToLower().EndsWith("_template"))
+                    if (currentLocation.ToLower().EndsWith("_template.ini"))
                         continue;
 
-                    if (Type != "console")
+                    if (type != "console")
                     {
                         foreach (string commandBlock in File.ReadAllText(currentLocation).ToString().Replace("\r", "").ToLower().Split('['))
                         {
-                            CurrentCommand = commandBlock.Split(']')[0];
+                            currentCommand = commandBlock.Split(']')[0];
 
-                            if (CurrentCommand == "" || CurrentCommand == "\n" || CurrentCommand == "\n\n")
+                            if (currentCommand == "" || currentCommand == "\n" || !commandBlock.Contains("]"))
                                 continue;
 
-                            CommandList = new List<string>();
-                            Commands = new Choices();
+                            commandList = new List<string>();
+                            commands = new Choices();
                             isCommand = false;
 
-                            if (Type == "power") { };
+                            if (type == "shout")
+                            {
+                                customShouts.Add(currentCommand);
+                            }
 
                             foreach (string command in commandBlock.Split(']')[1].Split('\n'))
                             {
@@ -880,7 +894,7 @@ namespace Voxima
                                     continue;
 
                                 //Detects if the item is meant to be a command or a general setting for commands 
-                                switch (CurrentCommand)
+                                switch (currentCommand)
                                 {
                                     case "hand - left": handLeft.Add(command); isCommand = false; break;
                                     case "hand - right": handRight.Add(command); isCommand = false; break;
@@ -891,7 +905,7 @@ namespace Voxima
                                     case "location prefixes": locationCommands.Add(command); isCommand = false; break;
                                     case "current location commands": currentLocationCommands.Add(command); isCommand = false; break;
                                     case "place map marker": customPlayerMarkerCommands.Add(command); isCommand = false; break;
-                                    default: isCommand = true; CommandList.Add(command); break;
+                                    default: isCommand = true; commandList.Add(command); break;
                                 }
                             }//End Foreach
                             
@@ -899,7 +913,7 @@ namespace Voxima
                             if (!isCommand)
                                 continue;
 
-                            grammar = CreateGrammar(Type + "\t" + CurrentCommand, Morph, table, CommandList);
+                            grammar = CreateGrammar(type + "\t" + currentCommand, morph, table, commandList);
                         }//End for
                     }
                     else
@@ -924,10 +938,10 @@ namespace Voxima
                             string[] command = text.Split('=');
 
 
-                            Commands = new Choices(command[0].Replace("(", "").Trim(')', ' ').Split(')'));
+                            commands = new Choices(command[0].Replace("(", "").Trim(')', ' ').Split(')'));
 
-                            CommandList = command[0].Replace("(", "").Trim(')', ' ').Split(')').ToList<string>();
-                            grammar = CreateGrammar("console\t" + command[1], Morph, table, CommandList);
+                            commandList = command[0].Replace("(", "").Trim(')', ' ').Split(')').ToList<string>();
+                            grammar = CreateGrammar("console\t" + command[1], morph, table, commandList);
 
                         }
                     }
@@ -1021,8 +1035,10 @@ namespace Voxima
                         //Invert the progression to be Worst --> Best
                         progressionList.Reverse();
 
-                        grammar = new Grammar(CreateCommands(progressionList[0], new List<string>() { CurrentCommand }));
-                        grammar.Name = CurrentCommand;
+                        grammar = new Grammar(CreateCommands(progressionList[0], new List<string>() { CurrentCommand }))
+                        {
+                            Name = CurrentCommand
+                        };
                         commands[0] = CurrentCommand;
 
                         //Add grammar to hashtable
@@ -1050,7 +1066,7 @@ namespace Voxima
         /// <summary>
         /// Returns the best spell associated with a given progression phrase
         /// </summary>
-        static Grammar GetProgression(string Phrase, string Morph)
+        static Grammar GetProgression(string Phrase, string morph)
         {
             try
             {
@@ -1058,7 +1074,7 @@ namespace Voxima
                 //It looks like this function is looking for items in "AllIDs". Is this meant to look for items in a given morph's table?
                 //If so, you need to change that. I think this is the case, so get on that
 
-                Morph = Morph.ToLower();
+                morph = morph.ToLower();
                 List<string> progression = (List<string>)AllProgressions[Phrase.ToLower()];
 
                 if (progression != null)
@@ -1131,13 +1147,13 @@ namespace Voxima
             if (newList != oldList)
             {
                 //Disable recognition if grammars need to be unloaded. Does not account for a net zero or net positive of added/removed commands, but this rare, so it's fine
-                if (newList.Length < oldList.Length || CurrentMorph != Morph)
+                if (newList.Length < oldList.Length || currentMorph != Morph)
                 {
                     //Log.Debug("recognizer disabled");
                     recognizer.RecognizeAsyncCancel();
                 }
 
-                if (CurrentMorph != Morph)
+                if (currentMorph != Morph)
                 {
 
                     if (oldList[0] != null)
@@ -1216,7 +1232,7 @@ namespace Voxima
                             if (recognizer.Grammars.Contains((Grammar)table[newItem]))
                                 recognizer.UnloadGrammar((Grammar)table[newItem]);
 
-                            if (table.Contains(newItem))
+                            if (table.Contains(newItem) && !customShouts.Contains(newItem))
                                 table.Remove(newItem);
                         }
 
@@ -1225,7 +1241,7 @@ namespace Voxima
                             returnVal[0]++;
                         else
                         {
-                            if (CurrentMorph != Morph)
+                            if (currentMorph != Morph)
                                 returnVal[1]++;
                             //Log.Debug($"Item not added: {newItem}");
                         }
@@ -1376,13 +1392,13 @@ namespace Voxima
 
                 }//End Werewolf morph check       
 
-                if (CurrentMorph != Morph && Morph == "werewolf")
+                if (currentMorph != Morph && Morph == "werewolf")
                 {
                     Log.Debug("Unloading all commands, due to morph change");
                     recognizer.RecognizeAsyncCancel();
                     recognizer.UnloadAllGrammars(); //If the player just turned into a werewolf, unload all commands
 
-                    CurrentMorph = Morph;
+                    currentMorph = Morph;
                 }
 
 
@@ -1442,7 +1458,7 @@ namespace Voxima
                     if (recognizer.Grammars.Contains(grammar))
                         recognizer.UnloadGrammar(grammar);
                 }
-                //I am here
+
                 string[] disallowedWerewolfSettings = new string[] { "clear shout\tsetting"   ,
                                                                      "open map\tsetting"      , "close map\tsetting",
                                                                      "open spellbook\tsetting", "close spellbook\tsetting",
@@ -1549,16 +1565,16 @@ namespace Voxima
                 current = name + '\t' + id + '\t' + type + '\t' + from;
 
                 if (table.Contains(current + "\tignore"))
-                    current = current + "\tignore";
+                    current += "\tignore";
 
                 else if (table.Contains(current + "\tleft"))
-                    current = current + "\tleft";
+                    current += "\tleft";
 
                 else if (table.Contains(current + "\tright"))
-                    current = current + "\tright";
+                    current += "\tright";
 
                 else if (table.Contains(current + "\tboth"))
-                    current = current + "\tboth";
+                    current += "\tboth";
 
                 if (table.Contains(current) && !recognizer.Grammars.Contains((Grammar)table[current]))
                 {
@@ -1785,7 +1801,6 @@ namespace Voxima
             string command;
 
             string[] info = title.Split('\t');
-            string name = info[0];
             string type = "";
             string from = "";
 
@@ -2189,7 +2204,6 @@ namespace Voxima
         /// <param name="args"></param>
         private static void OnObservableConcurrentQueueCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
         {
-            string message;
             try
             {
                 switch (args.Action)
@@ -2198,7 +2212,7 @@ namespace Voxima
                         Log.Debug($"[+] Collection Changed [Add]: New Item added: {args.NewItems[0]}", Log.LogType.Info);
                         while (observableConcurrentQueue.Count > 0)
                         {
-                            if (observableConcurrentQueue.TryDequeue(out message) == true)
+                            if (observableConcurrentQueue.TryDequeue(out string message) == true)
                                 ProcessClientMessage(message);
                             else
                                 Log.Debug($"Could not queue message for processing: {message}", Log.LogType.Info);
@@ -2263,13 +2277,16 @@ namespace Voxima
                 {
                     switch (item.Split('\t')[0])
                     {
+                        #region Morph
                         case "morph":
                             Morph = item.Split('\t')[1];
 
-                            if (CurrentMorph == "")
-                                CurrentMorph = Morph;
+                            if (currentMorph == "")
+                                currentMorph = Morph;
                             break;
+                        #endregion
 
+                        #region Mount
                         case "mount":
                             switch (item.Split('\t')[1])
                             {
@@ -2289,25 +2306,58 @@ namespace Voxima
                                     break;
                             }
                             break;
+                        #endregion
 
+                        #region Sensitivity
                         case "vox_sensitivity":
                             Sensitivity = float.Parse(item.Split('\t')[1]);
                             FullDictation.Weight = (100 - Sensitivity) / 100;
                             break;
+                        #endregion
 
+                        #region Auto-Cast Shouts
                         case "vox_autocastshouts":
                             AutoCastShouts = Convert.ToBoolean(item.Split('\t')[1]);
                             break;
+                        #endregion
 
+                        #region Auto-Cast Powers
                         case "vox_autocastpowers":
                             AutoCastPowers = Convert.ToBoolean(item.Split('\t')[1]);
                             break;
+                        #endregion
 
+                        #region Vocal Push-To-Speak
+                        case "vox_vocalpushtospeak":
+                            VocalPushToSpeak = Convert.ToBoolean(item.Split('\t')[1]);
+
+                            int numFound = 0;
+
+                            foreach (Grammar grammar in SettingGrammars) {
+                                if (grammar.Name == "vocal command toggle - enable\tsetting" || grammar.Name == "vocal command toggle - disable\tsetting")
+                                {
+                                    numFound++;
+                                    //Load the vocal grammars if they need to be enabled. Disable them if they need to be disabled
+                                    if (VocalPushToSpeak && !recognizer.Grammars.Contains(grammar))
+                                        recognizer.LoadGrammar(grammar);
+                                    else if (!VocalPushToSpeak && recognizer.Grammars.Contains(grammar))
+                                        recognizer.UnloadGrammar(grammar);
+
+                                    //Once both commands are found, stop
+                                    if (numFound == 2)
+                                        break;
+                                }
+
+                            }
+
+                            break;
+                            #endregion
                     }// End switch
-                }// End ForEach
+                }// End ForEach item
+            }//End Update Configuration
 
-
-            }
+            //Spells, Shouts, and Powers
+            #region Update Spells
             else if (message.StartsWith("update spells"))
             {
                 Log.Debug($"Received from client: Update Spells", Log.LogType.Info);
@@ -2315,6 +2365,9 @@ namespace Voxima
                 //Log.Debug(message.Remove(0, 14));
 
             }
+            #endregion
+
+            #region Update Shouts
             else if (message.StartsWith("update shouts"))
             {
                 Log.Debug($"Received from client: Update Shouts", Log.LogType.Info);
@@ -2322,18 +2375,25 @@ namespace Voxima
                 //Log.Debug(message.Remove(0, 14).TrimEnd('\n').ToLower());
 
             }
+            #endregion
+
+            #region Update Powers
             else if (message.StartsWith("update powers"))
             {
                 Log.Debug($"Received from client: Update Powers", Log.LogType.Info);
                 KnownPowers = message.Remove(0, 14).TrimEnd('\n').ToLower().Split('\n');
 
             }
+            #endregion
+
+            //Location Commands
+            #region Update Locations
             else if (message.StartsWith("update locations"))
             {
                 Log.Debug($"Received from client: Update Locations", Log.LogType.Info);
                 KnownLocations = message.Remove(0, 17).TrimEnd('\n').ToLower().Split('\n');
                 Grammar grammar;
-                Choices commands = new Choices();
+                Choices commands;
 
                 foreach (string location in KnownLocations)
                 {
@@ -2353,13 +2413,18 @@ namespace Voxima
                             commands.Add(item + " " + location.ToLower());
                         }
 
-                        grammar = new Grammar(commands);
-                        grammar.Name = $"{location.ToLower()}\tlocation";
+                        grammar = new Grammar(commands)
+                        {
+                            Name = $"{location.ToLower()}\tlocation"
+                        };
                         LocationsGrammars.Add(location.ToLower(), grammar);
                     }
                 }
 
             }
+            #endregion
+
+            #region Enable Location Commands
             else if (message.StartsWith("enable location commands"))
             {
                 Log.Debug($"Received from client: Enable Location Commands", Log.LogType.Info);
@@ -2398,8 +2463,10 @@ namespace Voxima
                                 commands.Add(item + " " + location.ToLower());
                             }
 
-                            grammar = new Grammar(commands);
-                            grammar.Name = $"{location.ToLower()}\tlocation";
+                            grammar = new Grammar(commands)
+                            {
+                                Name = $"{location.ToLower()}\tlocation"
+                            };
                             LocationsGrammars.Add(location.ToLower(), grammar);
                         }
 
@@ -2407,6 +2474,9 @@ namespace Voxima
                 }
 
             }
+            #endregion
+
+            #region DisableLocation Commands
             else if (message.StartsWith("disable location commands"))
             {
                 Log.Debug($"Received from client: Disable Location Commands", Log.LogType.Info);
@@ -2417,19 +2487,26 @@ namespace Voxima
                     recognizer.UnloadGrammar((Grammar)LocationsGrammars["placemapmarker"]);
                 }
 
-                foreach (string location in KnownLocations)
+                if (KnownLocations != null)
                 {
-                    if (location == null)
-                        break;
-
-                    if (LocationsGrammars.Contains(location.ToLower()))
+                    foreach (string location in KnownLocations)
                     {
-                        if (recognizer.Grammars.Contains((Grammar)LocationsGrammars[location.ToLower()]))
-                            recognizer.UnloadGrammar((Grammar)LocationsGrammars[location.ToLower()]);
+                        if (location == null)
+                            break;
+
+                        if (LocationsGrammars.Contains(location.ToLower()))
+                        {
+                            if (recognizer.Grammars.Contains((Grammar)LocationsGrammars[location.ToLower()]))
+                                recognizer.UnloadGrammar((Grammar)LocationsGrammars[location.ToLower()]);
+                        }
                     }
                 }
 
             }
+            #endregion
+
+            //Recognition
+            #region Enable Recognition
             else if (message.StartsWith("enable recognition"))
             {
                 Log.Debug($"Received from client: Enable Recognition", Log.LogType.Info);
@@ -2441,6 +2518,9 @@ namespace Voxima
                 catch (Exception) { }
 
             }
+            #endregion
+
+            #region Disable Recognition
             else if (message.StartsWith("disable recognition"))
             {
                 Log.Debug($"Received from client: Disable Recognition", Log.LogType.Info);
@@ -2448,14 +2528,17 @@ namespace Voxima
                 recognizer.RecognizeAsyncCancel();
 
             }
+            #endregion
+
+            //Change Microphone
+            #region Change Microphone
             else if (message.StartsWith("check for mic change"))
             {
                 Log.Debug($"Received from client: Check for Mic Change", Log.LogType.Info);
 
-                recognizer.RecognizeAsyncCancel();
-
                 try
                 {
+                    recognizer.RecognizeAsyncCancel();
                     recognizer.SetInputToDefaultAudioDevice();
                 }
                 catch (Exception) { }
@@ -2467,6 +2550,10 @@ namespace Voxima
                 catch (Exception) { }
 
             }
+            #endregion
+
+            //Initialize Update
+            #region Initialize Update
             else if (message.StartsWith("initialize update"))
             {
                 Log.Debug($"Received from client: Initialize Update", Log.LogType.Info);
@@ -2496,6 +2583,8 @@ namespace Voxima
                 }
 
             }
+            #endregion
+
             else
             {
                 Log.Debug($"Received from client: {message}", Log.LogType.Info);
@@ -2700,7 +2789,7 @@ namespace Voxima
 
                 if (VocalPushToSpeak)
                 {
-                    if (Title == "Vocal Command Toggle - Enable")
+                    if (Title == "vocal command toggle - enable\tsetting")
                     {
                         if (!VocalPushToSpeak_Val)
                         {
@@ -2711,7 +2800,7 @@ namespace Voxima
                         return;
 
                     }
-                    else if (Title == "Vocal Command Toggle - Disable")
+                    else if (Title == "vocal command toggle - disable\tsetting")
                     {
                         if (VocalPushToSpeak_Val)
                         {
@@ -3010,12 +3099,14 @@ namespace Voxima
             try
             {
                 // Create a new FileSystemWatcher and set its properties
-                portConfigWatcher = new FileSystemWatcher();
-                portConfigWatcher.Path = portConfigDirectory;
-                portConfigWatcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite; // Watch for changes in LastAccess and LastWrite times
+                portConfigWatcher = new FileSystemWatcher
+                {
+                    Path = portConfigDirectory,
+                    NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite, // Watch for changes in LastAccess and LastWrite times
 
-                // Only watch specific text file
-                portConfigWatcher.Filter = portConfigFile;
+                    // Only watch specific text file
+                    Filter = portConfigFile
+                };
 
                 // Add event handlers
                 portConfigWatcher.Changed += new FileSystemEventHandler(OnPortConfigChanged);

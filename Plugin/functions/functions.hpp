@@ -4,7 +4,7 @@ RE::TESForm* currentVoice;
 RE::PlayerCharacter* player;
 
 // Global Variables
-#pragma region In -Game Global Variables
+#pragma region In-Game Global Variables
 RE::TESGlobal* VOX_Enabled;             // Enables or Disables Voice Recognition
 RE::TESGlobal* VOX_UpdateInterval;      // Decides the update interval for loop-based CheckUpdate()
 RE::TESGlobal* VOX_CheckForUpdate;      // Forces the system to check for an update. Also checks for a change in microphone
@@ -18,6 +18,8 @@ RE::TESGlobal* VOX_LongAutoCast;        // Enables or Disables casting spells th
 RE::TESGlobal* VOX_Sensitivity;         // Determines how sensitive the voice recognition is
 RE::TESGlobal*
     VOX_KnownShoutWordsOnly;  // Determines if you only get voice commands for shout words that are known, instead of all words after the first is learned
+RE::TESGlobal* VOX_QuickLoadType;       //Determines whether there is a confirmation menu when quick loading
+
 std::string openMenu;
 #pragma endregion
 

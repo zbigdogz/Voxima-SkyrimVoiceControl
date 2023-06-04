@@ -22,6 +22,7 @@
 #include "../events/device-input-event.hpp"        // Flatrim device input event hooking and processing
 #include "../functions/logger.hpp"                 // SKSE log functions
 
+#pragma region Structs
 struct Command
 {
     std::string Name = "";
@@ -34,10 +35,11 @@ struct Command
     std::string Morph = "";
     int CommandNum = 0;
 };
+#pragma endregion
 
 #pragma region Function Definitions
 void InitialUpdate();
-void CheckUpdate(bool loop = false, bool isAsync = false);
+void CheckUpdate(bool loop = false);
 void Update(std::string update = "");
 void ExecuteCommand(Command command);
 void OnVRButtonEvent(PapyrusVR::VREventType type, PapyrusVR::EVRButtonId buttonId, PapyrusVR::VRDevice deviceId);
@@ -115,6 +117,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
         switch (message->type)
         {
             // All plugins have been loaded
+            #pragma region All Plugins Loaded
             case SKSE::MessagingInterface::kPostLoad:
                 ConfigureWebsocketPort();  // Write target websocket port to file, which will be read by speech recognition application
                 LaunchSpeechRecoApp();     // Launch the companion speech recognition application
@@ -125,8 +128,10 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
                     SKSE::GetMessagingInterface()->RegisterListener("SkyrimVRTools", OnPapyrusVRMessage);
                 }
                 break;
+            #pragma endregion
 
             // Data handler has loaded all its forms (Main menu has loaded)
+            #pragma region Main Menu has Loaded
             case SKSE::MessagingInterface::kDataLoaded:
                 InitializeWebSocketClient();           // Initialize the websocket client owned by the plugin
                 InitializeLoadGameHooking();           // Setup game load event monitoring
@@ -168,8 +173,10 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
                     std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to allow for websocket connection to be made
                 InitialUpdate();                                                  // Run initial data update
                 break;
+            #pragma endregion
 
             // Save Game as been created (manual, autosave, or new game)
+            #pragma region Save Game Created
             case SKSE::MessagingInterface::kSaveGame:
                 if (saveTriggered == false)
                 {
@@ -178,6 +185,8 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
                     CheckUpdate();
                 }
                 break;
+            #pragma endregion
+
         }  // End switch
     }
     catch (const std::exception& ex)
@@ -210,12 +219,12 @@ void InitialUpdate()
         VOX_AutoCastPowers = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_AutoCastPowers");
         VOX_AutoCastShouts = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_AutoCastShouts");
         VOX_KnownShoutWordsOnly = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_KnownShoutWordsOnly");
-
-        // C++ --> C# Variables
         VOX_Sensitivity = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_Sensitivity");
-        currentSensitivity = VOX_Sensitivity->value;
-        currentAutoCastShouts = VOX_AutoCastShouts->value;
-        currentAutoCastPowers = VOX_AutoCastPowers->value;
+        VOX_QuickLoadType = RE::TESGlobal::LookupByEditorID<RE::TESGlobal>("VOX_QuickLoadType");
+
+        //currentSensitivity = VOX_Sensitivity->value;
+        //currentAutoCastShouts = VOX_AutoCastShouts->value;
+        //currentAutoCastPowers = VOX_AutoCastPowers->value;
     }
     catch (const std::exception& ex)
     {
@@ -224,170 +233,177 @@ void InitialUpdate()
 }
 
 // Checks for changes in the tracked data
-void CheckUpdate(bool loop, bool isAsync)
+void CheckUpdate(bool loop)
 {
     try
     {
-        // If the function isn't async, run it in a different thread
-        if (isAsync == false)
-        {
-            std::jthread update(CheckUpdate, loop, true);
-            update.detach();
-            return;
-        }
+        thread([loop]() {
+            logger::debug("CheckUpdate method running");
+            bool fullUpdate;
+            int placeInQueue = updateQueue;
 
-        logger::debug("CheckUpdate method running");
-        bool fileUpdate;
-        bool fullUpdate;
-        int placeInQueue = updateQueue;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if (placeInQueue < updateQueue) return;
 
-        if (placeInQueue < updateQueue) return;
+            updateQueue++;
 
-        updateQueue++;
+            if (loop) logger::debug("CheckUpdate loop start");
 
-        if (loop) logger::debug("CheckUpdate loop start");
-
-        do
-        {
-            if (!player->Is3DLoaded())
+            do
             {
-                if (loop) std::this_thread::sleep_for(std::chrono::seconds(1));  // 1 second delay to avoid looping unnecessarily
-                continue;
-            }
-            else if (VOX_Enabled->value == 0)
-            {
-                if (loop)
-                    std::this_thread::sleep_for(std::chrono::seconds(5));  // 5 second delay to not loop unnecessarily. See Bottom of page Note (1)
-                else
+                if (!player->Is3DLoaded())
                 {
-                    SendMessage(WebSocketMessage::DisableRecognition);
-                    isRecognitionEnabled = false;
+                    if (loop) std::this_thread::sleep_for(std::chrono::seconds(1));  // 1 second delay to avoid looping unnecessarily
+                    continue;
                 }
-
-                continue;
-            }
-            else if (VOX_Enabled->value == 1 && !isRecognitionEnabled)
-            {
-                SendMessage(WebSocketMessage::EnableRecognition);
-                isRecognitionEnabled = true;
-            }
-
-            fileUpdate = false;
-            fullUpdate = false;
-
-#pragma region Check for Update
-
-            // Checks for change in number of magic items (includes effects)
-            if (numMagic[0] != player->GetActorRuntimeData().addedSpells.size())
-            {
-                numMagic[0] = player->GetActorRuntimeData().addedSpells.size();
-
-                // Checks for a change in the number Spells or Powers
-                uint32_t currentSpells = 0;
-                for (RE::SpellItem* item : player->GetActorRuntimeData().addedSpells)
+                else if (VOX_Enabled->value == 0)
                 {
-                    switch (item->GetSpellType())
+                    if (loop)
+                        std::this_thread::sleep_for(std::chrono::seconds(5));  // 5 second delay to not loop unnecessarily. See Bottom of page Note (1)
+                    else
                     {
-                        case RE::MagicSystem::SpellType::kSpell:
-                        case RE::MagicSystem::SpellType::kPower:
-                        case RE::MagicSystem::SpellType::kLesserPower:
-                        case RE::MagicSystem::SpellType::kVoicePower:
-                            currentSpells++;
-                            break;
-                    }  // End Switch
+                        SendMessage(WebSocketMessage::DisableRecognition);
+                        isRecognitionEnabled = false;
+                    }
+
+                    continue;
+                }
+                else if (VOX_Enabled->value == 1 && !isRecognitionEnabled)
+                {
+                    SendMessage(WebSocketMessage::EnableRecognition);
+                    isRecognitionEnabled = true;
                 }
 
-                // If there is a change, update the recorded total and mark for Update()
-                if (currentSpells != numMagic[1])
+                fullUpdate = false;
+
+                #pragma region Check for Update
+
+                // Checks for change in number of magic items (includes effects)
+                if (numMagic[0] != player->GetActorRuntimeData().addedSpells.size())
                 {
-                    numMagic[1] = currentSpells;
+                    numMagic[0] = player->GetActorRuntimeData().addedSpells.size();
+
+                    // Checks for a change in the number Spells or Powers
+                    uint32_t currentSpells = 0;
+                    for (RE::SpellItem* item : player->GetActorRuntimeData().addedSpells)
+                    {
+                        switch (item->GetSpellType())
+                        {
+                            case RE::MagicSystem::SpellType::kSpell:
+                            case RE::MagicSystem::SpellType::kPower:
+                            case RE::MagicSystem::SpellType::kLesserPower:
+                            case RE::MagicSystem::SpellType::kVoicePower:
+                                currentSpells++;
+                                break;
+                        }  // End Switch
+                    }
+
+                    // If there is a change, update the recorded total and mark for Update()
+                    if (currentSpells != numMagic[1])
+                    {
+                        numMagic[1] = currentSpells;
+                        fullUpdate = true;
+                    }
+                }
+
+                std::string newCSharpSettings = "";
+                //-----MCM-----//
+                #pragma region MCM Settings
+                if (currentPushToSpeakType != (int)VOX_PushToSpeakType->value)
+                {
+                    if (currentPushToSpeakType == 3 || VOX_PushToSpeakType->value == 3)
+                        logger::info("Sending \"VOX_VocalPushToSpeak = {}\" to C#", VOX_PushToSpeakType->value);
+
+                    currentPushToSpeakType = VOX_PushToSpeakType->value;
+
+                    switch (currentPushToSpeakType)
+                    {
+                        case 1:
+                        case 2:
+                            SendMessage(WebSocketMessage::DisableRecognition);
+                            newCSharpSettings += "VOX_VocalPushToSpeak\tfalse\n";
+                            break;
+                        case 0:
+                            SendMessage(WebSocketMessage::EnableRecognition);
+                            newCSharpSettings += "VOX_VocalPushToSpeak\tfalse\n";
+                            break;
+                        case 3:
+                            SendMessage(WebSocketMessage::EnableRecognition);
+                            newCSharpSettings += "VOX_VocalPushToSpeak\ttrue\n";
+                            break;
+                    }
+                }
+
+                if (currentSensitivity != VOX_Sensitivity->value)
+                {
+                    currentSensitivity = VOX_Sensitivity->value;
+                    logger::info("Sending \"VOX_Sensitivity = {}\" to C#", VOX_Sensitivity->value);
+
+                    newCSharpSettings += "VOX_Sensitivity\t" + std::to_string(VOX_Sensitivity->value) + "\n";
+                }
+
+                if (currentAutoCastShouts != VOX_AutoCastShouts->value)
+                {
+                    currentAutoCastShouts = VOX_AutoCastShouts->value;
+                    logger::info("Sending \"VOX_AutoCastShouts = {}\" to C#", VOX_AutoCastShouts->value);
+
+                    newCSharpSettings += "VOX_AutoCastShouts\t" + (currentAutoCastShouts != 0 ? std::string("true") : std::string("false")) + "\n";
+                }
+
+                if (currentAutoCastPowers != VOX_AutoCastPowers->value)
+                {
+                    currentAutoCastPowers = VOX_AutoCastPowers->value;
+                    logger::info("Sending \"VOX_AutoCastPowers = {}\" to C#", VOX_AutoCastPowers->value);
+
+                    newCSharpSettings += "VOX_AutoCastPowers\t" + (currentAutoCastPowers != 0 ? std::string("true") : std::string("false")) + "\n";
+                }
+
+                if (VOX_CheckForUpdate->value == 1)
+                {
+                    SendMessage(WebSocketMessage::CheckForMicChange);
+                    VOX_CheckForUpdate->value = 0;
+                    logger::info("Forcing an Update Check");
+                    currentShouts = "";
                     fullUpdate = true;
                 }
-            }
+                #pragma endregion
 
-//-----MCM-----//
-#pragma region MCM Settings
-            if (currentPushToSpeakType != (int)VOX_PushToSpeakType->value)
-            {
-                if (currentPushToSpeakType == 3 || VOX_PushToSpeakType->value == 3)
+                if (newCSharpSettings != "") SendMessage(WebSocketMessage::UpdateConfiguration + newCSharpSettings);
+
+                knownShouts = GetActorMagic(player, MagicType::Shout)[0];  // Obtain currently known shouts
+
+                if (knownShouts != currentShouts)
+                {  // Check if there is an update to the shouts
+                    currentShouts = knownShouts;
+                    logger::info("Updating Shouts");
+                    SendMessage(WebSocketMessage::UpdateShouts + knownShouts);
+                    fullUpdate = true;
+                }  // End Shout Check
+
+                knownLocations = GetKnownLocations();
+                if (currentLocations != knownLocations)
                 {
-                    logger::info("Sending \"VOX_VocalPushToSpeak = {}\" to C#", VOX_PushToSpeakType->value);
+                    currentLocations = knownLocations;
+                    std::string locationsMessage = "";
+                    std::string currentMarker;
+
+                    for (std::string playerMapMarker : currentLocations)
+                    {
+                        locationsMessage += playerMapMarker + "\n";
+                    }
+                    logger::info("{}", locationsMessage);
+
+                    SendMessage(WebSocketMessage::UpdateLocations + locationsMessage + "playerlocation");
                 }
 
-                SendMessage(WebSocketMessage::DisableRecognition);
+                if (fullUpdate) Update();
 
-                currentPushToSpeakType = (int)VOX_PushToSpeakType->value;
-                fileUpdate = true;
-            }
+                #pragma endregion
 
-            if (currentSensitivity != VOX_Sensitivity->value)
-            {
-                currentSensitivity = VOX_Sensitivity->value;
-                logger::info("Sending \"VOX_Sensitivity = {}\" to C#", VOX_Sensitivity->value);
-                fileUpdate = true;
-            }
-
-            if (currentAutoCastShouts != VOX_AutoCastShouts->value)
-            {
-                currentAutoCastShouts = VOX_AutoCastShouts->value;
-                logger::info("Sending \"VOX_AutoCastShouts = {}\" to C#", VOX_AutoCastShouts->value);
-                fileUpdate = true;
-            }
-
-            if (currentAutoCastPowers != VOX_AutoCastPowers->value)
-            {
-                currentAutoCastPowers = VOX_AutoCastPowers->value;
-                logger::info("Sending \"VOX_AutoCastPowers = {}\" to C#", VOX_AutoCastPowers->value);
-                fileUpdate = true;
-            }
-
-            if (VOX_CheckForUpdate->value == 1)
-            {
-                SendMessage(WebSocketMessage::CheckForMicChange);
-                VOX_CheckForUpdate->value = 0;
-                logger::info("Forcing an Update Check");
-                currentShouts = "";
-                fullUpdate = true;
-            }
-#pragma endregion
-
-            knownShouts = GetActorMagic(player, MagicType::Shout)[0];  // Obtain currently known shouts
-
-            if (knownShouts != currentShouts)
-            {  // Check if there is an update to the shouts
-                currentShouts = knownShouts;
-                logger::info("Updating Shouts");
-                SendMessage(WebSocketMessage::UpdateShouts + knownShouts);
-                fullUpdate = true;
-            }  // End Shout Check
-
-            knownLocations = GetKnownLocations();
-            if (currentLocations != knownLocations)
-            {
-                currentLocations = knownLocations;
-                std::string locationsMessage = "";
-                std::string currentMarker;
-
-                for (std::string playerMapMarker : currentLocations)
-                {
-                    locationsMessage += playerMapMarker + "\n";
-                }
-                logger::info("{}", locationsMessage);
-
-                SendMessage(WebSocketMessage::UpdateLocations + locationsMessage + "playerlocation");
-            }
-
-            if (fullUpdate)
-                Update();
-            else if (fileUpdate)
-                Update("file");
-
-#pragma endregion
-
-            if (loop) std::this_thread::sleep_for(std::chrono::seconds((int)VOX_UpdateInterval->value));  // Pause based on VOX MCM settings
-        } while (loop);                                                                                   // End While
+                if (loop) std::this_thread::sleep_for(std::chrono::seconds((int)VOX_UpdateInterval->value));  // Pause based on VOX MCM settings
+            } while (loop);                                                                                   // End While
+        }).detach();
     }
     catch (const std::exception& ex)
     {
@@ -399,49 +415,32 @@ void CheckUpdate(bool loop, bool isAsync)
     }  // End Try/Catch
 }  // End CheckUpdate
 
-// Gets and sends game data to C#
+    // Gets and sends game data to C#
 void Update(std::string update)
 {
     try
     {
-        logger::info("Updating Information");
-        bool finished = false;
-        std::string type = update;
-        std::string updateFile = "";
-        std::string updateSpells = "";
-        std::string updatePowers = "";
-        std::transform(type.begin(), type.end(), type.begin(), [](unsigned char c) { return std::tolower(c); });  // sets type.ToLower()
+        thread([update]() {
+            logger::info("Updating Information");
+            bool finished = false;
+            std::string type = update;
+            std::string updateFile = "";
+            std::string updateSpells = "";
+            std::string updatePowers = "";
+            std::transform(type.begin(), type.end(), type.begin(), [](unsigned char c) { return std::tolower(c); });  // sets type.ToLower()
 
-        if (currentPushToSpeakType == 3)
-            updateFile += "VOX_VocalPushToSpeak\t" + std::to_string(true) + "\n";
-        else
-            updateFile += "VOX_VocalPushToSpeak\t" + std::to_string(false) + "\n";
+            if (!finished)
+            {
+                auto magic = GetActorMagic(player, MagicType::Spell, MagicType::Power);
 
-        if (VOX_AutoCastShouts->value == 1)
-            updateFile += "VOX_AutoCastShouts\ttrue\n";
-        else
-            updateFile += "VOX_AutoCastShouts\tfalse\n";
+                SendMessage(WebSocketMessage::UpdateSpells + magic[0]);
+                SendMessage(WebSocketMessage::UpdatePowers + magic[1]);
+            }
 
-        if (VOX_AutoCastPowers->value == 1)
-            updateFile += "VOX_AutoCastPowers\ttrue\n";
-        else
-            updateFile += "VOX_AutoCastPowers\tfalse\n";
-
-        updateFile += "VOX_Sensitivity\t" + std::to_string((int)VOX_Sensitivity->value);
-
-        SendMessage(WebSocketMessage::UpdateConfiguration + updateFile);
-
-        if (!finished)
-        {
-            auto magic = GetActorMagic(player, MagicType::Spell, MagicType::Power);
-
-            SendMessage(WebSocketMessage::UpdateSpells + magic[0]);
-            SendMessage(WebSocketMessage::UpdatePowers + magic[1]);
-        }
-
-        std::this_thread::sleep_for(
-            std::chrono::milliseconds(200));  // Brief pause to ensure the following message is sent and processed after the previous messages
-        SendMessage(WebSocketMessage::InitializeUpdate);
+            std::this_thread::sleep_for(
+                std::chrono::milliseconds(200));  // Brief pause to ensure the following message is sent and processed after the previous messages
+            SendMessage(WebSocketMessage::InitializeUpdate);
+        }).detach();
     }
     catch (const std::exception& ex)
     {
@@ -1084,27 +1083,39 @@ void ExecuteCommand(Command command)
                 }
                 else if (currentCommand.Name == "quick load")
                 {
-                    // Loads most recent save file
-                    SkyrimMessageBox::Show("Do you want to load your last save game?", {"Yes", "No"}, [](unsigned int result) {
-                        switch (result)
-                        {
-                            case 0:
-                                RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
-                                // No notificaiton is needed, as the game already says "quicksaving..."
-                                break;
+                    switch ((int)VOX_QuickLoadType->value)
+                    {
+                        case 1:
+                            // Loads most recent save file
+                            SkyrimMessageBox::Show("Do you want to load your last save game?", {"Yes", "No"}, [](unsigned int result) {
+                                switch (result)
+                                {
+                                    case 0:
+                                        RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
+                                        // No notificaiton is needed, as the game already says "quicksaving..."
+                                        break;
 
-                            case 1:
-                                SendNotification("Load Game Aborted");
-                                break;
-                        }
-                    });
+                                    case 1:
+                                        SendNotification("Load Game Aborted");
+                                        break;
+                                }
+                            });
+                            break;
 
-                    /* // Spoof button input to load most recent quick save file
+                        case 2:
+                            RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
+                            // No notificaiton is needed, as the game already says "quicksaving..."
+                            break;
+                    }
+
+                    /*
+                    // Spoof button input to load most recent quick save file
                     if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton()) {
                         auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "quickload", 0, 1.0f, 0.0f);
                         bsInputEventQueue->PushOntoInputQueue(kEvent);
                         SendNotification("Loading most recent quick save");
-                    } */
+                    }
+                    */
                 }
 #pragma endregion
             }
