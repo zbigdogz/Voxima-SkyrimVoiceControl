@@ -17,7 +17,7 @@
 #include "../events/spell-learned-event.hpp"       // Spell learn event hooking and processing
 #include "../events/morph-changed-event.hpp"       // Player morph event hooking and processing
 #include "../events/load-game-event.hpp"           // Game load event hooking and processing
-#include "../events/menu-close-event.hpp"          // Menu close event hooking and processing
+#include "../events/menu-open-close-event.hpp"     // Menu close event hooking and processing
 #include "../events/location-discovery-event.hpp"  // Location discovery event hooking and processing
 #include "../events/device-input-event.hpp"        // Flatrim device input event hooking and processing
 #include "../functions/logger.hpp"                 // SKSE log functions
@@ -1404,7 +1404,7 @@ void LoadGameEvent::EventHandler::GameLoaded()
 void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEvent* event)
 {
     string menuName = event->menuName.c_str();  // Capture name of triggering menu
-    /// logger::info("Trigger Menu = {}!!", menuName);
+    ///logger::info("Trigger Menu = {}!!", menuName);
     MenuType type;
     static std::unordered_map<std::string, MenuType> const table = {
         {"Console", MenuType::Console},      {"FavoritesMenu", MenuType::Favorites}, {"InventoryMenu", MenuType::Inventory},
@@ -1416,66 +1416,74 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
         type = it->second;
     else  // No enum match found
         return;
-    switch (type)
-    {  // Check if triggering menu is of interest
-        case MenuType::Console:
-            menuName = RE::Console::MENU_NAME;
-            break;
 
-        case MenuType::Favorites:
-            menuName = RE::FavoritesMenu::MENU_NAME;
-            break;
+    //switch (type)
+    //{  // Check if triggering menu is of interest
+    //    case MenuType::Console:
+    //        menuName = RE::Console::MENU_NAME;
+    //        break;
 
-        case MenuType::Inventory:
-            menuName = RE::InventoryMenu::MENU_NAME;
-            break;
+    //    case MenuType::Favorites:
+    //        menuName = RE::FavoritesMenu::MENU_NAME;
+    //        break;
 
-        case MenuType::Journal:
-            menuName = RE::JournalMenu::MENU_NAME;
-            break;
+    //    case MenuType::Inventory:
+    //        menuName = RE::InventoryMenu::MENU_NAME;
+    //        break;
 
-        case MenuType::LevelUp:
-            menuName = RE::LevelUpMenu::MENU_NAME;
-            break;
+    //    case MenuType::Journal:
+    //        menuName = RE::JournalMenu::MENU_NAME;
+    //        break;
 
-        case MenuType::Magic:
-            menuName = RE::MagicMenu::MENU_NAME;
-            break;
+    //    case MenuType::LevelUp:
+    //        menuName = RE::LevelUpMenu::MENU_NAME;
+    //        break;
 
-        case MenuType::Map:
-            menuName = RE::MapMenu::MENU_NAME;
+    //    case MenuType::Magic:
+    //        menuName = RE::MagicMenu::MENU_NAME;
+    //        break;
 
-            if (event->opening)
-                SendMessage(WebSocketMessage::EnableLocationCommands);
-            else
-                SendMessage(WebSocketMessage::DisableLocationCommands);
-            break;
+    //    case MenuType::Map:
+    //        menuName = RE::MapMenu::MENU_NAME;
+    //        if (event->opening)
+    //            SendMessage(WebSocketMessage::EnableLocationCommands);
+    //        else
+    //            SendMessage(WebSocketMessage::DisableLocationCommands);
+    //        break;
 
-        case MenuType::Skills:
-            menuName = RE::StatsMenu::MENU_NAME;
-            break;
+    //    case MenuType::Skills:
+    //        menuName = RE::StatsMenu::MENU_NAME;
+    //        break;
 
-        case MenuType::SleepWait:
-            menuName = RE::SleepWaitMenu::MENU_NAME;
-            break;
+    //    case MenuType::SleepWait:
+    //        menuName = RE::SleepWaitMenu::MENU_NAME;
+    //        break;
 
-        case MenuType::Tween:
-            menuName = RE::TweenMenu::MENU_NAME;
-            break;
+    //    case MenuType::Tween:
+    //        menuName = RE::TweenMenu::MENU_NAME;
+    //        break;
 
-        default:  // Triggering menu is not of interest
-            logger::error("Error processing menu event - unexpected enum encountered");
-            return;
+    //    default:  // Triggering menu is not of interest
+    //        logger::error("Error processing menu event - unexpected enum encountered");
+    //        return;
+    //}
+    if (menuName == RE::MapMenu::MENU_NAME)
+    {
+        if (event->opening)
+            SendMessage(WebSocketMessage::EnableLocationCommands);
+        else
+            SendMessage(WebSocketMessage::DisableLocationCommands);
     }
     if (event->opening == true)
     {  // Check if captured event involves menu OPENING
         openMenu = menuName;
-        /// logger::info("OPEN Menu = {}!!", menuName);
+        ///SendNotification(" OPEN Menu = " + openMenu);
+        ///logger::info("OPEN Menu = {}!!", menuName);
     }
     else
     {  // Captured event involves menu CLOSING
         openMenu = "";
-        /// logger::debug("CLOSED Menu = {}!!", menuName);
+        ///logger::debug("CLOSED Menu = {}!!", menuName);
     }
     CheckUpdate();  // Call method to check for game data updates
 
@@ -1506,6 +1514,112 @@ void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEven
     //     }
     // }
 }
+
+//// Executes when a menu opens or closes
+//void MenuOpenCloseEvent::EventHandler::MenuOpenClose(const RE::MenuOpenCloseEvent* event)
+//{
+//    string menuName = event->menuName.c_str();  // Capture name of triggering menu
+//    logger::info("Trigger Menu = {}!!", menuName);
+//    MenuType type;
+//    static std::unordered_map<std::string, MenuType> const table = {
+//        {"Console", MenuType::Console},      {"FavoritesMenu", MenuType::Favorites}, {"InventoryMenu", MenuType::Inventory},
+//        {"Journal Menu", MenuType::Journal}, {"LevelUp Menu", MenuType::LevelUp},    {"MagicMenu", MenuType::Magic},
+//        {"MapMenu", MenuType::Map},          {"StatsMenu", MenuType::Skills},        {"Sleep/Wait Menu", MenuType::SleepWait},
+//        {"TweenMenu", MenuType::Tween}};
+//    auto it = table.find(menuName);
+//    if (it != table.end())  // Check if match was found within enums
+//        type = it->second;
+//    else  // No enum match found
+//        return;
+//    switch (type)
+//    {  // Check if triggering menu is of interest
+//        case MenuType::Console:
+//            menuName = RE::Console::MENU_NAME;
+//            break;
+//
+//        case MenuType::Favorites:
+//            menuName = RE::FavoritesMenu::MENU_NAME;
+//            break;
+//
+//        case MenuType::Inventory:
+//            menuName = RE::InventoryMenu::MENU_NAME;
+//            break;
+//
+//        case MenuType::Journal:
+//            menuName = RE::JournalMenu::MENU_NAME;
+//            break;
+//
+//        case MenuType::LevelUp:
+//            menuName = RE::LevelUpMenu::MENU_NAME;
+//            break;
+//
+//        case MenuType::Magic:
+//            menuName = RE::MagicMenu::MENU_NAME;
+//            break;
+//
+//        case MenuType::Map:
+//            menuName = RE::MapMenu::MENU_NAME;
+//            if (event->opening)
+//                SendMessage(WebSocketMessage::EnableLocationCommands);
+//            else
+//                SendMessage(WebSocketMessage::DisableLocationCommands);
+//            break;
+//
+//        case MenuType::Skills:
+//            menuName = RE::StatsMenu::MENU_NAME;
+//            break;
+//
+//        case MenuType::SleepWait:
+//            menuName = RE::SleepWaitMenu::MENU_NAME;
+//            break;
+//
+//        case MenuType::Tween:
+//            menuName = RE::TweenMenu::MENU_NAME;
+//            break;
+//
+//        default:  // Triggering menu is not of interest
+//            logger::error("Error processing menu event - unexpected enum encountered");
+//            return;
+//    }
+//    if (event->opening == true)
+//    {  // Check if captured event involves menu OPENING
+//        openMenu = menuName;
+//        logger::info("OPEN Menu = {}!!", menuName);
+//    }
+//    else
+//    {  // Captured event involves menu CLOSING
+//        openMenu = "";
+//        logger::debug("CLOSED Menu = {}!!", menuName);
+//    }
+//    CheckUpdate();  // Call method to check for game data updates
+//
+//    // string menuName = event->menuName.c_str();  // Capture name of closed menu
+//    // if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if trigger menu is of interest
+//    //     logger::info("Trigger Menu = {}!!", menuName);
+//    //     if (event->opening == true) // Check if captured event involves menu OPENING
+//    //         logger::debug("OPENED Menu = {}!!", menuName);
+//    //     else
+//    //         logger::debug("CLOSED Menu = {}!!", menuName);
+//    //     CheckUpdate();  // Call method to check for game data updates
+//    // }
+//
+//    ///// logger::debug("Menu opened or closed!!");
+//    // if (event->opening == false) {  // Check if capture event involves menu CLOSING
+//    //     string menuName = event->menuName.c_str(); // Capture name of closed menu
+//    //     /// logger::info("CLOSE Menu = {}!!", menuName);
+//    //     if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if menu of interest was closed
+//    //         logger::debug("CLOSED Menu = {}!!", menuName);
+//    //         CheckUpdate(); // Call method to check for game data updates
+//    //     }
+//    // } else {
+//    //     string menuName = event->menuName.c_str();  // Capture name of opened menu
+//    //     /// logger::info("OPEN Menu = {}!!", menuName);
+//    //     if (menuName == "TweenMenu" || menuName == "Console" || menuName == "Journal Menu") {  // Check if menu of interest was closed
+//    //         logger::debug("CLOSED Menu = {}!!", menuName);
+//    //         CheckUpdate();  // Call method to check for game data updates
+//    //     }
+//    // }
+//}
 
 // Executes when new locations are discovered
 void LocationDiscoveredEvent::EventHandler::LocationDiscovered(string locationName)

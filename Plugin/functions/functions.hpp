@@ -1912,6 +1912,30 @@ void OpenJournal()
     return func(true); */
 }
 
+// Fade game screen. (courtesy of CustomSkills by Exit-9B https://github.com/Exit-9B/CustomSkills)
+void FadeOutGame(bool a_fadingOut, bool a_blackFade, float a_fadeDuration, bool a_arg4, float a_secsBeforeFade)
+{
+    using func_t = decltype(&FadeOutGame);
+    if (REL::Module::IsVR())
+    {
+        // work in progress
+        return;
+    }
+    else
+    {
+        REL::Relocation<func_t> func{RELOCATION_ID(0, 52847)}; // Works for 1.6.640.0 ("AE")
+        return func(a_fadingOut, a_blackFade, a_fadeDuration, a_arg4, a_secsBeforeFade);
+    }
+
+    /*int fadeID = 0;*/
+    //if (REL::Module::IsVR())
+    //    fadeID = -1;
+    //else
+    //    fadeID = 52847; // Works for 1.6.640.0 ("AE")
+    //REL::Relocation<func_t> func{RELOCATION_ID(0, fadeID)};
+    //return func(a_fadingOut, a_blackFade, a_fadeDuration, a_arg4, a_secsBeforeFade);
+}
+
 // Open or close menu of interest
 void MenuInteraction(MenuType type, MenuAction action)
 {
@@ -1986,33 +2010,37 @@ void MenuInteraction(MenuType type, MenuAction action)
     }
     else if (RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) == true)
     {  // Check if LevelUp menu is currently open
-        SendNotification("Menu already open");
+        logger::debug("Can't open another menu while leveling up");
+        ///SendNotification("Can't open another menu while leveling up");
         return;
     }
     std::thread([action, type, menuName, menuAction]() {
         if (action == MenuAction::Open && openMenu != "")
         {  // Check if action is to open a menu AND the open menu does not match the requested menu
             auto* ui = RE::UI::GetSingleton();
-            if (openMenu == RE::MapMenu::MENU_NAME && menuName == RE::JournalMenu::MENU_NAME)
+            if (ui->IsMenuOpen(RE::MapMenu::MENU_NAME) == true && menuName == RE::JournalMenu::MENU_NAME)
             {  // Check if map is currently open and Journal was requested to open
                 /// SendNotification("Open Journal");
                 OpenJournal();  // Open the JournalMenu (Quests tab)
                 return;
             }
-            else if (ui->IsMenuOpen(RE::JournalMenu::MENU_NAME) == true && ui->IsMenuOpen(RE::MapMenu::MENU_NAME) == true)
-            {  // Check if journal and map are both open
+            else if (ui->IsMenuOpen(RE::JournalMenu::MENU_NAME) == true && ui->IsMenuOpen(RE::MapMenu::MENU_NAME) == true)  // Check if journal and map are both open
+            {
                 /// SendNotification("Auto Close Journal and Map");
-                RE::UIMessageQueue::GetSingleton()->AddMessage(RE::JournalMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide,
-                                                               nullptr);  // Send message to close the Journal
-                Sleep(150);                                               // Brief pause to ensure open menu is closed before proceeding
+                RE::UIMessageQueue::GetSingleton()->AddMessage(RE::JournalMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);  // Send message to close the Journal
+                while (ui->IsMenuOpen(RE::JournalMenu::MENU_NAME) == true)
+                    Sleep(250); // Brief pause to ensure open menu is closed before proceeding
                 RE::UIMessageQueue::GetSingleton()->AddMessage(RE::MapMenu::MENU_NAME, RE::UI_MESSAGE_TYPE::kHide, nullptr);  // Send message to close the Map
-                Sleep(150);  // Brief pause to ensure open menu is closed before proceeding
+                while (ui->IsMenuOpen(RE::MapMenu::MENU_NAME) == true)  // Brief pause to ensure open menu is closed before proceeding
+                    Sleep(250);  // Brief pause to ensure open menu is closed before proceeding
             }
             else
             {
-                /// SendNotification("Auto Close " + openMenu);
+                ///SendNotification("Auto Close " + openMenu);
+                ///logger::debug("Auto Close {}", openMenu);
                 RE::UIMessageQueue::GetSingleton()->AddMessage(openMenu, RE::UI_MESSAGE_TYPE::kHide, nullptr);  // Send message to close the open menu
-                Sleep(150);  // Brief pause to ensure open menu is closed before proceeding
+                while (ui->IsMenuOpen(openMenu) == true)  // Brief pause to ensure open menu is closed before proceeding
+                    Sleep(250); // Brief pause to ensure open menu is closed before proceeding
             }
         }
         if (action == MenuAction::Open && menuName == RE::JournalMenu::MENU_NAME)
@@ -2020,6 +2048,12 @@ void MenuInteraction(MenuType type, MenuAction action)
             /// SendNotification("Open Journal");
             OpenJournal();  // Open the JournalMenu (Quests tab)
         }
+        else if (action == MenuAction::Open && (menuName == RE::StatsMenu::MENU_NAME || menuName == RE::LevelUpMenu::MENU_NAME))
+        {
+            FadeOutGame(true, true, 1.0f, true, 0.0f); // Fade game so it appears as black background
+            Sleep(100); // Brief pause to ensure game (background) fading has time to initiate before proceeding
+            RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);  // Send message to open/close the target menu
+         }
         else
             RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);  // Send message to open/close the target menu
     }).detach();

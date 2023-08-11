@@ -30,8 +30,8 @@ namespace MenuOpenCloseEvent
         EventHandler(EventHandler&&) = delete;
         virtual ~EventHandler() = default;
 
-        EventHandler& operator=(const EventHandler&) = delete;
-        EventHandler& operator=(EventHandler&&) = delete;
+        EventHandler& operator = (const EventHandler&) = delete;
+        EventHandler& operator = (EventHandler&&) = delete;
     };
 
     EventResult EventHandler::ProcessEvent(const RE::MenuOpenCloseEvent* a_event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
