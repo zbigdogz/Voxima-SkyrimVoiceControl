@@ -789,7 +789,8 @@ void ExecuteCommand(Command command)
                 }
                 else if (currentCommand.Name == "close skills")
                 {
-                    if (PlayerMorph() != 2) MenuInteraction(MenuType::Skills, MenuAction::Close);
+                    MenuInteraction(MenuType::Skills, MenuAction::Close);
+                    ///if (PlayerMorph() != 2) `MenuInteraction(MenuType::Skills, MenuAction::Close);
 
                     // SendNotification("Closing Skills");
                 }
@@ -849,7 +850,13 @@ void ExecuteCommand(Command command)
                 {
                     if (PlayerMorph() == 1)
                     {
-                        CastVoice(player, nullptr, 0);
+                        // Spoof button input to perform a "werewolf shout"
+                        if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
+                        {
+                            auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 1.0f, 0.0f);
+                            bsInputEventQueue->PushOntoInputQueue(kEvent);
+                        }
+                        //CastVoice(player, nullptr, 0);
                     }
                 }
 
@@ -1071,7 +1078,7 @@ void ExecuteCommand(Command command)
                 }
 #pragma endregion
 
-#pragma region Save /Load Game
+#pragma region Save/Load Game
                 else if (currentCommand.Name == "quick save")
                 {
                     // Spoof button input to perform a quick save
@@ -1198,7 +1205,7 @@ void ExecuteCommand(Command command)
 #pragma endregion
 
 // Locations
-#pragma region Location& Map Marker
+#pragma region Location and Map Marker
             else if (currentCommand.Type == "location")
             {
                 if (currentCommand.Name == "playerlocation")
@@ -1776,7 +1783,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* skse)
     try
     {
         SKSE::Init(skse);  // Initialize SKSE plugin
-        /// MessageBoxA(NULL, "Press OK when you're ready!", "Skyrim", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
+        ///MessageBoxA(NULL, "Press OK when you're ready!", "Skyrim", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
         SetupLog();  // Set up the debug logger
 
         SKSE::GetMessagingInterface()->RegisterListener(

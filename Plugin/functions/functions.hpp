@@ -1912,20 +1912,26 @@ void OpenJournal()
     return func(true); */
 }
 
-// Fade game screen. (courtesy of CustomSkills by Exit-9B https://github.com/Exit-9B/CustomSkills)
+// Fade game screen. (courtesy of CustomSkills by Exit-9B https://github.com/Exit-9B/CustomSkills with help from doodlez and alandtse)
 void FadeOutGame(bool a_fadingOut, bool a_blackFade, float a_fadeDuration, bool a_arg4, float a_secsBeforeFade)
 {
     using func_t = decltype(&FadeOutGame);
-    if (REL::Module::IsVR())
-    {
-        // work in progress
-        return;
-    }
-    else
-    {
-        REL::Relocation<func_t> func{RELOCATION_ID(0, 52847)}; // Works for 1.6.640.0 ("AE")
-        return func(a_fadingOut, a_blackFade, a_fadeDuration, a_arg4, a_secsBeforeFade);
-    }
+    REL::Relocation<func_t> func{REL::VariantID(51909, 52847, 0x903080)};
+    return func(a_fadingOut, a_blackFade, a_fadeDuration, a_arg4, a_secsBeforeFade);
+
+    //using func_t = decltype(&FadeOutGame);
+    //if (REL::Module::IsVR())
+    //{
+    //    // work in progress
+    //    return;
+    //}
+    //else
+    //{
+    //    REL::Relocation<func_t> func{RELOCATION_ID(0, 52847)}; // Works for 1.6.640.0 ("AE")
+    //    return func(a_fadingOut, a_blackFade, a_fadeDuration, a_arg4, a_secsBeforeFade);
+    //}
+
+    //----
 
     /*int fadeID = 0;*/
     //if (REL::Module::IsVR())
@@ -1942,8 +1948,6 @@ void MenuInteraction(MenuType type, MenuAction action)
     RE::BSFixedString menuName;
     RE::UI_MESSAGE_TYPE menuAction = RE::UI_MESSAGE_TYPE::kHide;
     if (action == MenuAction::Open) menuAction = RE::UI_MESSAGE_TYPE::kShow;
-    /*else if (action == MenuAction::Close)
-        menuAction = RE::UI_MESSAGE_TYPE::kHide;*/
     switch (type)
     {  // Check if triggering menu is of interest
         case MenuType::Console:
@@ -2003,6 +2007,12 @@ void MenuInteraction(MenuType type, MenuAction action)
         logger::error("Error processing menu action - unexpected enum encountered");
         return;
     }
+    else if (PlayerMorph() > 0 &&
+        (type == MenuType::Skills || type == MenuType::Console || type == MenuType::Favorites || type == MenuType::Journal) == false)
+    { // Check if player is werewolf or Vampire Lord AND an INVALID menu type was requested for actioning
+        SendNotification("Cannot do that while in alternate form");
+        return;
+    }
     else if (action == MenuAction::Open && openMenu == std::string(menuName.c_str()))
     {  // Check if action is to open a menu AND the target menu is already open
         SendNotification("Menu already open");
@@ -2050,10 +2060,23 @@ void MenuInteraction(MenuType type, MenuAction action)
         }
         else if (action == MenuAction::Open && (menuName == RE::StatsMenu::MENU_NAME || menuName == RE::LevelUpMenu::MENU_NAME))
         {
-            FadeOutGame(true, true, 1.0f, true, 0.0f); // Fade game so it appears as black background
-            Sleep(100); // Brief pause to ensure game (background) fading has time to initiate before proceeding
-            RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);  // Send message to open/close the target menu
-         }
+            if (PlayerMorph() > 0) // Check if player is in Vampire Lord or Werewolf form
+            {
+                // Spoof button input to open werewolf or Vampire Lord skills menu
+                if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
+                {
+                    RE::ButtonEvent *kEvent;
+                    kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Tween Menu", 0, 1.0f, 0.0f); // Spoof pressing "Tween Menu" button
+                    bsInputEventQueue->PushOntoInputQueue(kEvent);
+                }
+            }
+            else
+            {
+                FadeOutGame(true, true, 1.0f, true, 0.0f);  // Fade game so it appears as black background
+                Sleep(100);                                 // Brief pause to ensure game (background) fading has time to initiate before proceeding
+                RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);  // Send message to open/close the target menu
+            }
+        }
         else
             RE::UIMessageQueue::GetSingleton()->AddMessage(menuName, menuAction, nullptr);  // Send message to open/close the target menu
     }).detach();
@@ -2300,7 +2323,7 @@ void PlaceCustomMarker()
     // Spoof button input to navigate to player's position on world map
     if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
     {
-        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "placePlayerMarker", 0, 1.0f, 0.0f);
+        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "PlacePlayerMarker", 0, 1.0f, 0.0f);
         bsInputEventQueue->PushOntoInputQueue(kEvent);
         SendNotification("Player Marker Placed");
     }
