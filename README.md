@@ -98,10 +98,16 @@ check and verify language & speech engine ==> https://learn.microsoft.com/en-us/
    - Press `OK` to confirm on this window and press `OK` on the `Environment Variables` window that's still open
 4. Clone the `Voxima-SkyrimVoiceControl` repository (again, we used Github Desktop here)
 5. Install CMake?
+6. Configure additional Environment Variables for use with skyrim folder or mod folder
+7. Open the `Voxima-SkyrimVoiceControl` project in Visual Studio
+8. Ensure the C# build path is accurate (WIP)
+9. Build the C# and C++ portions of the project
+10. Magic?
 
 Keep working on this section
 https://github.com/SkyrimScripting/SKSE_Template_HelloWorld
 https://github.com/SkyrimScripting/SKSE_Templates
+
 https://www.youtube.com/playlist?list=PLektTyeQhBZeDIRp2g15SsK1GX2Ig8YVW
 
 ## Acknowledgements
