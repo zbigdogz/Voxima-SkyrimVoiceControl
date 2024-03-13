@@ -80,8 +80,8 @@ check and verify language & speech engine ==> https://learn.microsoft.com/en-us/
   Most commands shown here have many variations to them to help them feel more natural. To see all variations, look at the mods files
 
 ## Setup From the Beginning WIP
-1. Get Skyrim game WIP
-2. Get Creation Kit WIP
+1. Get Skyrim game, making sure to install it outside of Program Files WIP
+2. Get Creation Kit, making sure to install it outside of Program Files WIP
 3. Download [Visual Studio](https://visualstudio.microsoft.com/) (the free Community edition is fine)
 4. Clone [vcpkg](https://github.com/microsoft/vcpkg) (we used Github Desktop to facilitate this)
    - Go into the `vcpkg` folder and run `bootstrap-vcpkg.bat`. This should create a `vcpkg.exe` file.
@@ -97,7 +97,12 @@ check and verify language & speech engine ==> https://learn.microsoft.com/en-us/
        - As an example, in my case my `Variable value` was `D:\Documents\Source\Github\vcpkg` (again, your `Variable value` must reflect where your `vcpkg` folder is located)
    - Press `OK` to confirm on this window and press `OK` on the `Environment Variables` window that's still open
 4. Clone the `Voxima-SkyrimVoiceControl` repository (again, we used Github Desktop here)
-5. 
+5. Install CMake?
+
+Keep working on this section
+https://github.com/SkyrimScripting/SKSE_Template_HelloWorld
+https://github.com/SkyrimScripting/SKSE_Templates
+https://www.youtube.com/playlist?list=PLektTyeQhBZeDIRp2g15SsK1GX2Ig8YVW
 
 ## Acknowledgements
 * Ryan McKenzie, powerof3, and CharmedBaryon for CommonLibSSE (and NG), and all the folks who contributed to these
