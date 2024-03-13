@@ -167,6 +167,7 @@ int PlayerMount()
 // Execute Console Commands
 void ExecuteConsoleCommand(std::vector<std::string> command)
 {
+    // Some of the code here is from Valhalla Combat
     const auto scriptFactory = RE::IFormFactory::GetConcreteFormFactoryByType<RE::Script>();
     const auto script = scriptFactory ? scriptFactory->Create() : nullptr;
     if (script)
@@ -256,9 +257,18 @@ void ExecuteConsoleCommand(std::vector<std::string> command)
             }
             else
             {
-                // logger::info("Executing console command '{}'", item);
-                script->SetCommand(item);
-                script->CompileAndRun(selectedRef.get());
+                if (selectedRef != NULL)
+                {
+                    logger::debug("Executing console command '{}'", item);
+                    script->SetCommand(item);
+                    script->CompileAndRun(selectedRef.get());
+                }
+                else
+                {
+                    logger::error("Console reference is NULL");
+                    delete script;
+                    return;
+                }
             }
         }  // End if/else
     }      // End for

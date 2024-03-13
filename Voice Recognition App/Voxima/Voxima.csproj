@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\..\Games\Skyrim\MO2\Appdata\SkyrimSE\mods\Voxima - Skyrim Voice Control\SKSE\Plugins\VOX\Speech Recognition Application\</OutputPath>
+    <OutputPath>$(SKYRIM_MODS_FOLDER)\Voxima - Skyrim Voice Control\SKSE\Plugins\VOX\Speech Recognition Application\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
