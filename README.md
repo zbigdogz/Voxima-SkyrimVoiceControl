@@ -78,13 +78,51 @@ check and verify language & speech engine ==> https://learn.microsoft.com/en-us/
   
   ##
   Most commands shown here have many variations to them to help them feel more natural. To see all variations, look at the mods files
-	
+
+## Setup From the Beginning WIP
+This is the overall process we followed to get everything ready so we could develop and subsequently use Voxima. Feel free to make your own adjustments based on your preferences.
+
+1. Install Skyrim. Voxima is compatible with:
+   - Flatrim version XYZ
+   - SkyrimVR version XYZ
+   - Install outside of Program Files?
+2. Install Skyrim Creation Kit:
+   - Where is it found?
+   - Any version dependency?
+   - Install outside of Program Files?
+3. Download [Visual Studio](https://visualstudio.microsoft.com/) (the free Community edition is fine)
+4. Clone [vcpkg](https://github.com/microsoft/vcpkg) (we used Github Desktop to facilitate this)
+   - Go into the `vcpkg` folder and run `bootstrap-vcpkg.bat`. This should create a `vcpkg.exe` file.
+   - Also make note of (i.e. copy) the path to your `vcpkg` folder, since we'll need it in the next step. 
+5. Edit your system or user Environment Variables to add a new one
+   - Press the `Windows` keyboard key and type in `environment`, which should execute a search.
+   - Click the match that reads something like `Edit environment variables for your account`.
+   - Click `New` and this window should appear:
+     ![image](https://github.com/zbigdogz/Voxima-SkyrimVoiceControl/assets/31357974/f47c5716-a9c5-44ee-b808-c66087677ea1)
+   - Enter the following in the fields:
+     - Variable name: `VCPKG_ROOT`
+     - Variable value: `C:\path\to\wherever\your\vcpkg\folder\is`
+       - As an example, in my case my `Variable value` was `D:\Documents\Source\Github\vcpkg` (again, your `Variable value` must reflect where your `vcpkg` folder is located)
+   - Press `OK` to confirm on this window and press `OK` on the `Environment Variables` window that's still open
+4. Clone the `Voxima-SkyrimVoiceControl` repository (again, we used Github Desktop here)
+5. Install CMake?
+6. Configure additional Environment Variables for use with skyrim folder or mod folder
+7. Open the `Voxima-SkyrimVoiceControl` project in Visual Studio
+8. Ensure the C# build path is accurate (WIP)
+9. Build the C# and C++ portions of the project
+10. Magic?
+
+Keep working on this section
+https://github.com/SkyrimScripting/SKSE_Template_HelloWorld
+https://github.com/SkyrimScripting/SKSE_Templates
+
+https://www.youtube.com/playlist?list=PLektTyeQhBZeDIRp2g15SsK1GX2Ig8YVW
 
 ## Acknowledgements
 * Ryan McKenzie, powerof3, and CharmedBaryon for CommonLibSSE (and NG), and all the folks who contributed to these
-* Joel Christner for developing WatsonWebSocket, and Younes Cheikh for developing ObservableConcurrentQueue
+* Joel Christner for developing [WatsonWebSocket](https://github.com/jchristn/WatsonWebsocket), and Younes Cheikh for developing [ObservableConcurrentQueue](https://github.com/YounesCheikh/ObservableConcurrentQueue)
 * Boost.org for developing the boost random library
-* MrowPurr for her CommonLib-NG templates, excellent YouTube tutorials, headstart on websocket integration for C++, and other helpful input
+* [MrowPurr](https://github.com/SkyrimScripting) (also known for SkyrimScripting) for her CommonLib-NG templates, excellent YouTube tutorials, headstart on websocket integration for C++, and other helpful input
 * MrowPurr's Discord community for various help and encouragement
 * CharmedBaryon, Fenix31415, Nightfallstorm, Noah Buddie, Nukem, Qudix, shad0wshayd3, and others within the SkyrimSE RE Discord community for a variety of help and advice
 * All the awesome folks who make their SKSE plugin source public
