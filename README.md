@@ -80,8 +80,16 @@ check and verify language & speech engine ==> https://learn.microsoft.com/en-us/
   Most commands shown here have many variations to them to help them feel more natural. To see all variations, look at the mods files
 
 ## Setup From the Beginning WIP
-1. Get Skyrim game, making sure to install it outside of Program Files WIP
-2. Get Creation Kit, making sure to install it outside of Program Files WIP
+This is the overall process we followed to get everything ready so we could develop and subsequently use Voxima. Feel free to make your own adjustments based on your preferences.
+
+1. Install Skyrim. Voxima is compatible with:
+   - Flatrim version XYZ
+   - SkyrimVR version XYZ
+   - Install outside of Program Files?
+2. Install Skyrim Creation Kit:
+   - Where is it found?
+   - Any version dependency?
+   - Install outside of Program Files?
 3. Download [Visual Studio](https://visualstudio.microsoft.com/) (the free Community edition is fine)
 4. Clone [vcpkg](https://github.com/microsoft/vcpkg) (we used Github Desktop to facilitate this)
    - Go into the `vcpkg` folder and run `bootstrap-vcpkg.bat`. This should create a `vcpkg.exe` file.
