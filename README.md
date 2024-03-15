@@ -82,11 +82,11 @@ check and verify language & speech engine ==> https://learn.microsoft.com/en-us/
 ## Setup From the Beginning WIP
 This is the overall process we followed to get everything ready so we could develop and subsequently use Voxima. Feel free to make your own adjustments based on your preferences.
 
-1. Install Skyrim. Voxima is compatible with:
+1. WIP Install Skyrim. Voxima is compatible with:
    - Flatrim version XYZ
    - SkyrimVR version XYZ
    - Install outside of Program Files?
-2. Install Skyrim Creation Kit:
+2. WIP Install Skyrim Creation Kit:
    - Where is it found?
    - Any version dependency?
    - Install outside of Program Files?
@@ -104,19 +104,32 @@ This is the overall process we followed to get everything ready so we could deve
      - Variable value: `C:\path\to\wherever\your\vcpkg\folder\is`
        - As an example, in my case my `Variable value` was `D:\Documents\Source\Github\vcpkg` (again, your `Variable value` must reflect where your `vcpkg` folder is located)
    - Press `OK` to confirm on this window and press `OK` on the `Environment Variables` window that's still open
-4. (optional, but recommended) If you want to configure this project to output your plugin files into your "mods" folder (for Mod Organizer 2 or Vortex):
-   - Set the `SKYRIM_MODS_FOLDER` environment variable to the path of your mods folder (similar process as step 5):
+6. Install and configure a mod organizer for managing your Skyrim mods. See YouTube tutorials by GamerPoets for help with installation and configuration. Compatible options include:
+   - Mod Organizer 2
+   - Vortex Mod Manager
+7. Configure this project to output your plugin files into your "mods" folder (for Mod Organizer 2 or Vortex):
+   - Create a `SKYRIM_MODS_FOLDER` environment variable to the path of your mods folder (similar process as step 5):
       - e.g. G:\ModOrganizer\Skyrim Special Edition\mods
       - e.g. G:\Vortex\skyrimse\mods
-5. Clone the `Voxima-SkyrimVoiceControl` repository (again, we used Github Desktop here)
-6. Install CMake?
-7. Configure additional Environment Variables for use with skyrim folder or mod folder
-8. Open the `Voxima-SkyrimVoiceControl` project in Visual Studio
-9. Ensure the C# build path is accurate (WIP)
-10. Build the C# and C++ portions of the project
-11. Magic?
+8. Clone the `Voxima-SkyrimVoiceControl` repository (again, we used Github Desktop here)
+9. Open the `Voxima-SkyrimVoiceControl.sln` file (inside `Voxima-SkyrimVoiceControl\Voice Recognition App\`) with Visual Studio
+10. Build the `Voxima-SkyrimVoiceControl` solution. Generated files should automatically be placed wherever `SKYRIM_MODS_FOLDER` is pointing.
+11. Open the `Voxima-SkyrimVoiceControl` plugin in Visual Studio
+    - Navigate to `\Voxima-SkyrimVoiceControl\Plugin`, right-click on white space within the folder, and select `Open with Visual Studio`.
+    - Note that the first time you do this it might take a while for Visual Studio to gather all of the plugin dependencies.
+    - Wait until the `Output` log reads `CMake generation finished` before going to the next step.
+12. Build the `Voxima-SkyrimVoiceControl` plugin
+    - Click on the `Build` menu option and select `Build All`. Generated files should automatically be placed wherever `SKYRIM_MODS_FOLDER` is pointing.
+    - If you encounter the below (syntax) error...
+      
+      ![image](https://github.com/zbigdogz/Voxima-SkyrimVoiceControl/assets/31357974/f9c9c942-22a0-442b-ada7-8d89d8f3eb8b)
+      
+      ...then simply revise line 11 to be `.MinimumSKSEVersion = REL::Version{ 0, 0, 0, 0 }`
+13. Make sure `Voxima - Skyrim Voice Control` is enabled in your mod manager
+14. Launch Skyrim through your mod manager
+15. Profit
 
-Keep working on this section
+WIP Keep working on this section
 https://github.com/SkyrimScripting/SKSE_Template_HelloWorld
 https://github.com/SkyrimScripting/SKSE_Templates
 
