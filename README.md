@@ -104,13 +104,17 @@ This is the overall process we followed to get everything ready so we could deve
      - Variable value: `C:\path\to\wherever\your\vcpkg\folder\is`
        - As an example, in my case my `Variable value` was `D:\Documents\Source\Github\vcpkg` (again, your `Variable value` must reflect where your `vcpkg` folder is located)
    - Press `OK` to confirm on this window and press `OK` on the `Environment Variables` window that's still open
-4. Clone the `Voxima-SkyrimVoiceControl` repository (again, we used Github Desktop here)
-5. Install CMake?
-6. Configure additional Environment Variables for use with skyrim folder or mod folder
-7. Open the `Voxima-SkyrimVoiceControl` project in Visual Studio
-8. Ensure the C# build path is accurate (WIP)
-9. Build the C# and C++ portions of the project
-10. Magic?
+4. (optional, but recommended) If you want to configure this project to output your plugin files into your "mods" folder (for Mod Organizer 2 or Vortex):
+   - Set the `SKYRIM_MODS_FOLDER` environment variable to the path of your mods folder (similar process as step 5):
+      - e.g. G:\ModOrganizer\Skyrim Special Edition\mods
+      - e.g. G:\Vortex\skyrimse\mods
+5. Clone the `Voxima-SkyrimVoiceControl` repository (again, we used Github Desktop here)
+6. Install CMake?
+7. Configure additional Environment Variables for use with skyrim folder or mod folder
+8. Open the `Voxima-SkyrimVoiceControl` project in Visual Studio
+9. Ensure the C# build path is accurate (WIP)
+10. Build the C# and C++ portions of the project
+11. Magic?
 
 Keep working on this section
 https://github.com/SkyrimScripting/SKSE_Template_HelloWorld
