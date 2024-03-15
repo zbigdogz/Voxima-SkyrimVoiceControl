@@ -140,6 +140,10 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
                 InitializeMorphChangeHooking();        // Setup player morph change event monitoring
                 InitializeMenuOpenCloseHooking();      // Setup menu open/close event monitoring
                 InitializeLocationDiscoveryHooking();  // Setup location discovery event monitoring
+                while (connected == false)                                        // Loop while websocket connection has not been made
+                    std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to allow for websocket connection to be made
+                InitialUpdate();                                                  // Run initial data update
+
                 if (REL::Module::IsVR())
                 {
                     if (g_papyrusvr)
@@ -168,10 +172,7 @@ void OnMessage(SKSE::MessagingInterface::Message* message)
                     }
                 }
                 else
-                    InitializeFlatrimDeviceInputHooking();                        // Setup "Flatrim" (non-VR Skyrim) device input event monitoring
-                while (connected == false)                                        // Loop while websocket connection has not been made
-                    std::this_thread::sleep_for(std::chrono::milliseconds(200));  // Brief pause to allow for websocket connection to be made
-                InitialUpdate();                                                  // Run initial data update
+                    InitializeFlatrimDeviceInputHooking();  // Setup "Flatrim" (non-VR Skyrim) device input event monitoring
                 break;
             #pragma endregion
 
@@ -1086,6 +1087,7 @@ void ExecuteCommand(Command command)
                     {
                         auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "quicksave", 0, 1.0f, 0.0f);
                         bsInputEventQueue->PushOntoInputQueue(kEvent);
+                        logger::info("Save game made");
                     }
                 }
                 else if (currentCommand.Name == "quick load")
@@ -1099,11 +1101,12 @@ void ExecuteCommand(Command command)
                                 {
                                     case 0:
                                         RE::BGSSaveLoadManager::GetSingleton()->LoadMostRecentSaveGame();
-                                        // No notificaiton is needed, as the game already says "quicksaving..."
+                                        logger::info("Most recent save game loaded");
                                         break;
 
                                     case 1:
                                         SendNotification("Load Game Aborted");
+                                        logger::info("Most recent save game load aborted");
                                         break;
                                 }
                             });

@@ -257,18 +257,9 @@ void ExecuteConsoleCommand(std::vector<std::string> command)
             }
             else
             {
-                if (selectedRef != NULL)
-                {
-                    logger::debug("Executing console command '{}'", item);
-                    script->SetCommand(item);
-                    script->CompileAndRun(selectedRef.get());
-                }
-                else
-                {
-                    logger::error("Console reference is NULL");
-                    delete script;
-                    return;
-                }
+                logger::debug("Executing console command '{}'", item);
+                script->SetCommand(item);
+                script->CompileAndRun(selectedRef.get());
             }
         }  // End if/else
     }      // End for
