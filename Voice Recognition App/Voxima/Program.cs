@@ -2,9 +2,6 @@
 // Update the code marked with *** in comments
 // more testing for changing the port on the fly, as well as providing bad port information
 
-// zbigdogz VOX build path => ..\..\..\..\..\..\Games\Skyrim\MO2\Appdata\SkyrimSE\mods\Voxima - Skyrim Voice Control\SKSE\Plugins
-// exergist VOX build path => G:\Modding\Tools\Mod Organizer 2 - Games\Skyrim Special Edition\mods\Voxima - Skyrim Voice Control\SKSE\Plugins\VOX\Speech Recognition Application\
-
 using SpeechDictionaryTools;
 using SpeechLib;
 using System;

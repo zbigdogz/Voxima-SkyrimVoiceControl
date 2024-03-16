@@ -2003,34 +2003,33 @@ void MenuInteraction(MenuType type, MenuAction action)
             }
             break;
     }
-    if (menuName == NULL)
-    {  // Triggering menu is not of interest
+    if (menuName == NULL) // Triggering menu is not of interest
+    {
         logger::error("Error processing menu action - unexpected enum encountered");
         return;
     }
-    else if (PlayerMorph() > 0 &&
-        (type == MenuType::Skills || type == MenuType::Console || type == MenuType::Favorites || type == MenuType::Journal) == false)
-    { // Check if player is werewolf or Vampire Lord AND an INVALID menu type was requested for actioning
+    else if (PlayerMorph() > 0 && (type == MenuType::Skills || type == MenuType::Console || type == MenuType::Favorites || type == MenuType::Journal) == false) // Check if player is werewolf or Vampire Lord AND an INVALID menu type was requested for actioning
+    {
         SendNotification("Cannot do that while in alternate form");
         return;
     }
-    else if (action == MenuAction::Open && openMenu == std::string(menuName.c_str()))
-    {  // Check if action is to open a menu AND the target menu is already open
+    else if (action == MenuAction::Open && openMenu == std::string(menuName.c_str())) // Check if action is to open a menu AND the target menu is already open
+    {
         SendNotification("Menu already open");
         return;
     }
-    else if (RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) == true)
-    {  // Check if LevelUp menu is currently open
+    else if (RE::UI::GetSingleton()->IsMenuOpen(RE::LevelUpMenu::MENU_NAME) == true) // Check if LevelUp menu is currently open
+    {
         logger::debug("Can't open another menu while leveling up");
         ///SendNotification("Can't open another menu while leveling up");
         return;
     }
     std::thread([action, type, menuName, menuAction]() {
-        if (action == MenuAction::Open && openMenu != "")
-        {  // Check if action is to open a menu AND the open menu does not match the requested menu
+        if (action == MenuAction::Open && openMenu != "") // Check if action is to open a menu AND the open menu does not match the requested menu
+        {
             auto* ui = RE::UI::GetSingleton();
-            if (ui->IsMenuOpen(RE::MapMenu::MENU_NAME) == true && menuName == RE::JournalMenu::MENU_NAME)
-            {  // Check if map is currently open and Journal was requested to open
+            if (ui->IsMenuOpen(RE::MapMenu::MENU_NAME) == true && menuName == RE::JournalMenu::MENU_NAME) // Check if map is currently open and Journal was requested to open
+            {
                 /// SendNotification("Open Journal");
                 OpenJournal();  // Open the JournalMenu (Quests tab)
                 return;
@@ -2054,12 +2053,12 @@ void MenuInteraction(MenuType type, MenuAction action)
                     Sleep(250); // Brief pause to ensure open menu is closed before proceeding
             }
         }
-        if (action == MenuAction::Open && menuName == RE::JournalMenu::MENU_NAME)
-        {  // Check if Journal was requested to open
+        if (action == MenuAction::Open && menuName == RE::JournalMenu::MENU_NAME) // Check if Journal was requested to open
+        {
             /// SendNotification("Open Journal");
             OpenJournal();  // Open the JournalMenu (Quests tab)
         }
-        else if (action == MenuAction::Open && (menuName == RE::StatsMenu::MENU_NAME || menuName == RE::LevelUpMenu::MENU_NAME))
+        else if (action == MenuAction::Open && (menuName == RE::StatsMenu::MENU_NAME || menuName == RE::LevelUpMenu::MENU_NAME)) // Check if Skills menu or Level Up menu was requested to open
         {
             if (PlayerMorph() > 0) // Check if player is in Vampire Lord or Werewolf form
             {
