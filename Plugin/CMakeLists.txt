@@ -2,13 +2,11 @@
 # If you use CMake features from higher versions, update this to match.
 cmake_minimum_required(VERSION 3.21)
 
-#set(VCPKG_OVERLAY_TRIPLETS "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-set(VCPKG_TARGET_TRIPLET "x64-windows-skse")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Set your project name. This will be the name of your SKSE .dll file. Version Notation = major.minor.patch.tweak
-project(Voxima-SkyrimVoiceControl VERSION 0.3.0.0 LANGUAGES CXX)
+project(Voxima-SkyrimVoiceControl VERSION 3.0.0.0 LANGUAGES CXX)
 
 # Set name of project folder
 set(FOLDER_NAME "Voxima - Skyrim Voice Control")
@@ -55,25 +53,61 @@ endif()
 
 # Setup your SKSE plugin as an SKSE plugin!
 find_package(CommonLibSSE CONFIG REQUIRED)
-add_commonlibsse_plugin(${PROJECT_NAME} SOURCES source/plugin.cpp) # <--- specifies plugin.cpp
+#add_commonlibsse_plugin(${PROJECT_NAME} SOURCES source/plugin.cpp) # <--- specifies plugin.cpp
+add_commonlibsse_plugin(
+    # The plugin's name, defaults to target.
+    ${PROJECT_NAME}
 
-set(COMMONLIBSSE_VERSION_MATCH TRUE PARENT_SCOPE)
-    set(COMMONLIBSSE_VERSION_MAJOR "$0" PARENT_SCOPE)
-	#set(COMMONLIBSSE_VERSION_MAJOR "${CMAKE_MATCH_1}" PARENT_SCOPE)
-    set(COMMONLIBSSE_VERSION_MINOR "0" PARENT_SCOPE)
-    set(COMMONLIBSSE_VERSION_PATCH "0" PARENT_SCOPE)
-    set(COMMONLIBSSE_VERSION_TWEAK "0" PARENT_SCOPE)
+    # The plugin's author, empty by default.
+    AUTHOR "zbigdogz & Exergist"
+
+    # The support email address, empty by default.
+    #EMAIL <string>
+
+    # The plugin version number, defaults to ${PROJECT_VERSION}.
+    VERSION 3.0.0.0
+
+    # Indicates the plugin is compatible with all runtimes via address library. This is the default if no
+    # other compatibilility mode is specified. Can be used with USE_SIGNATURE_SCANNING but not
+    # COMPATIBLE_RUNTIMES.
+    USE_ADDRESS_LIBRARY
+
+    # Indicates the plugin is compatible with all runtimes via signature scanning. Can be used with
+    # USE_ADDRESS_LIBRARY but not COMPATIBLE_RUNTIMES.
+    #USE_SIGNATURE_SCANNING
+
+    # List of up to 16 Skyrim versions the plugin is compatible with. Cannot be used with
+    # USE_ADDRESS_LIBRARY or USE_SIGNATURE_SCANNING.
+    #COMPATIBLE_RUNTIMES <version number> [<version number>...]
+
+    # The minimum SKSE version to support; defaults to 0, and recommended by SKSE project to be left
+    # 0.
+    MINIMUM_SKSE_VERSION 0.0.0.0
+
+    # Omit from all targets, same as used with add_library.
+    #EXCLUDE_FROM_ALL
+
+    # List of the sources to include in the target, as would be the parameters to add_library.
+    SOURCES source/plugin.cpp
+)
+
+#set(COMMONLIBSSE_VERSION_MATCH TRUE PARENT_SCOPE)
+#    set(COMMONLIBSSE_VERSION_MAJOR "$0" PARENT_SCOPE)
+#	#set(COMMONLIBSSE_VERSION_MAJOR "${CMAKE_MATCH_1}" PARENT_SCOPE)
+#    set(COMMONLIBSSE_VERSION_MINOR "0" PARENT_SCOPE)
+#    set(COMMONLIBSSE_VERSION_PATCH "0" PARENT_SCOPE)
+#    set(COMMONLIBSSE_VERSION_TWEAK "0" PARENT_SCOPE)
 
  # Handle minimum SKSE version constraints.
-    if (NOT DEFINED ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION)
-        set(ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION 0)
-    endif ()
-    commonlibsse_parse_version("${ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION}")
-    if (NOT COMMONLIBSSE_VERSION_MATCH)
-        message(FATAL_ERROR "Unable to parse SKSE minimum SKSE version number "
-                "${ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION}.")
-    endif ()
-    set(commonlibsse_min_skse_version "REL::Version{ ${COMMONLIBSSE_VERSION_MAJOR}, ${COMMONLIBSSE_VERSION_MINOR}, ${COMMONLIBSSE_VERSION_PATCH}, ${COMMONLIBSSE_VERSION_TWEAK} }")
+ #   if (NOT DEFINED ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION)
+ #       set(ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION 0)
+ #   endif ()
+ #   commonlibsse_parse_version("${ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION}")
+ #   if (NOT COMMONLIBSSE_VERSION_MATCH)
+ #       message(FATAL_ERROR "Unable to parse SKSE minimum SKSE version number "
+ #               "${ADD_COMMONLIBSSE_PLUGIN_MINIMUM_SKSE_VERSION}.")
+ #   endif ()
+ #   set(commonlibsse_min_skse_version "REL::Version{ ${COMMONLIBSSE_VERSION_MAJOR}, ${COMMONLIBSSE_VERSION_MINOR}, ${COMMONLIBSSE_VERSION_PATCH}, ${COMMONLIBSSE_VERSION_TWEAK} }")
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23) # <--- use C++23 standard
 target_precompile_headers(${PROJECT_NAME} PRIVATE PCH.h) # <--- PCH.h is required!

@@ -1786,7 +1786,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* skse)
     try
     {
         SKSE::Init(skse);  // Initialize SKSE plugin
-        ///MessageBoxA(NULL, "Press OK when you're ready!", "Skyrim", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
+        MessageBoxA(NULL, "Press OK when you're ready!", "Skyrim", MB_OK | MB_ICONQUESTION);  // MessageBox to halt execution so a debugger can be attached
         SetupLog();  // Set up the debug logger
 
         SKSE::GetMessagingInterface()->RegisterListener(
