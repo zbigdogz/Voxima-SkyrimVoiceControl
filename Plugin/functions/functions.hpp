@@ -1181,9 +1181,18 @@ void CastVoice(RE::Actor* actor, RE::TESForm* item, int level)
         // Spoof the button "press," pause (indicating "hold"), and "release" event sequence
         auto kEvent1 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 1.0f, 0.0f);
         auto kEvent2 = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "shout", 0, 0.0f, 0.0f);
-        bsInputEventQueue->PushOntoInputQueue(kEvent1);
-        Sleep(holdTime);
-        bsInputEventQueue->PushOntoInputQueue(kEvent2);
+        if (REL::Module::IsVR())
+        {
+            SendKeyDown(ToSkyrimKeyCode("Z"));
+            Sleep(holdTime);
+            SendKeyUp(ToSkyrimKeyCode("Z"));
+        }
+        else
+        {
+            bsInputEventQueue->PushOntoInputQueue(kEvent1);
+            Sleep(holdTime);
+            bsInputEventQueue->PushOntoInputQueue(kEvent2);
+        }
         Sleep(500);  // Brief delay to allow the button spoofing to finish
     }
 
@@ -1975,11 +1984,18 @@ bool IsKeyDown(int keyCode)
 // Open Journal menu (courtesy of shad0wshayd3)
 void OpenJournal()
 {
-    // Spoof button input to open journal
-    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
+    if (REL::Module::IsVR())
     {
-        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "journal", 0, 1.0f, 0.0f);
-        bsInputEventQueue->PushOntoInputQueue(kEvent);
+        PressKey(ToSkyrimKeyCode("J"));
+    }
+    else
+    {
+        // Spoof button input to open journal
+        if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
+        {
+            auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "journal", 0, 1.0f, 0.0f);
+            bsInputEventQueue->PushOntoInputQueue(kEvent);
+        }
     }
 
     /* // Also works
@@ -2139,9 +2155,16 @@ void MenuInteraction(MenuType type, MenuAction action)
                 // Spoof button input to open werewolf or Vampire Lord skills menu
                 if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
                 {
-                    RE::ButtonEvent *kEvent;
-                    kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Tween Menu", 0, 1.0f, 0.0f); // Spoof pressing "Tween Menu" button
-                    bsInputEventQueue->PushOntoInputQueue(kEvent);
+                    if (REL::Module::IsVR())
+                    {
+                        PressKey(ToSkyrimKeyCode("TAB"));
+                    }
+                    else
+                    {
+                        RE::ButtonEvent* kEvent;
+                        kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "Tween Menu", 0, 1.0f, 0.0f);  // Spoof pressing "Tween Menu" button
+                        bsInputEventQueue->PushOntoInputQueue(kEvent);
+                    }
                 }
             }
             else
@@ -2329,12 +2352,19 @@ void NavigateToLocation(std::string targetLocation)
 // Navigate to player's position on world map
 void NavigateToPlayer()
 {
-    // Spoof button input to navigate to player's position on world map
-    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
+    if (REL::Module::IsVR())
     {
-        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "playerPosition", 0, 1.0f, 0.0f);
-        bsInputEventQueue->PushOntoInputQueue(kEvent);
-        SendNotification("Location: Player");
+        PressKey(ToSkyrimKeyCode("E"));
+    }
+    else
+    {
+        // Spoof button input to navigate to player's position on world map
+        if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
+        {
+            auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "playerPosition", 0, 1.0f, 0.0f);
+            bsInputEventQueue->PushOntoInputQueue(kEvent);
+            SendNotification("Location: Player");
+        }
     }
 
     /* // Also works
@@ -2394,12 +2424,19 @@ void NavigateToCurrentQuest()
 // Place custom player marker when looking at map (or open UI dialog to manipulate an existing player marker)
 void PlaceCustomMarker()
 {
-    // Spoof button input to navigate to player's position on world map
-    if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
+    if (REL::Module::IsVR())
     {
-        auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "PlacePlayerMarker", 0, 1.0f, 0.0f);
-        bsInputEventQueue->PushOntoInputQueue(kEvent);
-        SendNotification("Player Marker Placed");
+        PressKey(ToSkyrimKeyCode("MOUSE1"));
+    }
+    else
+    {
+        // Spoof button input to navigate to player's position on world map
+        if (auto bsInputEventQueue = RE::BSInputEventQueue::GetSingleton())
+        {
+            auto kEvent = RE::ButtonEvent::Create(RE::INPUT_DEVICE::kNone, "PlacePlayerMarker", 0, 1.0f, 0.0f);
+            bsInputEventQueue->PushOntoInputQueue(kEvent);
+            SendNotification("Player Marker Placed");
+        }
     }
 }
 
