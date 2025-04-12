@@ -107,8 +107,11 @@ static void SendKeyUp(int keycode);
 void PressKey(int keycode, int milliseconds = 0);
 void ToggleKey(int keycode, int milliseconds = 0);
 static void MoveHorse(MoveType moveType);
+void CompileAndRun(RE::Script* script, RE::TESObjectREFR* targetRef, RE::COMPILER_NAME name = RE::COMPILER_NAME::kSystemWindowCompiler);
+void CompileAndRunImpl(RE::Script* script, RE::ScriptCompiler* compiler, RE::COMPILER_NAME name, RE::TESObjectREFR* targetRef);
+RE::ObjectRefHandle GetSelectedRefHandle();
+RE::NiPointer<RE::TESObjectREFR> GetSelectedRef();
 void ExecuteConsoleCommand(std::vector<std::string> command);
-void SendJoystickInput();
 static void MovePlayerHorse(RE::ActorPtr horse, int angle = -1);
 static bool IsActorWalking(RE::ActorPtr actor);
 void SendNotification(std::string message);
@@ -164,6 +167,31 @@ int PlayerMount()
     return 0;
 }
 
+RE::ObjectRefHandle GetSelectedRefHandle()
+{
+    REL::Relocation<RE::ObjectRefHandle*> selectedRef{RELOCATION_ID(519394, REL::Module::get().version().patch() < 1130 ? 405935 : 504099)};
+    return *selectedRef;
+}
+
+RE::NiPointer<RE::TESObjectREFR> GetSelectedRef()
+{
+    auto handle = GetSelectedRefHandle();
+    return handle.get();
+}
+
+void CompileAndRunImpl(RE::Script* script, RE::ScriptCompiler* compiler, RE::COMPILER_NAME name, RE::TESObjectREFR* targetRef)
+{
+    using func_t = decltype(CompileAndRunImpl);
+    REL::Relocation<func_t> func{RELOCATION_ID(21416, REL::Module::get().version().patch() < 1130 ? 21890 : 441582)};
+    return func(script, compiler, name, targetRef);
+}
+
+void CompileAndRun(RE::Script* script, RE::TESObjectREFR* targetRef, RE::COMPILER_NAME name)
+{
+    RE::ScriptCompiler compiler;
+    CompileAndRunImpl(script, &compiler, name, targetRef);
+}
+
 // Execute Console Commands
 void ExecuteConsoleCommand(std::vector<std::string> command)
 {
@@ -172,7 +200,9 @@ void ExecuteConsoleCommand(std::vector<std::string> command)
     const auto script = scriptFactory ? scriptFactory->Create() : nullptr;
     if (script)
     {
-        const auto selectedRef = RE::Console::GetSelectedRef();
+        //const auto selectedRef = RE::Console::GetSelectedRef(); // The console object
+        
+        const auto selectedRef = GetSelectedRef();
 
         for (std::string item : command)
         {
@@ -258,11 +288,12 @@ void ExecuteConsoleCommand(std::vector<std::string> command)
             else
             {
                 logger::debug("Executing console command '{}'", item);
-                script->SetCommand(item);
-                script->CompileAndRun(selectedRef.get());
-            }
-        }  // End if/else
-    }      // End for
+                script->SetCommand(item); // Set the command to `item`
+                //script->CompileAndRun(selectedRef.get()); // Compile and run the console command
+                CompileAndRun(script, selectedRef.get());
+            } // End if/else
+        }  // End for
+    } // End if
 
     delete script;
 }  // End ExecuteConsoleCommand
@@ -281,10 +312,11 @@ void SendNotification(std::string message)
 static void MoveHorse(MoveType moveType)
 {
     // Overview of how the horse is moved for VR
-    /*   When "W" is recieved, the horseDirection will be set to the closest 8-degree direction that the horse is facing
-     *   All other commands will adjust the direction
+    /*   Keyboard movement in VR is based on world direction, not player direction.
+     *   When "W" is recieved, the horseDirection will be set to the closest 8-degree direction that the horse is facing.
+     *   All other commands will adjust the direction.
      *   When the horse stops moving, the direction will be recet to stationary.
-     *   If any user input is recieved, the directino is reset to stationary
+     *   If any user input is recieved, the direction is reset to stationary.
      */
 
     std::thread([moveType]() {
@@ -1292,13 +1324,24 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
         for (int i = 0; i < numSpells[0]; i++)
         {
             RE::SpellItem* spell = baseSpells[i];
+            std::string formID = "";
+
+            if (spell->GetFile()->IsLight())
+            {
+                formID = std::format("{:X}", spell->GetFormID());
+                formID = formID.substr(formID.length() - 6);  // Get last 6 characters
+            }
+            else
+            {
+                formID = std::format("{:X}", spell->GetLocalFormID());
+            }
 
             switch (spell->GetSpellType())
             {
                 case RE::MagicSystem::SpellType::kSpell:
                     if (getSpells)
                     {
-                        updateSpells += (std::string)spell->GetName() + '\t' + std::format("{:X}", spell->GetLocalFormID()) + '\t' + "spell" + '\t' +
+                        updateSpells += (std::string)spell->GetName() + '\t' + formID + '\t' + "spell" + '\t' +
                                         spell->GetFile(0)->GetFilename().data() + "\n";
                     }
                     break;
@@ -1308,7 +1351,7 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
                 case RE::MagicSystem::SpellType::kVoicePower:
                     if (getPowers)
                     {
-                        updatePowers += (std::string)spell->GetName() + '\t' + std::format("{:X}", spell->GetLocalFormID()) + '\t' + "power" + '\t' +
+                        updatePowers += (std::string)spell->GetName() + '\t' + formID + '\t' + "power" + '\t' +
                                         spell->GetFile(0)->GetFilename().data() + "\n";
                     }
                     break;
@@ -1319,13 +1362,24 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
         for (int i = 0; i < numSpells[1]; i++)
         {
             RE::SpellItem* spell = raceSpells[i];
+            std::string formID = "";
+
+            if (spell->GetFile()->IsLight())
+            {
+                formID = std::format("{:X}", spell->GetFormID());
+                formID = formID.substr(formID.length() - 6);  // Get last 6 characters
+            }
+            else
+            {
+                formID = std::format("{:X}", spell->GetLocalFormID());
+            }
 
             switch (spell->GetSpellType())
             {
                 case RE::MagicSystem::SpellType::kSpell:
                     if (getSpells)
                     {
-                        updateSpells += (std::string)spell->GetName() + '\t' + std::format("{:X}", spell->GetLocalFormID()) + '\t' + "spell" + '\t' +
+                        updateSpells += (std::string)spell->GetName() + '\t' + formID + '\t' + "spell" + '\t' +
                                         spell->GetFile(0)->GetFilename().data() + "\n";
                     }
                     break;
@@ -1335,7 +1389,7 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
                 case RE::MagicSystem::SpellType::kVoicePower:
                     if (getPowers)
                     {
-                        updatePowers += (std::string)spell->GetName() + '\t' + std::format("{:X}", spell->GetLocalFormID()) + '\t' + "power" + '\t' +
+                        updatePowers += (std::string)spell->GetName() + '\t' + formID + '\t' + "power" + '\t' +
                                         spell->GetFile(0)->GetFilename().data() + "\n";
                     }
                     break;
@@ -1345,12 +1399,31 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
         // Obtained Spells/Powers
         for (auto& spell : actor->GetActorRuntimeData().addedSpells)
         {
+            std::string formID = "";
+
+            if (spell->GetFile()->IsLight())
+            {
+                formID = std::format("{:X}", spell->GetFormID());
+                if (!formID.contains("FE"))
+                {
+                    formID = std::format("{:X}", spell->GetLocalFormID());
+                }
+                else
+                {
+                    formID = formID.substr(formID.length() - 6);  // Get last 6 characters
+                }
+            }
+            else
+            {
+                formID = std::format("{:X}", spell->GetLocalFormID());
+            }
+
             switch (spell->GetSpellType())
             {
                 case RE::MagicSystem::SpellType::kSpell:
                     if (getSpells)
                     {
-                        updateSpells += (std::string)spell->GetName() + '\t' + std::format("{:X}", spell->GetLocalFormID()) + '\t' + "spell" + '\t' +
+                        updateSpells += (std::string)spell->GetName() + '\t' + formID + '\t' + "spell" + '\t' +
                                         spell->GetFile(0)->GetFilename().data() + "\n";
                     }
                     break;
@@ -1360,7 +1433,8 @@ static std::string* GetActorMagic(RE::Actor* actor, MagicType type1, MagicType t
                 case RE::MagicSystem::SpellType::kVoicePower:
                     if (getPowers)
                     {
-                        updatePowers += (std::string)spell->GetName() + '\t' + std::format("{:X}", spell->GetLocalFormID()) + '\t' + "power" + '\t' +
+
+                        updatePowers += (std::string)spell->GetName() + '\t' + formID + '\t' + "power" + '\t' +
                                         spell->GetFile(0)->GetFilename().data() + "\n";
                     }
                     break;
