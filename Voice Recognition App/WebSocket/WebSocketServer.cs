@@ -97,7 +97,7 @@ namespace WebSocket
             //_serverPort = args.Client.Port; /// Broken as of 1/8/23
             _clientGuid = args.Client.Guid;
             string argsClient = args.Client.ToString();
-            ///Log.Debug($"Client connected via {_serverIp} on port {_serverPort} : {argsClient}", Log.LogType.Info);
+            Log.Debug($"Client connected via {_serverIp} on port {_serverPort} : {argsClient}", Log.LogType.Info);
             if (OnConnected != null) // Check that OnConnected is NOT null
                 OnConnected(null, args); // Raise OnConnected event
         }
@@ -111,7 +111,7 @@ namespace WebSocket
         {
             Guid disconnectedClientGuid = args.Client.Guid;
             _clientGuid = Guid.Empty;
-            ///Log.Debug($"Client disconnected: {disconnectedClientGuid}", Log.LogType.Info);
+            Log.Debug($"Client disconnected: {disconnectedClientGuid}", Log.LogType.Info);
             if (OnDisconnected != null) // Check that OnDisconnected is NOT null
                 OnDisconnected(null, args); // Raise OnDisconnected event
         }
@@ -124,7 +124,7 @@ namespace WebSocket
         private void MessageReceived(object sender, MessageReceivedEventArgs args)
         {
             string message = Encoding.UTF8.GetString(args.Data.Array.TakeWhile(x => x != 0).ToArray()); // Convert received byte array into string and remove 0 values
-            ///Log.Debug($"Received from client {args.Client.ToString()} : {message}", Log.LogType.Info);
+            Log.Debug($"Received from client {args.Client.ToString()} : {message}", Log.LogType.Info);
             ExMessageReceivedEventArgs messageArgs = new ExMessageReceivedEventArgs(); // Create new ExMessageReceivedEventArgs instance
             messageArgs.Message = message; // Transfer message information
             if (OnMessageReceived != null) // Check that OnMessageReceived is NOT null

@@ -400,13 +400,13 @@ namespace Voxima
             #region Websocket Port Configuration
 
             ConfigureWebsocketPort(); // Read initial info from and watch for changes in PortConfig.txt file (populated by SKSE plugin)
-            /*//debug1//*/
+            
             while (websocketPort == -1)
             {
                 Log.Debug("Waiting for websocket port configuration...", Log.LogType.Info);
                 Thread.Sleep(500);
             }
-            /*//debug2//*/
+            
 
             #endregion
 
@@ -451,7 +451,7 @@ namespace Voxima
 
             #region WebSocket Server Initialization
 
-            /*//debug1//*/
+            
             StartWebsocketServer(ip, websocketPort); // Initialize and launch websocket server
 
             ///LaunchPortConfigurator(); // Launch user interface (window) for specifying the target websocket server port
@@ -467,7 +467,7 @@ namespace Voxima
                 counter++;
                 Thread.Sleep(waitInterval); // Brief pause
             }
-            /*//debug2//*/
+            
 
 
             #endregion
@@ -481,10 +481,10 @@ namespace Voxima
 
             int i = 0, j = 0;
 
-            /*//debug1//*/
+            
             try
             {
-                /*//debug2//*/
+                
 
                 #region Application Processing Initialization
 
@@ -812,14 +812,14 @@ namespace Voxima
 
                 #endregion
 
-                /*//debug1//*/
+                
             }
             catch (Exception ex)
             {
                 Log.Debug($"Error during VOX application execution: {ex.Message}", Log.LogType.Error);
                 Log.Activity(ex.ToString());
             }
-            /*//debug2//*/
+            
 
             #region Application Clean Up
 
@@ -834,10 +834,10 @@ namespace Voxima
         /// </summary>
         static int FindCommands(string[] Location, string type, string morph, int k = 0)
         {
-            /*//debug1//*/
+            
             try
             {
-                /*//debug2//*/
+                
                 string currentCommand = "";
                 List<string> commandList = new List<string>();
                 morph = morph.ToLower();
@@ -944,10 +944,10 @@ namespace Voxima
                     }
                 }//End for
 
-                /*//debug1//*/
+                
             }
             catch (Exception EX) { Log.Activity("Error in \"FindCommands\":\n" + EX.ToString() + "\n", Log.LogType.Error); }
-            /*//debug2//*/
+            
             return k;
         }//End FindCommands
 
@@ -1306,10 +1306,10 @@ namespace Voxima
         /// </summary>
         static int ChangeCommands(string Morph)
         {
-            /*//debug1//*/
+            
             try
             {
-                /*//debug2//*/
+                
                 //int currentUpdateNum = updateNum;
                 double duration = 0;
                 int ItemsRemoved = 0,
@@ -1522,13 +1522,13 @@ namespace Voxima
                 Array.Sort(lines);
                 File.WriteAllLines(Log.logs.EnabledCommands, lines);
 
-                /*//debug1//*/
+                
             }
             catch (Exception ex)
             {
                 Log.Activity("Error in \"ChangeCommands\": " + ex.ToString() + "\n", Log.LogType.Error);
             }
-            /*//debug2//*/
+            
 
             return 1;
         }//End ChangeCommands
@@ -1538,10 +1538,10 @@ namespace Voxima
         /// </summary>
         static int LoadCommand(string item, Hashtable table)
         {
-            /*//debug1//*/
+            
             try
             {
-                /*//debug2//*/
+                
                 if (item == null || item == "")
                     return 0;
 
@@ -1611,7 +1611,10 @@ namespace Voxima
                                 break;
                         }
 
-                        recognizer.LoadGrammar(CreateGrammar(type + '\t' + current, "none", table, commandList));
+                        Grammar grammar = CreateGrammar(type + '\t' + current, "none", table, commandList);
+
+                        if (!recognizer.Grammars.Contains(grammar))
+                            recognizer.LoadGrammar(grammar);
 
                         return 1;
                     }
@@ -1632,13 +1635,13 @@ namespace Voxima
                     recognizer.LoadGrammar((Grammar)AllProgressionItems[Morph.ToLower() + " - " + current]);
                 }
 
-                /*//debug1//*/
+                
             }
             catch (Exception ex)
             {
                 Log.Activity("Error in \"LoadCommand\": " + ex.ToString() + "\n", Log.LogType.Error);
             }
-            /*//debug2//*/
+            
 
 
             return -1;
@@ -1649,10 +1652,10 @@ namespace Voxima
         /// </summary>
         static Grammar CreateGrammar(string item, string morph, Hashtable table, List<string> commandList)
         {
-            /*//debug1//*/
+            
             try
             {
-                /*//debug2//*/
+                
                 Choices Commands = new Choices();
                 Grammar grammar = new Grammar(new Choices("NA"));
 
@@ -1678,13 +1681,13 @@ namespace Voxima
 
 
                     default:
-                        id = '\t' + info[2].TrimStart('0', '0', '0', '0', '0', '0'); ;
-                        from = '\t' + info[4];
+                        id = info[2].TrimStart('0', '0', '0', '0', '0', '0'); ;
+                        from =  info[4];
 
                         if (info.Length >= 6)
-                            mod = '\t' + info[5];  //Moddifications suchs as specified hand and autocast
+                            mod = info[5];  //Moddifications suchs as specified hand and autocast
 
-                        item += id + '\t' + type + from + mod;
+                        item += '\t' + id + '\t' + type + '\t' + from + '\t' + mod;
                         break;
 
                 }
@@ -1697,6 +1700,33 @@ namespace Voxima
                     case "powers": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Shout\". not \"Shouts\""); break;
                     case "shouts": Log.Activity($"The item \"{name}\" from \"{from}\" has an invalid type. It needs to be \"Power\". not \"Powers\""); break;
                 }
+
+                List<string> tempList = new List<string>();
+                foreach (string command in commandList)
+                {
+                    string currentCommand = command.ToLower();
+
+                    //Handle duplicate Dovahzul commands from modded shouts.
+                    if ((allDovahzulCommands.Contains(currentCommand) || allVanillaShouts.Contains(currentCommand)) && from != "skyrim.esm" && from != "dawnguard.esm" && from != "dragonborn.esm")
+                    {
+                        if (!allDovahzulCommands.Contains("aav" + currentCommand))
+                        {
+                            currentCommand = "aav" + currentCommand;
+                        }
+                        else if (!allDovahzulCommands.Contains("gein" + currentCommand))
+                        {
+                            currentCommand = "gein" + currentCommand;
+                        }
+                        else
+                        {
+                            Log.Debug("ERROR: Cannot have more than 3 identical Dovahzul commands: " + currentCommand);
+                        }
+                    }
+
+                    tempList.Add(currentCommand);
+                }
+                commandList = tempList;
+
 
 
                 grammar = new Grammar(CreateCommands(item, commandList));
@@ -1778,14 +1808,14 @@ namespace Voxima
                     grammar = (Grammar)table[grammar.Name];
 
                 return grammar;
-                /*//debug1//*/
+                
             }
             catch (Exception EX)
             {
                 Log.Activity("Error in \"CreateGrammar\":\n" + EX.ToString() + "\n", Log.LogType.Error);
                 return new Grammar(new Choices("NA"));
             }
-            /*//debug2//*/
+            
 
         }//End CreateGrammar
 
@@ -1816,23 +1846,6 @@ namespace Voxima
             foreach (string item in items)
             {
                 command = item.ToLower();
-
-                //Handle duplicate Dovahzul commands from modded shouts.
-                if ((allDovahzulCommands.Contains(command) || allVanillaShouts.Contains(command)) && from != "skyrim.esm" && from != "dawnguard.esm" && from != "dragonborn.esm")
-                {
-                    if (!allDovahzulCommands.Contains("aav" + command))
-                    {
-                        command = "aav" + command;
-                    }
-                    else if (!allDovahzulCommands.Contains("gein" + command))
-                    {
-                        command = "gein" + command;
-                    }
-                    else
-                    {
-                        Log.Debug("ERROR: Cannot have more than 3 identical Dovahzul commands: " + item);
-                    }
-                }
 
                 //Correct Dovahzul Pronunciations
                 foreach (string dovahzulWord in command.Split(' '))
@@ -2639,10 +2652,10 @@ namespace Voxima
         /// <param name="e"></param>
         static void Recognizer_SpeechRecognized(object sender, SpeechRecognizedEventArgs e)
         {
-            /*//debug1//*/
+            
             try
             {
-                /*//debug2//*/
+                
 
                 ///throw new Exception("ex test");
                 //End recognition if the program isn't confident about what we said or it's from the FullDictation
@@ -2994,9 +3007,9 @@ namespace Voxima
                        commandNum;
                 }
 
-                /*//debug1//*/
+                
                 server.SendMessage(Text);
-                /*//debug2//*/
+                
 
 
                 if (!VocalPushToSpeak || VocalPushToSpeak_Val)
@@ -3006,10 +3019,10 @@ namespace Voxima
                     Log.Activity("    Info: \"" + id + '\t' + type + '\t' + from + "\" - " + DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff") + " (" + Math.Round((DateTime.Now - latency).TotalSeconds, 4) + "s)" + "\n");
                 else
                     Log.Activity("    Info: \"" + name + '\t' + id + '\t' + type + '\t' + from + "\" - " + DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff") + " (" + Math.Round((DateTime.Now - latency).TotalSeconds, 4) + "s)" + "\n");
-                /*//debug1//*/
+                
             }
             catch (Exception EX) { Log.Activity("Error in \"Recognizer_SpeechRecognized\":\n" + EX.ToString(), Log.LogType.Error); }
-            /*//debug2//*/
+            
         }//End SpeechRecognized
 
         #endregion

@@ -591,8 +591,8 @@ void ExecuteCommand(Command command)
                 for (; id.length() < 6; id = '0' + id)
                     ;
 
-                currentCommand.ID =
-                    std::stoi(std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id, nullptr, 16);
+                std::string fullFormID = std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id;
+                currentCommand.ID = static_cast<uint32_t>(std::stoul(fullFormID, nullptr, 16));  // Convert the FormID to a RE::FormID int value
 
                 RE::SpellItem* item = RE::TESForm::LookupByID<RE::SpellItem>(currentCommand.ID);
 
@@ -667,8 +667,6 @@ void ExecuteCommand(Command command)
                     ;
 
                 std::string fullFormID = std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id;
-
-
                 currentCommand.ID = static_cast<uint32_t>(std::stoul(fullFormID, nullptr, 16)); // Convert the FormID to a RE::FormID int value
 
                 RE::SpellItem* item = RE::TESForm::LookupByID<RE::SpellItem>(currentCommand.ID);
@@ -697,8 +695,8 @@ void ExecuteCommand(Command command)
                 for (; id.length() < 6; id = '0' + id)
                     ;
 
-                currentCommand.ID =
-                    std::stoi(std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id, nullptr, 16);
+                std::string fullFormID = std::format("{:X}", RE::TESDataHandler::GetSingleton()->GetModIndex(currentCommand.fileName).value()) + id;
+                currentCommand.ID = static_cast<uint32_t>(std::stoul(fullFormID, nullptr, 16));  // Convert the FormID to a RE::FormID int value
 
                 RE::TESShout* item = RE::TESForm::LookupByID<RE::TESShout>(currentCommand.ID);
 

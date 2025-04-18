@@ -189,7 +189,15 @@ void CompileAndRunImpl(RE::Script* script, RE::ScriptCompiler* compiler, RE::COM
 void CompileAndRun(RE::Script* script, RE::TESObjectREFR* targetRef, RE::COMPILER_NAME name)
 {
     RE::ScriptCompiler compiler;
-    CompileAndRunImpl(script, &compiler, name, targetRef);
+
+    if (REL::Module::IsVR())
+    {
+        script->CompileAndRun(targetRef);  // Built-in functionality that does not work for AE, but does for VR. It is more stable
+    }
+    else
+    {
+        CompileAndRunImpl(script, &compiler, name, targetRef);
+    }
 }
 
 // Execute Console Commands
@@ -200,9 +208,12 @@ void ExecuteConsoleCommand(std::vector<std::string> command)
     const auto script = scriptFactory ? scriptFactory->Create() : nullptr;
     if (script)
     {
-        //const auto selectedRef = RE::Console::GetSelectedRef(); // The console object
+        RE::TESObjectREFR* selectedRef;
         
-        const auto selectedRef = GetSelectedRef();
+        if (REL::Module::IsVR())
+            selectedRef = (RE::Console::GetSelectedRef()).get();  // The console object
+        else
+            selectedRef = (GetSelectedRef()).get();  // Used the workaround console object
 
         for (std::string item : command)
         {
@@ -289,8 +300,8 @@ void ExecuteConsoleCommand(std::vector<std::string> command)
             {
                 logger::debug("Executing console command '{}'", item);
                 script->SetCommand(item); // Set the command to `item`
-                //script->CompileAndRun(selectedRef.get()); // Compile and run the console command
-                CompileAndRun(script, selectedRef.get());
+
+                CompileAndRun(script, selectedRef);
             } // End if/else
         }  // End for
     } // End if

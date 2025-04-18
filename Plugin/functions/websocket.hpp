@@ -40,10 +40,8 @@ void SendMessage(const string& messageText)
             else
                 logger::info("Sent message: {}", messageText);
 
-            // if (ec)  // Check if error occurred while sending messageText
-            //     logger::info("Error while sending {} message: {}", messageText, ec.message());
-            // else
-            //     logger::info("Sent message: {}", messageText);
+            if (ec)  // Check if error occurred while sending messageText
+                logger::info("Error while sending {} message: {}", messageText, ec.message());
         }
         else
             logger::error("Cannot send message \"{}.\" Client not connected.", messageText);
